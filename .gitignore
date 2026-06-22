@@ -1,0 +1,12 @@
+.env
+.venv
+__pycache__/
+full_tree.txt
+/alembic/env
+.env.*
+__pycache__/
+*.pyc
+.pytest_cache/
+.docker/
+implemnentingfile.md
+image.png

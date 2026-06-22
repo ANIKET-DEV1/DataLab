@@ -1,0 +1,74 @@
+# Create all routes include login and all:
+    - JWT Auth cookie based 
+    -login
+    -register
+    -password reset
+    -email-verify
+
+#features:
+    -Add File (pdf ,csv, xlxs)
+    -visualized 
+    -perform operation(like remove null, remove duplicate, fillna , get info , description ,head ,tail , random )
+    -perform little machine learning algorithm:
+            - linear 
+            - log
+            - decision tree
+            get accuracy.
+    more :
+     tranformation
+     scaling 
+     feature engineering 
+     encoding
+Decide this :
+
+backend/
+└── app/
+    ├── main.py               # Instantiates FastAPI, registers CORS, lifespan, and routers
+    │
+    ├── core/
+    │   ├── __init__.py
+    │   ├── config.py         # Loads .env configurations via Pydantic BaseSettings
+    │   └── mail.py           # Configures FastAPI-Mail SMTP client for background alerts 
+    │
+    ├── database/
+    │   ├── __init__.py
+    │   ├── session.py        # Initializes create_async_engine and async_sessionmaker 
+    │   └── base.py           # Imports Declarative Base for structural Alembic autogeneration 
+    │
+    ├── models/
+    │   ├── __init__.py
+    │   ├── user.py           # Table tracking UUID, Email, HashedPassword, is_verified, is_active
+    │   └── dataset.py        # Table tracking Dataset UUID, original_name, stored_path, owner_id
+    │
+    ├── schemas/
+    │   ├── __init__.py
+    │   ├── auth.py           # Pydantic models for UserRegister, UserLogin, PasswordReset 
+    │   └── dataset.py        # Pydantic models for OperationPayload, ModelTrainConfig
+    │
+    ├── repository/
+    │   ├── __init__.py
+    │   ├── user.py           # CRUD commands for looking up emails, updating passwords, verifying hashes
+    │   └── dataset.py        # CRUD commands for tracking newly uploaded file paths and assignments
+    │
+    ├── service/
+    │   ├── __init__.py
+    │   ├── data_engine.py    # Direct Pandas implementation (dropna, fillna, info, describe) 
+    │   └── ml_engine.py      # Direct Scikit-learn code (StandardScaler, Linear, Logistic, Tree) 
+    │
+    ├── routing/
+    │   ├── __init__.py
+    │   ├── deps.py           # Reusable dependencies (get_async_db, get_current_user_via_cookie)
+    │   ├── auth.py           # Routes for /login (set cookie), /register, /verify-email, /reset-password
+    │   ├── datasets.py       # Handles raw binary file uploads stream directly to safe disk storage
+    │   ├── process.py        # Endpoints triggering Pandas mutations via the data engine service
+    │   └── analytics.py      # Endpoints triggering Scikit-learn pipeline fits and returning score accuracies
+    │
+    ├── security/
+    │   ├── __init__.py
+    │   └── auth_handler.py   # Methods for hashing passwords, checking bcrypt, and signing/decoding cookies 
+    │
+    └── utils/
+        ├── __init__.py
+        └── email_templates.py # Stores raw HTML markup configurations for password recovery and verification alerts
+
+![alt text](image.png)
