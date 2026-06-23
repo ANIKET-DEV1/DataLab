@@ -1,8 +1,8 @@
-"""initial_schema_setup
+"""total_fresh_baseline
 
-Revision ID: 75e5c463c2f3
-Revises: 37f121f5f50a
-Create Date: 2026-06-22 15:20:33.952842
+Revision ID: 6faaa5c43e9a
+Revises: 
+Create Date: 2026-06-23 19:31:51.049518
 
 """
 from typing import Sequence, Union
@@ -12,8 +12,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '75e5c463c2f3'
-down_revision: Union[str, Sequence[str], None] = '37f121f5f50a'
+revision: str = '6faaa5c43e9a'
+down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -26,7 +26,10 @@ def upgrade() -> None:
     sa.Column('username', sa.String(length=20), nullable=False),
     sa.Column('email', sa.Text(), nullable=False),
     sa.Column('password', sa.Text(), nullable=False),
-    sa.Column('verified_status', sa.Boolean(), server_default='false', nullable=False),
+    sa.Column('is_verified', sa.Boolean(), server_default='false', nullable=False),
+    sa.Column('is_active', sa.Boolean(), server_default='true', nullable=False),
+    sa.Column('storage_used_bytes', sa.Integer(), server_default='0', nullable=False),
+    sa.Column('storage_limit_bytes', sa.Integer(), server_default='209715200', nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
@@ -37,6 +40,9 @@ def upgrade() -> None:
     sa.Column('owner_id', sa.UUID(), nullable=False),
     sa.Column('original_name', sa.String(length=255), nullable=False),
     sa.Column('file_path', sa.String(length=512), nullable=False),
+    sa.Column('file_type', sa.Enum('csv', 'json', 'xlsx', name='file_type_enum'), nullable=False),
+    sa.Column('file_size_bytes', sa.Integer(), nullable=False),
+    sa.Column('last_accessed_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.Column('created_at', sa.DateTime(), server_default=sa.text('now()'), nullable=False),
     sa.ForeignKeyConstraint(['owner_id'], ['users.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')

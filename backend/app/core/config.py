@@ -6,6 +6,7 @@ from pathlib import Path
 class AppConfig(BaseSettings):
     app_name: str
     base_url:str
+    IN_PRODUCTION:bool=False
     DATABASE_URL: SecretStr
     secret_key: SecretStr
     algorithms: str
