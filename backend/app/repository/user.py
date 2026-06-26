@@ -90,9 +90,9 @@ async def update_verify_email(db:AsyncSession,user_id:uuid.UUID):
         user = result.scalar_one_or_none()
         if not user:
             raise HTTPException(status_code=404, detail="User account not found.")
-        if user.verified_status:
+        if user.is_verified:
            raise HTTPException(status_code=status.HTTP_201_CREATED, detail="Already Verified!")
-        user.verified_status = True
+        user.is_verified = True
         await db.commit()
         return user
     

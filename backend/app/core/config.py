@@ -6,7 +6,7 @@ from pathlib import Path
 class AppConfig(BaseSettings):
     app_name: str
     base_url:str
-    IN_PRODUCTION:bool=False
+    ENV:str 
     DATABASE_URL: SecretStr
     secret_key: SecretStr
     algorithms: str
@@ -16,7 +16,6 @@ class AppConfig(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 APP_DIR=Path(__file__).resolve().parent.parent
-
 
 class Notification_config(BaseSettings):
     MAIL_USERNAME: str
@@ -42,3 +41,13 @@ def get_config():
 @lru_cache
 def mail_config():
     return Notification_config()
+
+def get_storage_config():
+    config = get_config()
+    local_storage_path = APP_DIR/"storage"
+    if config.ENV.upper() == "DEVELOPMENT":
+        local_storage_path.mkdir(parents=True, exist_ok=True)  
+    return {
+        "ENV": config.ENV.upper(),
+        "LOCAL_STORAGE_DIR": local_storage_path
+    }

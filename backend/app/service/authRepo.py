@@ -17,10 +17,10 @@ class for_Auth(BaseRepository,NotificationService):
                 raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST ,detail="Invalid Credential")
         token_payload = {
             "sub": str(user.id),
-            "verified":user.verified_status
+            "verified":user.is_verified
         }
         access_token= jwthandler.create_access_token(data=token_payload)
-        if not user.verified_status:
+        if not user.is_verified:
             if not await is_mail_send(user.email):
                 email_verify_token = email_verification.generate_token(user)
 
