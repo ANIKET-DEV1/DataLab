@@ -1,74 +1,149 @@
-# Create all routes include login and all:
-    - JWT Auth cookie based 
-    -login
-    -register
-    -password reset
-    -email-verify
+# DataLab Project Implementation Summary
 
-#features:
-    -Add File (pdf ,csv, xlxs)
-    -visualized 
-    -perform operation(like remove null, remove duplicate, fillna , get info , description ,head ,tail , random )
-    -perform little machine learning algorithm:
-            - linear 
-            - log
-            - decision tree
-            get accuracy.
-    more :
-     tranformation
-     scaling 
-     feature engineering 
-     encoding
-Decide this :
+## What this project currently implements
+
+### Authentication and user management
+- JWT-based authentication using HTTP-only cookies
+- Login route: `/auth/login`
+- Register route: `/auth/register`
+- Email verification route: `/auth/verify-email`
+- Password reset route: `/auth/password-reset`
+- Password reset verification route: `/auth/password-reset-verify`
+- Logout route: `/auth/logout`
+- Protected routes use cookie-based auth via dependency injection
+
+### Dataset management
+- Upload datasets through `/datasets/`
+- List user datasets through `/datasets/`
+- Delete datasets through `/datasets/{dataset_id}`
+- Stored files are saved locally in the project storage directory
+- Dataset metadata is stored in the database
+- Supported file types: CSV, JSON, XLSX
+
+### Frontend integration
+- FastAPI Jinja templates are used for HTML pages
+- Static assets are served from `/static`
+- Template routes exist for:
+  - `/` dashboard
+  - `/login`
+  - `/register`
+  - `/upload`
+  - `/preview`
+  - `/ml`
+  - `/visualize`
+  - `/clean`
+- Basic frontend JS fetches datasets from the API and renders them into the page
+- Login redirects back to the intended page via the `next` query parameter
+
+## Current project structure
 
 backend/
 └── app/
-    ├── main.py               # Instantiates FastAPI, registers CORS, lifespan, and routers
+    ├── app.py                # Main FastAPI app, template routes, static files, router registration
     │
     ├── core/
     │   ├── __init__.py
-    │   ├── config.py         # Loads .env configurations via Pydantic BaseSettings
-    │   └── mail.py           # Configures FastAPI-Mail SMTP client for background alerts 
+    │   ├── config.py         # Loads settings from .env using Pydantic BaseSettings
+    │   └── mail.py           # SMTP/mail notifications for email features
     │
     ├── database/
     │   ├── __init__.py
-    │   ├── session.py        # Initializes create_async_engine and async_sessionmaker 
-    │   └── base.py           # Imports Declarative Base for structural Alembic autogeneration 
+    │   ├── session.py        # Async DB engine and session factory
+    │   └── base.py           # SQLAlchemy declarative base
     │
     ├── models/
     │   ├── __init__.py
-    │   ├── user.py           # Table tracking UUID, Email, HashedPassword, is_verified, is_active
-    │   └── dataset.py        # Table tracking Dataset UUID, original_name, stored_path, owner_id
+    │   ├── models.py         # User and Dataset ORM models
+    │   └── __pycache__
     │
-    ├── schemas/
+    ├── router/
     │   ├── __init__.py
-    │   ├── auth.py           # Pydantic models for UserRegister, UserLogin, PasswordReset 
-    │   └── dataset.py        # Pydantic models for OperationPayload, ModelTrainConfig
+    │   ├── auth.py           # Auth endpoints and cookie handling
+    │   ├── dataset.py        # Dataset upload/list/delete routes
+    │   ├── deps.py           # Auth dependencies for current user lookup
+    │   ├── process.py        # Present but currently empty for future data operations
+    │   └── analytics.py      # Present but currently empty for future ML/analytics endpoints
     │
     ├── repository/
     │   ├── __init__.py
-    │   ├── user.py           # CRUD commands for looking up emails, updating passwords, verifying hashes
-    │   └── dataset.py        # CRUD commands for tracking newly uploaded file paths and assignments
+    │   ├── user.py           # CRUD/auth logic for user registration, login, verification, password reset
+    │   └── dataset.py        # Dataset persistence and storage operations
     │
-    ├── service/
+    ├── schemas/
     │   ├── __init__.py
-    │   ├── data_engine.py    # Direct Pandas implementation (dropna, fillna, info, describe) 
-    │   └── ml_engine.py      # Direct Scikit-learn code (StandardScaler, Linear, Logistic, Tree) 
-    │
-    ├── routing/
-    │   ├── __init__.py
-    │   ├── deps.py           # Reusable dependencies (get_async_db, get_current_user_via_cookie)
-    │   ├── auth.py           # Routes for /login (set cookie), /register, /verify-email, /reset-password
-    │   ├── datasets.py       # Handles raw binary file uploads stream directly to safe disk storage
-    │   ├── process.py        # Endpoints triggering Pandas mutations via the data engine service
-    │   └── analytics.py      # Endpoints triggering Scikit-learn pipeline fits and returning score accuracies
+    │   ├── auth.py           # Pydantic schemas for auth and password reset
+    │   └── token.py          # Token payload schema
     │
     ├── security/
     │   ├── __init__.py
-    │   └── auth_handler.py   # Methods for hashing passwords, checking bcrypt, and signing/decoding cookies 
+    │   ├── auth_handler.py   # Password hashing and verification
+    │   └── jwt_handler.py    # JWT creation and verification for cookie auth
+    │
+    ├── service/
+    │   ├── __init__.py
+    │   ├── authRepo.py       # Business logic for auth flows and email sending
+    │   ├── base.py           # Repository base class
+    │   ├── data_engine.py     # Placeholder for pandas-based data processing
+    │   └── ml_engine.py       # Placeholder for machine learning operations
+    │
+    ├── storage/              # Local uploaded file storage
+    │   └── <user-id>/
     │
     └── utils/
         ├── __init__.py
-        └── email_templates.py # Stores raw HTML markup configurations for password recovery and verification alerts
+        ├── email_templates.py
+        ├── email_verification.py
+        └── password_reset.py
 
-![alt text](image.png)
+frontend/
+├── static/
+│   ├── css/
+│   │   └── style.css
+│   └── js/
+│       ├── login.js
+│       └── script.js
+└── templates/
+    ├── clean.html
+    ├── index.html
+    ├── login.html
+    ├── ml.html
+    ├── preview.html
+    ├── register.html
+    ├── upload.html
+    ├── visualize.html
+
+## Current backend dependencies
+The project uses:
+- FastAPI
+- SQLAlchemy (async)
+- Pydantic + Pydantic Settings
+- JWT via python-jose
+- Password hashing via bcrypt/passlib
+- Jinja2 templates
+- Python multipart for file uploads
+- Pandas (installed, but data processing routes are still placeholders)
+- Optional email/smtp support for verification and password reset
+
+## Pending / future features
+The following features are planned and partially scaffolded:
+- Data processing operations such as:
+  - drop null rows/columns
+  - remove duplicates
+  - fill missing values
+  - describe / info / head / tail / random sample
+- Data transformation and feature engineering
+- Scaling / encoding
+- Machine learning endpoints for:
+  - linear regression
+  - logistic regression
+  - decision tree
+  - accuracy reporting
+- More polished frontend UI and form handling
+- Better file preview and visualization experience
+
+## Important implementation notes
+- The app is already structured around a modular FastAPI architecture.
+- Authentication is cookie-based and works through backend dependencies.
+- File upload and dataset tracking are already implemented.
+- Data processing and ML endpoints are scaffolded but not yet fully implemented.
+- The project is ready for the next step: building the processing and analytics APIs and connecting them to the frontend templates.

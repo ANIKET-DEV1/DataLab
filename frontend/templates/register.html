@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+</head>
+<body>
+    <form id="Register_form">
+        <label for="username">Username:</label>
+        <input type="text" id="username"><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email"><br>
+        <label for="password">password:</label>
+        <input type="password" id="password"><br>
+        <label for="confirm_password">confirm_password:</label>
+        <input type="password" id="confirm_password"><br>
+        <button type="submit">Register</button>
+        <p id="message" style="color: red;"></p>
+    </form>
+    <script>
+        const form=document.querySelector("#Register_form")
+        form.addEventListener("submit",(evt)=>{
+            error=[]
+            const username=document.getElementById("username").value
+            const email=document.getElementById("email").value
+            const password=document.getElementById("password").value
+            const confirm_password=document.getElementById("confirm_password").value
+            const message=document.getElementById("message")
+            if (length(username) <= 2 ){
+                error.append("username must be greater than 2")
+            }
+            else if (length(password)<8 || length(confirm_password)<8){
+                error.append("password must be greater than 8")
+            }
+            
+
+        })
+    </script>
+</body>
+</html>

@@ -1,24 +1,15 @@
-<!-- templates/base.html -->
-
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataLab </title>
-    <link rel="stylesheet" href="/frontend/static/css/style.css">
+    <title>DataLab</title>
 </head>
 <body>
-
-    <h1> {{ message }} </h1>
-
-   <a href="login.html">Login</a>
-
-    <footer>
-        <p>&copy; 2025 DataLab | Made by Aniket</p>
-    </footer>
-    <script src="/frontend/static/js/script.js"></script>
-
+    <h1>Hello {{ username }}</h1>
+    <p><a href="/upload">Upload Dataset</a> | <a href="/preview">Preview</a> | <a href="/visualize">Visualize</a> | <a href="/ml">ML</a> | <a href="/clean">Clean</a></p>
+    <button id="logoutBtn" type="button">Logout</button>
+    <div id="datasets">Loading datasets...</div>
+    <script src="/static/js/script.js"></script>
 </body>
 </html>

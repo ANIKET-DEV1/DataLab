@@ -2,18 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
 </head>
 <body>
-    <form method="post">
-        <label>username</label>
-        <input type="text" name="username">
-        <br>
-        <label>Password</label>
-        <input type="password" name="password">
-        <input type="submit">
+
+    <h2>Login Form</h2>
+    <form id="loginForm">
+        <input type="text" id="username" placeholder="Username" required><br><br>
+        <input type="password" id="password" placeholder="Password" required><br><br>
+        <button type="submit">Log In</button>
     </form>
-    <script src="/frontend/static/js/script.js"
+
+    <p id="message" style="color: red;"></p>
+
+    <script>
+        const nextUrl = new URLSearchParams(window.location.search).get('next') || '/';
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+            const messageElement = document.getElementById('message');
+
+            try {
+                const response = await fetch('/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: usernameInput,
+                        password: passwordInput
+                    }),
+                    credentials: 'same-origin'
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    messageElement.style.color = 'green';
+                    messageElement.innerText = result.message || 'Login successful';
+                    window.location.href = nextUrl;
+                } else {
+                    messageElement.style.color = 'red';
+                    messageElement.innerText = result.detail || 'Login failed';
+                }
+
+            } catch (error) {
+                console.error('Error logging in:', error);
+                messageElement.style.color = 'red';
+                messageElement.innerText = 'Something went wrong. Please try again.';
+            }
+        });
+    </script>
 </body>
 </html>
