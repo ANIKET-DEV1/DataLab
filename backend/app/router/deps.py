@@ -1,12 +1,16 @@
 # Dependices like get user and all.
+from pathlib import Path
 from fastapi import Depends, HTTPException, Request, status
+
 from ..security.jwt_handler import verify_token
 import uuid
 from ..database.redis import is_jti_in_blacklist
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..database.session import get_db
-from ..models.models import User
+from pathlib import Path
+
+from ..models.models import User,Dataset
 async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> User:
     token = request.cookies.get("access_token")
     if not token:
@@ -37,6 +41,7 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
     return user
 
 async def get_current_user_with_jti(request: Request, db: AsyncSession = Depends(get_db)) :
+
     token = request.cookies.get("access_token")
     if not token:
         raise HTTPException(
@@ -64,3 +69,28 @@ async def get_current_user_with_jti(request: Request, db: AsyncSession = Depends
         )
         
     return token_data
+
+async def get_verified_user_dataset(
+        dataset_id: uuid.UUID,
+        current_user: User = Depends(get_current_user),
+        db: AsyncSession = Depends(get_db)
+        ) -> Dataset:
+        
+        result = await db.execute(
+            select(Dataset).where(
+                Dataset.owner_id == current_user.id,
+                Dataset.id==dataset_id
+                )
+        )
+        dataset= result.scalar_one_or_none()
+        
+        if not dataset:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Dataset not found or you do not have permission to access it."
+            )
+            
+        return dataset
+
+  
+APP_DIR = Path(__file__).resolve().parent.parent.parent.parent

@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  const container = document.getElementById('datasets');
-  const logoutBtn = document.getElementById('logoutBtn');
+  // Load datasets on page load
+  await loadDatasets();
 
+  // Logout button
+  const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
       try {
@@ -21,42 +23,112 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   }
+});
 
-  if (!container) return;
-
-  container.textContent = 'Loading datasets...';
-
+async function loadDatasets() {
   try {
-    const res = await fetch('/datasets', { credentials: 'same-origin' });
+    const datasetsContainer = document.getElementById('datasets');
+    const loadingDiv = document.getElementById('loading');
 
-    if (res.status === 401) {
-      window.location.href = '/login?next=/';
-      return;
-    }
-
-    if (!res.ok) {
-      container.textContent = 'Failed to load datasets';
-      console.error('Fetch error', res.status, await res.text());
-      return;
-    }
-
-    const data = await res.json();
-    if (!Array.isArray(data) || data.length === 0) {
-      container.textContent = 'No datasets available.';
-      return;
-    }
-
-    const ul = document.createElement('ul');
-    data.forEach(d => {
-      const li = document.createElement('li');
-      li.innerHTML = `<strong>${d.original_name}</strong> (${d.file_type}) - ${d.file_size_mb} MB`;
-      ul.appendChild(li);
+    console.log('Fetching datasets from /datasets/list...');
+    
+    const response = await fetch('/datasets/list', {
+      method: 'GET',
+      credentials: 'same-origin'
     });
 
-    container.innerHTML = '';
-    container.appendChild(ul);
-  } catch (err) {
-    container.textContent = 'Failed to load datasets';
-    console.error(err);
+    console.log('Response status:', response.status);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Server response:', errorText);
+      throw new Error(`Failed to load datasets: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Datasets data received:', data);
+    
+    // Set username
+    const usernameSpan = document.getElementById('username');
+    if (usernameSpan) {
+      usernameSpan.textContent = data.username;
+    }
+
+    // Hide loading message
+    if (loadingDiv) {
+      loadingDiv.style.display = 'none';
+    }
+
+    // Display datasets
+    if (!data.datasets || data.datasets.length === 0) {
+      console.log('No datasets found');
+      datasetsContainer.innerHTML = '<div class="empty-message">No datasets yet. <a href="/upload">Upload one</a></div>';
+      return;
+    }
+
+    console.log('Found', data.datasets.length, 'datasets');
+
+    // Create dataset cards
+    datasetsContainer.innerHTML = data.datasets.map(dataset => `
+      <div class="dataset-card" id="${dataset.id}">
+        <h3>${escapeHtml(dataset.original_name)}</h3>
+        <p><strong>File Type:</strong> ${escapeHtml(dataset.file_type)}</p>
+        <p><strong>Uploaded:</strong> ${new Date(dataset.created_at).toLocaleDateString()}</p>
+        <p><strong>Size:</strong> ${(dataset.file_size_bytes / 1024).toFixed(2)} KB</p>
+        <p><strong>Last Accessed:</strong> ${new Date(dataset.last_accessed_at).toLocaleDateString()}</p>
+        <button value="delete" class="del">Delete</button>
+        <button value="Select" class="select">Select<button>
+      </div>
+    `).join('');
+
+  } catch (error) {
+    console.error('Error loading datasets:', error);
+    const datasetsContainer = document.getElementById('datasets');
+    const loadingDiv = document.getElementById('loading');
+    
+    if (loadingDiv) {
+      loadingDiv.style.display = 'none';
+    }
+    
+    datasetsContainer.innerHTML = '<div class="empty-message" style="color: red;">Error loading datasets: ' + error.message + '</div>';
   }
+}
+
+const getdel=document.getElementsByClassName("del")
+getdel.addEventListener('click',(event)=>{
+   if (window.confirm("Do you want to delete?")) {
+    try{
+      const dataid=event.target.getAttribute('id')
+        response=fetch("datasets/delete",{
+          method:"DELETE",
+          credentials:'same-origin',
+          body:JSON.stringify({
+            dataset_id:dataid
+          })
+        })
+        if(!response.ok){
+          alert("Server Error")
+        }
+        else{
+          window.location.href("/")
+        }
+    }
+    catch{
+      alert("We couldnt delete")
+    }
+  } else {
+     alert("Glad you're staying!");
+  }
+
 });
+
+function escapeHtml(text) {
+  const map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+  return String(text).replace(/[&<>"']/g, m => map[m]);
+}

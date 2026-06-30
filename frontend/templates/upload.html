@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form id="uplaod_file">
+        <label for="File">File</label>
+        <input type="file" id="file">
+        <button value="submit">Upload</button>
+    </form>
+    
+    <script>
+        const form= document.getElementById("uplaod_file")
+        form.addEventListener('submit',async(evt)=>{
+            evt.preventDefault()
+            const fileInput = document.getElementById('file');
+            if (fileInput.files.length === 0) return alert("Please select a file");
+
+            const formData = new FormData();
+
+            formData.append("file", fileInput.files[0]);
+            try{
+                const response=await fetch("/datasets/upload",{
+                method: 'POST',
+                body: formData,
+                credentials: 'same-origin'
+            });
+            const result = await response.json();
+                if(!response.ok){
+                    alert(result.detail)
+                }
+                else{
+                    window.location.href = "/";
+                }
+            }
+            catch{
+                alert("Error Occured")
+            }
+        }); 
+    </script>
+</body>
+</html>

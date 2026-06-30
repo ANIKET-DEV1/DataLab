@@ -5,18 +5,22 @@ import aiofiles
 from pathlib import Path
 from uuid import UUID
 
-from fastapi import UploadFile, HTTPException, status
+from fastapi import UploadFile, HTTPException, status,Depends
+
+from backend.app.schemas.dataset import DatasetResponse
 from ..models.models import Dataset
 from ..models.models import User
 from ..models.models import FileType
 from ..core.config import get_storage_config
 from ..database.session import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.orm import query
+from ..router.deps import get_current_user
 
 
 
 ALLOWED_EXTENSIONS = {FileType.csv.value, FileType.xlsx.value, FileType.json.value}
-MAX_CHUNK = 1024 * 1024  # 1 MB chunks
+MAX_CHUNK = 1024 * 1024  
 
 
 class DatasetRepository:
@@ -25,6 +29,7 @@ class DatasetRepository:
         self.db = db
         self.config = get_storage_config()
 
+    
     async def add_dataset(self, file: UploadFile, current_user: User) -> dict:
 
         parts = (file.filename or "").rsplit(".", 1)
@@ -110,18 +115,22 @@ class DatasetRepository:
         # return key
 
     async def _cleanup_on_failure(self, file_path: str, env: str) -> None:
-        if env == "development":
+        if env == "DEVELOPMENT":
             if os.path.exists(file_path):
                 os.remove(file_path)
         else:
             pass  # add S3 delete here if needed
 
-    async def get_user_datasets(self, user_id: UUID) -> list:
+    async def get_user_datasets(self, user_id: UUID) -> list[DatasetResponse]:
         from sqlalchemy import select
         result = await self.db.execute(
             select(Dataset).where(Dataset.owner_id == user_id)
         )
-        return result.scalars().all()
+        datasets = result.scalars().all()
+        if not datasets:
+            return []
+        return [DatasetResponse.model_validate(d) for d in datasets]
+    
 
     async def delete_dataset(self, dataset_id: UUID, current_user: User) -> dict:
         result = await self.db.execute(
@@ -141,9 +150,11 @@ class DatasetRepository:
 
         return {"message": f"'{dataset.original_name}' deleted. Storage freed."}
 
-    async def get_dataset_preview(self, dataset_id: UUID, current_user: User) -> dict:
+
+    async def get_dataset_preview(self, dataset_id: UUID, owner_id: UUID) -> dict:
         result = await self.db.execute(
-            select(Dataset).where(Dataset.id == dataset_id, Dataset.owner_id == current_user.id)
+            select(Dataset).where(Dataset.id == dataset_id, 
+                                  Dataset.owner_id == owner_id)
         )
         dataset = result.scalar_one_or_none()
 
@@ -184,3 +195,7 @@ class DatasetRepository:
             }
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+        
+
+    #deps
+    

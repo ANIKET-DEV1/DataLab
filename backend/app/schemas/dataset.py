@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field, SecretStr
 import uuid
+from uuid import UUID
 from fastapi import HTTPException,status
 from datetime import datetime
 from ..models.models import Dataset,FileType
@@ -11,10 +12,11 @@ class Dataset(BaseModel):
     file_type:FileType=Field(...)
     
 class DatasetResponse(BaseSchema):
+    id: UUID
     original_name: str 
     file_path:str
     file_type:FileType
-    file_size_byte:int
+    file_size_bytes:int
     last_accessed_at:datetime
     created_at:datetime
 

@@ -4,12 +4,92 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DataLab</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .nav-links {
+            margin: 10px 0;
+        }
+        .nav-links a {
+            margin-right: 15px;
+            text-decoration: none;
+            color: #007bff;
+        }
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        #logoutBtn {
+            padding: 8px 16px;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #logoutBtn:hover {
+            background-color: #c82333;
+        }
+        #datasets {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .dataset-card {
+            background-color: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .dataset-card h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        .dataset-card p {
+            margin: 5px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        .empty-message {
+            text-align: center;
+            color: #999;
+            padding: 40px;
+            font-size: 16px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Hello {{ username }}</h1>
-    <p><a href="/upload">Upload Dataset</a> | <a href="/preview">Preview</a> | <a href="/visualize">Visualize</a> | <a href="/ml">ML</a> | <a href="/clean">Clean</a></p>
-    <button id="logoutBtn" type="button">Logout</button>
-    <div id="datasets">Loading datasets...</div>
+    <div class="header">
+        <h1>Hello <span id="username"></span></h1>
+        <button id="logoutBtn" type="button">Logout</button>
+    </div>
+    
+    <div class="nav-links">
+        <a href="/upload">Upload Dataset</a> | 
+        <a href="/preview">Preview</a> | 
+        <a href="/visualize">Visualize</a> | 
+        <a href="/ml">ML</a> | 
+        <a href="/clean">Clean</a>
+    </div>
+
+    <h2>Your Datasets</h2>
+    <div id="loading" class="loading">Loading datasets...</div>
+    <div id="datasets"></div>
+    
     <script src="/static/js/script.js"></script>
 </body>
 </html>
