@@ -94,7 +94,7 @@ async function loadDatasets() {
   }
 }
 
-const getdel=document.getElementsByClassName("del")
+const getdel=document.getElementsByClassName(".del")
 getdel.addEventListener('click',(event)=>{
    if (window.confirm("Do you want to delete?")) {
     try{
