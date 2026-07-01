@@ -74,7 +74,6 @@ async def delete_dataset(
     current_user: User = Depends(get_current_user),
     repo: DatasetRepository = Depends(get_repo),
 ):
-    """Delete a dataset by ID (owner only)."""
     return await repo.delete_dataset(dataset_id, current_user)
 
 @router.get("/preview")

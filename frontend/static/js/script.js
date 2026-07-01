@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
-  // Load datasets on page load
   await loadDatasets();
 
-  // Logout button
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
@@ -70,13 +68,13 @@ async function loadDatasets() {
 
     // Create dataset cards
     datasetsContainer.innerHTML = data.datasets.map(dataset => `
-      <div class="dataset-card" id="${dataset.id}">
+      <div class="dataset-card">
         <h3>${escapeHtml(dataset.original_name)}</h3>
         <p><strong>File Type:</strong> ${escapeHtml(dataset.file_type)}</p>
         <p><strong>Uploaded:</strong> ${new Date(dataset.created_at).toLocaleDateString()}</p>
         <p><strong>Size:</strong> ${(dataset.file_size_bytes / 1024).toFixed(2)} KB</p>
         <p><strong>Last Accessed:</strong> ${new Date(dataset.last_accessed_at).toLocaleDateString()}</p>
-        <button value="delete" class="del">Delete</button>
+        <button value="delete" class="del" onClick="del('${dataset.id}')">Delete</button>
         <button value="Select" class="select">Select<button>
       </div>
     `).join('');
@@ -94,23 +92,18 @@ async function loadDatasets() {
   }
 }
 
-const getdel=document.getElementsByClassName(".del")
-getdel.addEventListener('click',(event)=>{
-   if (window.confirm("Do you want to delete?")) {
+async function del(id){
+  if (window.confirm("Do you want to delete?")) {
     try{
-      const dataid=event.target.getAttribute('id')
-        response=fetch("datasets/delete",{
-          method:"DELETE",
-          credentials:'same-origin',
-          body:JSON.stringify({
-            dataset_id:dataid
+        response=await fetch(`/datasets/delete?dataset_id=${id}`,{
+            method:"DELETE",
           })
-        })
+        const data = await response.json()
         if(!response.ok){
-          alert("Server Error")
+          alert(data.detail)
         }
         else{
-          window.location.href("/")
+          window.location.reload()
         }
     }
     catch{
@@ -120,7 +113,7 @@ getdel.addEventListener('click',(event)=>{
      alert("Glad you're staying!");
   }
 
-});
+};
 
 function escapeHtml(text) {
   const map = {
