@@ -1,9 +1,7 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Request, UploadFile, File, status, Query
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, Request, UploadFile, File, status,HTTPException
 from fastapi.templating import Jinja2Templates
-from ..schemas.dataset import DatasetResponse
 from ..database.session import AsyncSession, get_db
 from ..models.models import User,Dataset
 from ..repository.dataset import DatasetRepository
@@ -76,22 +74,15 @@ async def delete_dataset(
 ):
     return await repo.delete_dataset(dataset_id, current_user)
 
+
 @router.get("/preview")
 async def preview(
     request:Request,
-    dataset_id: UUID = Query(...),
     dataset: Dataset = Depends(get_verified_user_dataset),
     repo: DatasetRepository = Depends(get_repo),
 ):
     data=await repo.get_dataset_preview(dataset.id,dataset.owner_id)
-    message=""
     if not data:
-        message="Failed to load data"
-    return templates.TemplateResponse(
-        request=request,
-        name="preview.html",
-        context={
-            "data":data,
-            "message":message
-        }
-    )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    
+    return data

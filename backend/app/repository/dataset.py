@@ -8,6 +8,7 @@ from uuid import UUID
 from fastapi import UploadFile, HTTPException, status,Depends
 
 from backend.app.schemas.dataset import DatasetResponse
+from backend.app.service.data_engine import data_engine_preview
 from ..models.models import Dataset
 from ..models.models import User
 from ..models.models import FileType
@@ -166,33 +167,7 @@ class DatasetRepository:
             raise HTTPException(status_code=404, detail="Dataset file not found on disk.")
 
         try:
-            import pandas as pd
-            ext = dataset.file_type.value
-
-            if ext == "csv":
-                df = pd.read_csv(file_path, nrows=20)
-            elif ext == "xlsx":
-                df = pd.read_excel(file_path, nrows=20)
-            elif ext == "json":
-                df = pd.read_json(file_path)
-                df = df.head(20)
-            else:
-                raise HTTPException(status_code=400, detail="Preview not supported for this file type.")
-
-            # Replace NaNs/Infs with None for JSON compatibility
-            df = df.replace({pd.NA: None})
-            df = df.where(pd.notnull(df), None)
-
-            columns = [str(col) for col in df.columns]
-            rows = df.to_dict(orient="records")
-
-            return {
-                "dataset_id": str(dataset.id),
-                "original_name": dataset.original_name,
-                "file_type": ext,
-                "columns": columns,
-                "rows": rows
-            }
+            return  data_engine_preview(dataset)
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
         

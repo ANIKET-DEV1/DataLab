@@ -8,12 +8,9 @@
 <body>
     <p><a href="/upload">Upload Dataset</a> | <a href="/preview">Preview</a> | <a href="/visualize">Visualize</a> | <a href="/ml">ML</a> | <a href="/clean">Clean</a></p>
     <button id="logoutBtn" type="button">Logout</button>
-    <div id="datasets">{{ data.original_name  }}</div>
-    <div>
-        {% for i in data.columns%}
-            <p>i</p><br>
-        {% endfor %}
-    </div>
-    <script src="/static/js/script.js"></script>
+    <div id="previewTableContainer"></div>
+    <div id="describeTableContainer"></div>
+    <div id="infoTableContainer"></div>
+    <script src="/static/js/engine.js"></script>
 </body>
 </html>

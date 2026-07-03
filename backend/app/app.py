@@ -1,5 +1,9 @@
+from uuid import UUID
+
 from fastapi import FastAPI,Request,Depends,HTTPException,status
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+
+from backend.app.schemas.dataset import Dataset
 from .router import auth,dataset,deps
 from .models import models
 from fastapi.staticfiles import StaticFiles
@@ -44,6 +48,15 @@ def get_upload_page(request: Request, user:models.User=Depends(deps.get_current_
         context={"username": user.username}
     )
 
+@app.get('/preview',response_class=HTMLResponse)
+def get_login_page(
+    request: Request,
+    dataset: Dataset = Depends(deps.get_verified_user_dataset)
+ ):
+    return templates.TemplateResponse(
+        name="preview.html",
+        request=request,
+        )
 
 @app.get("/ml", response_class=HTMLResponse)
 def get_ml_page(request: Request, user:models.User=Depends(deps.get_current_user)):
