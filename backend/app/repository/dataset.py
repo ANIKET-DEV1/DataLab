@@ -4,9 +4,8 @@ import shutil
 import aiofiles
 from pathlib import Path
 from uuid import UUID
-
 from fastapi import UploadFile, HTTPException, status,Depends
-
+from starlette.concurrency import run_in_threadpool
 from backend.app.schemas.dataset import DatasetResponse
 from backend.app.service.data_engine import data_engine_preview
 from ..models.models import Dataset
@@ -153,24 +152,27 @@ class DatasetRepository:
 
 
     async def get_dataset_preview(self, dataset_id: UUID, owner_id: UUID) -> dict:
-        result = await self.db.execute(
-            select(Dataset).where(Dataset.id == dataset_id, 
-                                  Dataset.owner_id == owner_id)
-        )
-        dataset = result.scalar_one_or_none()
+            result = await self.db.execute(
+                select(Dataset).where(Dataset.id == dataset_id, 
+                                    Dataset.owner_id == owner_id)
+            )
+            dataset = result.scalar_one_or_none()
 
-        if not dataset:
-            raise HTTPException(status_code=404, detail="Dataset not found.")
+            if not dataset:
+                raise HTTPException(status_code=404, detail="Dataset not found.")
 
-        file_path = Path(dataset.file_path)
-        if not file_path.exists():
-            raise HTTPException(status_code=404, detail="Dataset file not found on disk.")
+            file_path = Path(dataset.file_path)
+            if not file_path.exists():
+                raise HTTPException(status_code=404, detail="Dataset file not found on disk.")
 
-        try:
-            return  data_engine_preview(dataset)
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
-        
+            try:
+                return await run_in_threadpool(
+                    data_engine_preview,
+                    dataset=dataset
+                )
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+            
 
     #deps
     

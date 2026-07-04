@@ -49,7 +49,7 @@ def get_upload_page(request: Request, user:models.User=Depends(deps.get_current_
     )
 
 @app.get('/preview',response_class=HTMLResponse)
-def get_login_page(
+def get_preview_page(
     request: Request,
     dataset: Dataset = Depends(deps.get_verified_user_dataset)
  ):

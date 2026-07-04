@@ -1,16 +1,16 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const selectedDatasetId = urlParams.get('dataset_id');
+    console.log(selectedDatasetId)
     try{
         const response = await fetch(`/datasets/preview?dataset_id=${selectedDatasetId}`,{
         method:"GET",
-        }
-        );
+        });
         if (response.ok) {
             const data = await response.json();
-            buildGenericTable(data.preview, "previewTableContainer");
-            buildGenericTable(data.describe, "describeTableContainer");
-            buildGenericTable(data.info, "infoTableContainer");
+            buildGenericTable(data[0].preview, "previewTableContainer");
+            buildGenericTable(data[0].describe, "describeTableContainer");
+            buildGenericTable(data[0].info, "infoTableContainer");
         }
         else{
             alert("Error Occured")

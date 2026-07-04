@@ -81,8 +81,10 @@ async def preview(
     dataset: Dataset = Depends(get_verified_user_dataset),
     repo: DatasetRepository = Depends(get_repo),
 ):
-    data=await repo.get_dataset_preview(dataset.id,dataset.owner_id)
-    if not data:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        data=await repo.get_dataset_preview(dataset.id,dataset.owner_id),
+        if not data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        return data
+   
+
     
-    return data
