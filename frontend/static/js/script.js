@@ -75,7 +75,7 @@ async function loadDatasets() {
         <p><strong>Size:</strong> ${(dataset.file_size_bytes / 1024).toFixed(2)} KB</p>
         <p><strong>Last Accessed:</strong> ${new Date(dataset.last_accessed_at).toLocaleDateString()}</p>
         <button value="delete" class="del" onClick="del('${dataset.id}')">Delete</button>
-        <button value="Select" class="Data-select" onClick="selectbybutton('${dataset.id}')">Select<button>
+        <button value="Select" class="Data-select" onClick="selectbybutton('${dataset.id}','${dataset.original_name}')">Select<button>
       </div>
     `).join('');
 
@@ -126,8 +126,12 @@ function escapeHtml(text) {
   return String(text).replace(/[&<>"']/g, m => map[m]);
 }
 
-// Here The preview--<
 
-async function selectbybutton(id) {
-      window.location.href = `/preview?dataset_id=${id}`;
+let activeDatasetId = null;
+
+async function selectbybutton(newId,newName) {
+    activeDatasetId = newId;
+    localStorage.setItem('active_id', newId);
+    localStorage.setItem('active_name', newName);
+    console.log(`Workspace switched. Old file dropped. Active focus is now: ${newName}`);
 }

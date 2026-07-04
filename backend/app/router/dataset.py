@@ -1,12 +1,13 @@
 from uuid import UUID
-
 from fastapi import APIRouter, Depends, Request, UploadFile, File, status,HTTPException
 from fastapi.templating import Jinja2Templates
 from ..database.session import AsyncSession, get_db
 from ..models.models import User,Dataset
 from ..repository.dataset import DatasetRepository
+from starlette.concurrency import run_in_threadpool
 from .deps import get_current_user ,get_verified_user_dataset,APP_DIR
-# adjust to your auth dep
+from ..schemas.dataset import DatasetVisualized
+from ..service import data_engine
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
 templates = Jinja2Templates(directory=APP_DIR/"frontend/templates")
@@ -79,12 +80,36 @@ async def delete_dataset(
 async def preview(
     request:Request,
     dataset: Dataset = Depends(get_verified_user_dataset),
-    repo: DatasetRepository = Depends(get_repo),
+
 ):
-        data=await repo.get_dataset_preview(dataset.id,dataset.owner_id),
+    try:
+        data=await run_in_threadpool(
+            data_engine.data_engine_preview,
+            dataset=dataset
+        )
         if not data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
         return data
+    except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+            
    
 
-    
+@router.get("/visualize")
+async def visualizer(
+    request:Request,
+    data_visualizer:DatasetVisualized,
+    dataset: Dataset = Depends(get_verified_user_dataset)
+):
+    try:
+        graph_data = await run_in_threadpool(
+            data_engine.data_engine_visual,
+            dataset=dataset,
+            payload=data_visualizer
+        )
+        if not graph_data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        return graph_data
+    except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+     

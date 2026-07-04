@@ -3,6 +3,8 @@ import uuid
 from uuid import UUID
 from fastapi import HTTPException,status
 from datetime import datetime
+
+from enum import Enum
 from ..models.models import Dataset,FileType
 class BaseSchema(BaseModel):
     model_config = {"from_attributes": True}
@@ -26,3 +28,15 @@ class StorageStatusResponse(BaseModel):
     storage_used_mb: float
     storage_remaining_mb: float
     percentage_used: float
+
+class chart(str, Enum):
+    bar = 'bar'
+    pie = 'pie'
+    hist = 'hist'
+    line = 'line'
+    scatter = 'scatter'
+
+class DatasetVisualized(BaseModel):
+    chart_type:chart 
+    x_column:str
+    y_column:str | None = None
