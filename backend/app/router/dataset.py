@@ -95,7 +95,7 @@ async def preview(
             
    
 
-@router.get("/visualize")
+@router.post("/visualize")
 async def visualizer(
     request:Request,
     data_visualizer:DatasetVisualized,
@@ -114,7 +114,7 @@ async def visualizer(
                 raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
      
 @router.get("/columns")
-async def visualizer(
+async def columns(
     request:Request,
     dataset: Dataset = Depends(get_verified_user_dataset)
 ):

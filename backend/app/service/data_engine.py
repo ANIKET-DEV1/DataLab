@@ -116,13 +116,13 @@ def data_engine_visual(dataset:Dataset,payload:DatasetVisualized):
                     "datasets": datasets
                 }
                 
-        else:
-            summary = df[x_col].value_counts().dropna().head(15)
-            return {
-                "mode": "single_series",
+    else :
+        summary = df[x_col].value_counts().dropna().head(15)
+        return {
+                "mode": "single_series_no_y",
                 "labels": [str(k) for k in summary.index],
                 "values": [float(v) for v in summary.values]
-            }
+                }
 
 def data_engine_columns(dataset:Dataset):
     file_path = dataset.file_path
