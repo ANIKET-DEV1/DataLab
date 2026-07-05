@@ -14,6 +14,10 @@
         button { background: #007bff; color: white; cursor: pointer; border: none; font-weight: bold;}
         button:hover { background: #0056b3; }
         .canvas-container { position: relative; margin-top: 20px; height: 400px; width: 100%; }
+        .error{
+            display: none;
+            color: red;
+        }
     </style>
 </head>
 <body>
@@ -22,7 +26,7 @@
     <h2>📊 No-Code Visualization Studio</h2>
     <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
 
-    <form id="visual-form" onsubmit="event.preventDefault(); renderChart();">
+    <form id="visual-form">
         <div class="control-row">
             <!-- 1. Select Chart Type -->
             <label>Chart Type:<br>
@@ -37,11 +41,11 @@
 
             <!-- 2. Target Columns (These can be dynamically populated using your dataset column array) -->
             <label>X-Axis (or Target Column):<br>
-                <input type="text" id="xAxisCol" placeholder="e.g., age" required>
+                <select id="xAxisCol"></select>
             </label>
 
             <label id="yAxisLabel">Y-Axis (Optional):<br>
-                <input type="text" id="yAxisCol" placeholder="e.g., salary">
+                <select id="yAxisCol"></select>
             </label>
 
             <label style="display: flex; align-items: flex-end;">
@@ -50,77 +54,13 @@
         </div>
     </form>
 
-    <!-- Canvas Frame where Chart.js draws elements dynamically -->
+
     <div class="canvas-container">
+        <p class="error" id="error"></p>
         <canvas id="myChart"></canvas>
     </div>
 </div>
 
-<script>
-    let chartInstance = null;
-    
-    // Assume this is passed globally from your dashboard selection context
-    const currentDatasetId = "YOUR_ACTIVE_DATASET_UUID_STRING"; 
-
-    // Hide or show Y-Axis fields conditionally based on chosen chart type
-    document.getElementById('chartType').addEventListener('change', (e) => {
-        const yField = document.getElementById('yAxisLabel');
-        // Histograms and basic Pie counts don't explicitly require an initial secondary Y axis input
-        yField.style.display = (e.target.value === 'Hist' || e.target.value === 'pie') ? 'none' : 'block';
-    });
-
-    async function renderChart() {
-        const type = document.getElementById('chartType').value;
-        const x = document.getElementById('xAxisCol').value;
-        const y = document.getElementById('yAxisCol').value;
-
-        // Fetch JSON data points from same-origin backend endpoint
-        let url = `/api/v1/datasets/${currentDatasetId}/chart-data?chart_type=${type}&x_axis=${x}`;
-        if (y) url += `&y_axis=${y}`;
-
-        try {
-            const response = await fetch(url);
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.detail || "Failed loading metrics.");
-
-            const ctx = document.getElementById('myChart').getContext('2d');
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            let chartConfig = {
-                type: type.toLowerCase() === 'scalar' ? 'scatter' : (type.toLowerCase() === 'hist' ? 'bar' : type.toLowerCase()),
-                data: {},
-                options: { responsive: true, maintainAspectRatio: false }
-            };
-
-            if (type === 'Scalar') {
-                chartConfig.data = {
-                    datasets: [{
-                        label: `${x} vs ${y}`,
-                        data: data.scatterData,
-                        backgroundColor: '#007bff'
-                    }]
-                };
-            } else {
-                chartConfig.data = {
-                    labels: data.labels,
-                    datasets: [{
-                        label: y ? `Mean ${y}` : 'Counts / Value Frequency',
-                        data: data.values,
-                        backgroundColor: type === 'pie' ? 
-                            ['#007bff','#28a745','#ffc107','#dc3545','#6f42c1','#fd7e14','#20c997','#17a2b8'] : '#007bff',
-                        borderWidth: 1
-                    }]
-                };
-            }
-
-            chartInstance = new Chart(ctx, chartConfig);
-
-        } catch (err) {
-            alert("Visualization Error: " + err.message);
-        }
-    }
-</script>
+<script src="/static/js/chart.js"></script>
 </body>
 </html>

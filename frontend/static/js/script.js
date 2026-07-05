@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         if (res.ok) {
+          localStorage.clear()
           window.location.href = '/login';
         } else {
           alert('Unable to logout right now.');

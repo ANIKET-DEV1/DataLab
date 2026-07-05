@@ -43,7 +43,7 @@
                 if (response.ok) {
                     messageElement.style.color = 'green';
                     messageElement.innerText = result.message || 'Login successful';
-                    window.location.href = nextUrl;
+                    window.location.href = '/datasets/view';
                 } else {
                     messageElement.style.color = 'red';
                     messageElement.innerText = result.detail || 'Login failed';

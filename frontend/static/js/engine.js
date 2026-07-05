@@ -1,22 +1,27 @@
 document.addEventListener("DOMContentLoaded", async () => {
     const selectedDatasetId = localStorage.getItem('active_id');
-    console.log(selectedDatasetId)
-    try{
-        const response = await fetch(`/datasets/preview?dataset_id=${selectedDatasetId}`,{
-        method:"GET",
-        });
-        if (response.ok) {
-            const data = await response.json();
-            buildGenericTable(data.preview, "previewTableContainer");
-            buildGenericTable(data.describe, "describeTableContainer");
-            buildGenericTable(data.info, "infoTableContainer");
-        }
-        else{
-            alert("Error Occured")
-        }
+    if (selectedDatasetId == undefined){
+        error.style.display="block"
+        error.textContent="Select data"
     }
-    catch{
-        alert("Server Error")
+    else{
+        try{
+            const response = await fetch(`/datasets/preview?dataset_id=${selectedDatasetId}`,{
+            method:"GET",
+            });
+            if (response.ok) {
+                const data = await response.json();
+                buildGenericTable(data.preview, "previewTableContainer");
+                buildGenericTable(data.describe, "describeTableContainer");
+                buildGenericTable(data.info, "infoTableContainer");
+            }
+            else{
+                alert("Error Occured")
+            }
+        }
+        catch{
+            alert("Server Error")
+        }
     }
 });
 

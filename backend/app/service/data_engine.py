@@ -123,3 +123,23 @@ def data_engine_visual(dataset:Dataset,payload:DatasetVisualized):
                 "labels": [str(k) for k in summary.index],
                 "values": [float(v) for v in summary.values]
             }
+
+def data_engine_columns(dataset:Dataset):
+    file_path = dataset.file_path
+    ext = dataset.file_type.value
+    try:
+        if ext == "csv":
+            df = pd.read_csv(file_path, nrows=20)
+        elif ext == "xlsx":
+            df = pd.read_excel(file_path, nrows=20)
+        elif ext == "json":
+            df = pd.read_json(file_path)
+            df = df.head(20)
+        else:
+            raise HTTPException(status_code=400, detail="Preview not supported for this file type.")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed reading dataset file asset: {str(e)}")
+    columns= list(df.columns)
+    return {
+       'columns':columns
+    }

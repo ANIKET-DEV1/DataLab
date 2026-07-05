@@ -16,11 +16,16 @@
         .data-table td{
             text-align: center;
         }
+        .error{
+            display: none;
+            color: red;
+        }
     </style>
 </head>
 <body>
     <p><a href="/upload">Upload Dataset</a> | <a href="/preview">Preview</a> | <a href="/visualize">Visualize</a> | <a href="/ml">ML</a> | <a href="/clean">Clean</a></p>
     <button id="logoutBtn" type="button">Logout</button>
+    <p class="error" id="error"></p>
     <div id="previewTableContainer"></div>
     <div id="describeTableContainer"></div>
     <div id="infoTableContainer"></div>

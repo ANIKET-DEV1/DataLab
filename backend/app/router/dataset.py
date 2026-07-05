@@ -113,3 +113,19 @@ async def visualizer(
     except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
      
+@router.get("/columns")
+async def visualizer(
+    request:Request,
+    dataset: Dataset = Depends(get_verified_user_dataset)
+):
+    try:
+        graph_data = await run_in_threadpool(
+            data_engine.data_engine_columns,
+            dataset=dataset,
+        )
+        if not graph_data:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+        return graph_data
+    except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+     

@@ -151,28 +151,4 @@ class DatasetRepository:
         return {"message": f"'{dataset.original_name}' deleted. Storage freed."}
 
 
-    # async def get_dataset_preview(self, dataset_id: UUID, owner_id: UUID) -> dict:
-    #         result = await self.db.execute(
-    #             select(Dataset).where(Dataset.id == dataset_id, 
-    #                                 Dataset.owner_id == owner_id)
-    #         )
-    #         dataset = result.scalar_one_or_none()
-
-    #         if not dataset:
-    #             raise HTTPException(status_code=404, detail="Dataset not found.")
-
-    #         file_path = Path(dataset.file_path)
-    #         if not file_path.exists():
-    #             raise HTTPException(status_code=404, detail="Dataset file not found on disk.")
-
-    #         try:
-    #             return await run_in_threadpool(
-    #                 data_engine_preview,
-    #                 dataset=dataset
-    #             )
-    #         except Exception as e:
-    #             raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
-            
-
-    #deps
     
