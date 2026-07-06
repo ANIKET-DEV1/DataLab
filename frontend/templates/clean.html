@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <div class="vis-container">
+    <h2>📊 No-Code Visualization Studio</h2>
+    <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
+
+    <form id="clean-form">
+        <div class="control-row">
+            <!-- 1. Select Chart Type -->
+            <label>Chart Type:<br>
+                <select id="chartType">
+                    <option value="bar">Bar Chart</option>
+                    <option value="line">Line Chart</option>
+                    <option value="hist">Histogram (Distribution)</option>
+                    <option value="scatter">Scatter Plot (Scalar)</option>
+                    <option value="pie">Pie Chart</option>
+                </select>
+            </label>
+
+            <label>X-Axis (or Target Column):<br>
+                <select id="xAxisCol"></select>
+            </label>
+
+            <label id="yAxisLabel">Y-Axis (Optional):<br>
+                <select id="yAxisCol"></select>
+            </label>
+
+            <label style="display: flex; align-items: flex-end;">
+                <button type="submit">Generate Plot</button>
+            </label>
+        </div>
+    </form>
+</body>
+</html>

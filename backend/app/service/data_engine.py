@@ -54,92 +54,94 @@ def data_engine_preview(dataset: Dataset):
         "info": null_info  
     }
 
-def data_engine_visual(dataset:Dataset,payload:DatasetVisualized):
+def _read_dataframe(dataset: Dataset, nrows: int = 500) -> pd.DataFrame:
     file_path = dataset.file_path
     ext = dataset.file_type.value
     try:
         if ext == "csv":
-            df = pd.read_csv(file_path, nrows=20)
+            return pd.read_csv(file_path, nrows=nrows)
         elif ext == "xlsx":
-            df = pd.read_excel(file_path, nrows=20)
+            return pd.read_excel(file_path, nrows=nrows)
         elif ext == "json":
-            df = pd.read_json(file_path)
-            df = df.head(20)
+            return pd.read_json(file_path).head(nrows)
         else:
             raise HTTPException(status_code=400, detail="Preview not supported for this file type.")
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed reading dataset file asset: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to read dataset: {str(e)}")
 
-    if payload.x_column not in df.columns:
-        raise KeyError(f"X-Axis column '{payload.x_column}' not found in dataset columns.")
-        
-    if payload.y_column and payload.y_column not in df.columns:
-        raise KeyError(f"Y-Axis column '{payload.y_column}' not found in dataset columns.")
-    
-    chart_type = payload.chart_type
+def _safe_float(v):
+    if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+        return None
+    return float(v)
+
+
+def data_engine_columns(dataset: Dataset) -> dict:
+    df = _read_dataframe(dataset, nrows=5)  # just need column names
+    return {"columns": list(df.columns)}
+
+
+CHART_SINGLE_SERIES = {"bar", "line", "pie", "hist"}
+def data_engine_visual(dataset: Dataset, payload: DatasetVisualized) -> dict:
+    df = _read_dataframe(dataset, nrows=500)
+
     x_col = payload.x_column
     y_col = payload.y_column
-    if chart_type in [chart.bar, chart.line, chart.pie]:
-        if y_col:
-            if pd.api.types.is_numeric_dtype(df[y_col]):
-                summary = df.groupby(x_col)[y_col].mean().dropna().head(15)
-                labels = [str(k) for k in summary.index]
-                values = [None if (math.isnan(v) or math.isinf(v)) else float(v) for v in summary.values]
-                
-                return {
-                    "mode": "single_series",
-                    "labels": labels,
-                    "values": values
-                }
-                
+    chart_type = payload.chart_type.lower()
 
-            else:
-                top_x = df[x_col].value_counts().head(10).index
-                top_y = df[y_col].value_counts().head(5).index
-                filtered_df = df[df[x_col].isin(top_x) & df[y_col].isin(top_y)]
+    # Validate columns exist
+    if x_col not in df.columns:
+        raise HTTPException(status_code=400, detail=f"Column '{x_col}' not found in dataset.")
+    if y_col and y_col not in df.columns:
+        raise HTTPException(status_code=400, detail=f"Column '{y_col}' not found in dataset.")
 
-                ct = pd.crosstab(filtered_df[x_col], filtered_df[y_col])
-                
-                labels = [str(idx) for idx in ct.index] 
+    # ── Scatter ──────────────────────────────────────────────────
+    if chart_type == "scatter":
+        if not y_col:
+            raise HTTPException(status_code=400, detail="Scatter chart requires a Y column.")
+        if not pd.api.types.is_numeric_dtype(df[x_col]) or not pd.api.types.is_numeric_dtype(df[y_col]):
+            raise HTTPException(status_code=400, detail="Scatter chart requires both columns to be numeric.")
 
-                datasets = []
-                for y_category in ct.columns:
-                    series_values = [int(v) for v in ct[y_category].values]
-                    datasets.append({
-                        "label": str(y_category), 
-                        "data": series_values    
-                    })
-                
-                return {
-                    "mode": "multi_series",
-                    "labels": labels,
-                    "datasets": datasets
-                }
-                
-    else :
-        summary = df[x_col].value_counts().dropna().head(15)
-        return {
-                "mode": "single_series_no_y",
+        scatter_data = [
+            {"x": _safe_float(row[x_col]), "y": _safe_float(row[y_col])}
+            for _, row in df[[x_col, y_col]].dropna().head(200).iterrows()
+        ]
+        return {"mode": "scatter", "scatterData": scatter_data}
+
+    # ── Bar / Line / Pie / Hist ───────────────────────────────────
+    if chart_type in CHART_SINGLE_SERIES:
+        if not y_col:
+            # Frequency count of x column
+            summary = df[x_col].value_counts().dropna().head(15)
+            return {
+                "mode": "single_series",
                 "labels": [str(k) for k in summary.index],
-                "values": [float(v) for v in summary.values]
-                }
+                "values": [int(v) for v in summary.values],
+            }
 
-def data_engine_columns(dataset:Dataset):
-    file_path = dataset.file_path
-    ext = dataset.file_type.value
-    try:
-        if ext == "csv":
-            df = pd.read_csv(file_path, nrows=20)
-        elif ext == "xlsx":
-            df = pd.read_excel(file_path, nrows=20)
-        elif ext == "json":
-            df = pd.read_json(file_path)
-            df = df.head(20)
-        else:
-            raise HTTPException(status_code=400, detail="Preview not supported for this file type.")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed reading dataset file asset: {str(e)}")
-    columns= list(df.columns)
-    return {
-       'columns':columns
-    }
+        if pd.api.types.is_numeric_dtype(df[y_col]):
+            # Numeric y → group by x, take mean
+            summary = df.groupby(x_col)[y_col].mean().dropna().head(15)
+            return {
+                "mode": "single_series",
+                "labels": [str(k) for k in summary.index],
+                "values": [_safe_float(v) for v in summary.values],
+            }
+
+        # Both categorical → crosstab (multi-series)
+        top_x = df[x_col].value_counts().head(10).index
+        top_y = df[y_col].value_counts().head(5).index
+        filtered = df[df[x_col].isin(top_x) & df[y_col].isin(top_y)]
+        ct = pd.crosstab(filtered[x_col], filtered[y_col])
+
+        return {
+            "mode": "multi_series",
+            "labels": [str(i) for i in ct.index],
+            "datasets": [
+                {"label": str(col), "data": [int(v) for v in ct[col].values]}
+                for col in ct.columns
+            ],
+        }
+
+    raise HTTPException(status_code=400, detail=f"Unknown chart type: '{chart_type}'.")
