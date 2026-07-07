@@ -2,7 +2,7 @@ let activeDatasetId = null;
 let myChartInstance = null;
 
 
-function showError(message) {
+export function showError(message) {
     const errorBlock = document.querySelector("#error");
     if (errorBlock) {
         errorBlock.style.display = "block";
@@ -10,12 +10,12 @@ function showError(message) {
     }
 }
 
-function hideError() {
+export function hideError() {
     const errorBlock = document.querySelector("#error");
     if (errorBlock) errorBlock.style.display = "none";
 }
 
-function populateDropdownMenu(selectElement, columnsArray, allowOptionalNone) {
+export function populateDropdownMenu(selectElement, columnsArray, allowOptionalNone) {
     if (!selectElement) return;
     selectElement.innerHTML = allowOptionalNone
         ? '<option value="">-- None (count frequency) --</option>'
@@ -43,7 +43,7 @@ async function initializeVisualizerContext(datasetId) {
     try {
         const response = await fetch(`/datasets/columns?dataset_id=${datasetId}`, {
             method: "GET",
-            credentials: "include",   // BUG FIX: send auth cookie with every request
+            credentials: "include", 
         });
 
         if (!response.ok) {

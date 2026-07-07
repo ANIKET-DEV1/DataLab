@@ -78,8 +78,13 @@ def _safe_float(v):
 
 
 def data_engine_columns(dataset: Dataset) -> dict:
-    df = _read_dataframe(dataset, nrows=5)  # just need column names
-    return {"columns": list(df.columns)}
+    df = _read_dataframe(dataset, nrows=5) 
+    return {
+        "columns": list(df.columns),
+        "columns-dataTypes": {
+            str(col): str(dtype) for col, dtype in df.dtypes.items()
+        }
+    }
 
 
 CHART_SINGLE_SERIES = {"bar", "line", "pie", "hist"}

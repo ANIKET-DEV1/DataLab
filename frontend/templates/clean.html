@@ -3,38 +3,246 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Clean Data Workspace</title>
+    <style>
+        :root {
+            font-family: Arial, sans-serif;
+            color: #222;
+            background: #f7f8fb;
+            line-height: 1.5;
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+        }
+        .navbar {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            background: #fff;
+            padding: 12px 18px;
+            border-bottom: 1px solid #e1e4eb;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        .navbar h1 {
+            margin: 0;
+            font-size: 1rem;
+            letter-spacing: 0.02em;
+        }
+        .nav-links {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .nav-link {
+            text-decoration: none;
+            color: #444;
+            padding: 10px 14px;
+            border-radius: 8px;
+            transition: background 0.2s ease, color 0.2s ease;
+            font-size: 0.95rem;
+        }
+        .nav-link:hover,
+        .nav-link.active {
+            background: #2f6efd;
+            color: #fff;
+        }
+        .workspace {
+            max-width: 900px;
+            margin: 24px auto;
+            padding: 0 18px 40px;
+        }
+        .panel {
+            background: #fff;
+            border: 1px solid #e1e4eb;
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+        }
+        .panel h2 {
+            margin-top: 0;
+            font-size: 1.3rem;
+        }
+        .field-group {
+            display: grid;
+            gap: 16px;
+            margin-top: 18px;
+        }
+        .field {
+            display: grid;
+            gap: 6px;
+        }
+        label {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        input[type="text"], select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: #fafbff;
+        }
+        .inline-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .inline-row label {
+            margin: 0;
+            font-weight: 500;
+        }
+        .toggle-row {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .note {
+            font-size: 0.9rem;
+            color: #6b7280;
+            margin-top: -6px;
+        }
+        .update-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 24px;
+            padding: 12px 22px;
+            border: none;
+            border-radius: 10px;
+            background: #2f6efd;
+            color: white;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background 0.2s ease;
+        }
+        .update-btn:hover {
+            background: #2559d1;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <div class="vis-container">
-    <h2>📊 No-Code Visualization Studio</h2>
-    <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
-
-    <form id="clean-form">
-        <div class="control-row">
-            <!-- 1. Select Chart Type -->
-            <label>Chart Type:<br>
-                <select id="chartType">
-                    <option value="bar">Bar Chart</option>
-                    <option value="line">Line Chart</option>
-                    <option value="hist">Histogram (Distribution)</option>
-                    <option value="scatter">Scatter Plot (Scalar)</option>
-                    <option value="pie">Pie Chart</option>
-                </select>
-            </label>
-
-            <label>X-Axis (or Target Column):<br>
-                <select id="xAxisCol"></select>
-            </label>
-
-            <label id="yAxisLabel">Y-Axis (Optional):<br>
-                <select id="yAxisCol"></select>
-            </label>
-
-            <label style="display: flex; align-items: flex-end;">
-                <button type="submit">Generate Plot</button>
-            </label>
+    <nav class="navbar">
+        <h1>Data Clean Workspace</h1>
+        <div class="nav-links">
+            <a href="#" class="nav-link active" data-view="home">Back (Home)</a>
+            <a href="#" class="nav-link" data-view="column-clean">Column-Wise Clean</a>
+            <a href="#" class="nav-link" data-view="overall-clean">Overall Clean</a>
+            <a href="#" class="nav-link" data-view="encoding">Encoding (categorical into numerical)</a>
+            <a href="#" class="nav-link" data-view="rename">Rename</a>
         </div>
-    </form>
+    </nav>
+
+    <main class="workspace">
+        <section id="home" class="panel">
+            <h2>Welcome</h2>
+            <p>Select a workflow from the navigation bar to open the data cleaning form. All form content updates in-place without refreshing the page.</p>
+            <p id="error"></p>
+        </section>
+
+        <section id="column-clean" class="panel hidden">
+            <h2>Column-Wise Clean</h2>
+            <div class="field-group">
+                <div class="field">
+                    <label for="column-select">Select Column</label>
+                    <select id="column-select">
+                    </select>
+                </div>
+                <div class="field inline-row">
+                    <label><input type="radio" name="clean-type" id="fill-na" /> Fill NA</label>
+                    <label><input type="radio"name="clean-type" id="drop-na-row-wise" /> Drop NA (Row-Wise)</label>
+                </div>
+                <div id="for-fill-na" class="hidden">
+                    <div class="field">
+                        <label>Fill with Mean or Mode</label>
+                        <div class="inline-row">
+                            <label><input type="radio" name="fill-type" value="" checked />Custom</label>
+                            <label><input type="radio" name="fill-type" value="mean" /> Mean</label>
+                            <label><input type="radio" name="fill-type" value="mode" /> Mode</label>
+                        </div>
+                    </div>
+                    <div class="field">
+                        <label for="replace-value">Replace Value</label>
+                        <input type="text" id="replace-value" placeholder="Enter value to replace" />
+                    </div>
+                </div>
+                <button type="button" class="update-btn">Update</button>
+                <p id="error"></p>
+            </div>
+        </section>
+
+        <section id="overall-clean" class="panel hidden">
+            <h2>Overall Clean</h2>
+            <div class="field-group">
+                <div class="field">
+                    <label>Drop NA</label>
+                    <div class="toggle-row">
+                        <label><input type="radio" name="drop-na-scope" value="row" checked /> Row-Wise</label>
+                        <label><input type="radio" name="drop-na-scope" value="column" /> Column-Wise</label>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="global-fill-na">Global Fill NA</label>
+                    <input type="text" id="global-fill-na" placeholder="Enter fill value for all missing cells" />
+                </div>
+                <button type="button" class="update-btn">Update</button>
+            </div>
+        </section>
+
+        <section id="encoding" class="panel hidden">
+            <h2>Encoding (categorical into numerical)</h2>
+            <div class="field-group">
+                <div class="field">
+                    <label for="categorical-columns">Select Categorical Columns</label>
+                    <select id="categorical-columns" multiple size="4">
+                        <option value="cat1">Category 1</option>
+                        <option value="cat2">Category 2</option>
+                        <option value="cat3">Category 3</option>
+                        <option value="cat4">Category 4</option>
+                    </select>
+                    <p class="note">Note: Excluding 1st column</p>
+                </div>
+                <div class="field">
+                    <label>Choose Encoding</label>
+                    <div class="toggle-row">
+                        <label><input type="radio" name="encoding-type" value="onehot" checked /> One-Hot Encoding</label>
+                        <label><input type="radio" name="encoding-type" value="order" /> Order Encoding</label>
+                    </div>
+                </div>
+                <button type="button" class="update-btn">Update</button>
+                <p id="error"></p>
+            </div>
+        </section>
+
+        <section id="rename" class="panel hidden">
+            <h2>Rename</h2>
+            <div class="field-group">
+                <div class="field">
+                    <label for="rename-column">Current Column</label>
+                    <select id="column-select">
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="new-column-name">New Name</label>
+                    <input type="text" id="new-column-name" placeholder="Enter new column name" />
+                </div>
+                <button type="button" class="update-btn">Update</button>
+                <p id="error"></p>
+            </div>
+        </section>
+    </main>
+    <script type="module" src="static/js/clean.js">
+ 
+    </script>
 </body>
 </html>
