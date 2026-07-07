@@ -11,10 +11,7 @@
             background: #f7f8fb;
             line-height: 1.5;
         }
-        body {
-            margin: 0;
-            min-height: 100vh;
-        }
+        body { margin: 0; min-height: 100vh; }
         .navbar {
             display: flex;
             flex-wrap: wrap;
@@ -28,17 +25,8 @@
             top: 0;
             z-index: 10;
         }
-        .navbar h1 {
-            margin: 0;
-            font-size: 1rem;
-            letter-spacing: 0.02em;
-        }
-        .nav-links {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
+        .navbar h1 { margin: 0; font-size: 1rem; letter-spacing: 0.02em; }
+        .nav-links { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
         .nav-link {
             text-decoration: none;
             color: #444;
@@ -47,16 +35,8 @@
             transition: background 0.2s ease, color 0.2s ease;
             font-size: 0.95rem;
         }
-        .nav-link:hover,
-        .nav-link.active {
-            background: #2f6efd;
-            color: #fff;
-        }
-        .workspace {
-            max-width: 900px;
-            margin: 24px auto;
-            padding: 0 18px 40px;
-        }
+        .nav-link:hover, .nav-link.active { background: #2f6efd; color: #fff; }
+        .workspace { max-width: 900px; margin: 24px auto; padding: 0 18px 40px; }
         .panel {
             background: #fff;
             border: 1px solid #e1e4eb;
@@ -64,23 +44,10 @@
             padding: 24px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.03);
         }
-        .panel h2 {
-            margin-top: 0;
-            font-size: 1.3rem;
-        }
-        .field-group {
-            display: grid;
-            gap: 16px;
-            margin-top: 18px;
-        }
-        .field {
-            display: grid;
-            gap: 6px;
-        }
-        label {
-            font-weight: 600;
-            font-size: 0.95rem;
-        }
+        .panel h2 { margin-top: 0; font-size: 1.3rem; }
+        .field-group { display: grid; gap: 16px; margin-top: 18px; }
+        .field { display: grid; gap: 6px; }
+        label { font-weight: 600; font-size: 0.95rem; }
         input[type="text"], select {
             width: 100%;
             padding: 10px 12px;
@@ -88,32 +55,17 @@
             border-radius: 8px;
             font-size: 0.95rem;
             background: #fafbff;
+            box-sizing: border-box;
         }
-        .inline-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        .inline-row label {
-            margin: 0;
-            font-weight: 500;
-        }
-        .toggle-row {
-            display: flex;
-            gap: 18px;
-            flex-wrap: wrap;
-        }
-        .note {
-            font-size: 0.9rem;
-            color: #6b7280;
-            margin-top: -6px;
-        }
+        .inline-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .inline-row label { margin: 0; font-weight: 500; }
+        .toggle-row { display: flex; gap: 18px; flex-wrap: wrap; }
+        .note { font-size: 0.9rem; color: #6b7280; margin-top: -6px; }
         .update-btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin-top: 24px;
+            margin-top: 8px;
             padding: 12px 22px;
             border: none;
             border-radius: 10px;
@@ -123,126 +75,135 @@
             font-size: 1rem;
             transition: background 0.2s ease;
         }
-        .update-btn:hover {
-            background: #2559d1;
-        }
-        .hidden {
-            display: none;
-        }
+        .update-btn:hover { background: #2559d1; }
+        .hidden { display: none; }
+        .error-msg { color: red; font-size: 0.9rem; min-height: 1.2em; }
+        .success-msg { color: green; font-size: 0.9rem; min-height: 1.2em; }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <h1>Data Clean Workspace</h1>
         <div class="nav-links">
-            <a href="#" class="nav-link active" data-view="home">Back (Home)</a>
+            <a href="#" class="nav-link active" data-view="home">Home</a>
             <a href="#" class="nav-link" data-view="column-clean">Column-Wise Clean</a>
             <a href="#" class="nav-link" data-view="overall-clean">Overall Clean</a>
-            <a href="#" class="nav-link" data-view="encoding">Encoding (categorical into numerical)</a>
+            <a href="#" class="nav-link" data-view="encoding">Encoding</a>
             <a href="#" class="nav-link" data-view="rename">Rename</a>
         </div>
     </nav>
-
+    
     <main class="workspace">
+
+        <!-- Home -->
         <section id="home" class="panel">
             <h2>Welcome</h2>
-            <p>Select a workflow from the navigation bar to open the data cleaning form. All form content updates in-place without refreshing the page.</p>
-            <p id="error"></p>
+            <p>Select a workflow from the navigation bar to begin cleaning your dataset.</p>
+            <p id="global-error" class="error-msg"></p>
         </section>
 
+        <!-- Column-Wise Clean -->
         <section id="column-clean" class="panel hidden">
             <h2>Column-Wise Clean</h2>
             <div class="field-group">
                 <div class="field">
                     <label for="column-select">Select Column</label>
-                    <select id="column-select">
-                    </select>
+                    <select id="column-select"></select>
                 </div>
                 <div class="field inline-row">
-                    <label><input type="radio" name="clean-type" id="fill-na" /> Fill NA</label>
-                    <label><input type="radio"name="clean-type" id="drop-na-row-wise" /> Drop NA (Row-Wise)</label>
+                    <label><input type="radio" name="clean-type" id="fill-na" value="fill-na" /> Fill NA</label>
+                    <label><input type="radio" name="clean-type" id="drop-na-row-wise" value="drop-na" /> Drop NA (Row-Wise)</label>
                 </div>
                 <div id="for-fill-na" class="hidden">
                     <div class="field">
-                        <label>Fill with Mean or Mode</label>
+                        <label>Fill strategy</label>
                         <div class="inline-row">
-                            <label><input type="radio" name="fill-type" value="" checked />Custom</label>
+                            <label><input type="radio" name="fill-type" value="custom" checked /> Custom</label>
                             <label><input type="radio" name="fill-type" value="mean" /> Mean</label>
                             <label><input type="radio" name="fill-type" value="mode" /> Mode</label>
                         </div>
                     </div>
-                    <div class="field">
+                    <div class="field" id="custom-value-field">
                         <label for="replace-value">Replace Value</label>
-                        <input type="text" id="replace-value" placeholder="Enter value to replace" />
+                        <input type="text" id="replace-value" placeholder="Enter replacement value" />
                     </div>
                 </div>
-                <button type="button" class="update-btn">Update</button>
-                <p id="error"></p>
+                <button type="button" class="update-btn" id="column-clean-btn">Update</button>
+                <p id="column-clean-error" class="error-msg"></p>
+                <p id="column-clean-success" class="success-msg"></p>
             </div>
         </section>
 
+        <!-- Overall Clean -->
         <section id="overall-clean" class="panel hidden">
             <h2>Overall Clean</h2>
+            
             <div class="field-group">
-                <div class="field">
+                <div class = "field">
+                    <label><input type="radio" name="scope" value="drop" />Drop null</label>
+                    <label><input type="radio" name="scope" value="fill" />Global Fill null</label>
+                </div>
+                <div class="field" id="drop-na-overall">
                     <label>Drop NA</label>
                     <div class="toggle-row">
                         <label><input type="radio" name="drop-na-scope" value="row" checked /> Row-Wise</label>
                         <label><input type="radio" name="drop-na-scope" value="column" /> Column-Wise</label>
                     </div>
                 </div>
-                <div class="field">
+                <div class="field" id="fill-na-overall">
                     <label for="global-fill-na">Global Fill NA</label>
                     <input type="text" id="global-fill-na" placeholder="Enter fill value for all missing cells" />
                 </div>
-                <button type="button" class="update-btn">Update</button>
+                <button type="button" class="update-btn" id="overall-clean-btn">Update</button>
+                <p id="overall-clean-error" class="error-msg"></p>
+                <p id="overall-clean-success" class="success-msg"></p>
             </div>
         </section>
 
+        <!-- Encoding -->
         <section id="encoding" class="panel hidden">
-            <h2>Encoding (categorical into numerical)</h2>
+            <h2>Encoding</h2>
             <div class="field-group">
                 <div class="field">
-                    <label for="categorical-columns">Select Categorical Columns</label>
-                    <select id="categorical-columns" multiple size="4">
-                        <option value="cat1">Category 1</option>
-                        <option value="cat2">Category 2</option>
-                        <option value="cat3">Category 3</option>
-                        <option value="cat4">Category 4</option>
-                    </select>
-                    <p class="note">Note: Excluding 1st column</p>
+                    <label for="categorical-columns">Select Columns to Encode</label>
+                    <select id="categorical-columns" multiple size="5"></select>
+                    <p class="note">Hold Ctrl / Cmd to select multiple columns.</p>
                 </div>
                 <div class="field">
-                    <label>Choose Encoding</label>
+                    <label>Encoding strategy</label>
                     <div class="toggle-row">
-                        <label><input type="radio" name="encoding-type" value="onehot" checked /> One-Hot Encoding</label>
-                        <label><input type="radio" name="encoding-type" value="order" /> Order Encoding</label>
+                        <label><input type="radio" name="encoding-type" value="onehot" checked /> One-Hot</label>
+                        <label><input type="radio" name="encoding-type" value="label" /> Label Encoding</label>
                     </div>
                 </div>
-                <button type="button" class="update-btn">Update</button>
-                <p id="error"></p>
+                <button type="button" class="update-btn" id="encoding-btn">Update</button>
+                <p id="encoding-error" class="error-msg"></p>
+                <p id="encoding-success" class="success-msg"></p>
             </div>
         </section>
 
+        <!-- Rename -->
         <section id="rename" class="panel hidden">
-            <h2>Rename</h2>
+            <h2>Rename Column</h2>
             <div class="field-group">
                 <div class="field">
-                    <label for="rename-column">Current Column</label>
-                    <select id="column-select">
-                    </select>
+                    <label for="rename-column-select">Current Column</label>
+                    <select id="rename-column-select"></select>
                 </div>
                 <div class="field">
                     <label for="new-column-name">New Name</label>
                     <input type="text" id="new-column-name" placeholder="Enter new column name" />
                 </div>
-                <button type="button" class="update-btn">Update</button>
-                <p id="error"></p>
+                <button type="button" class="update-btn" id="rename-btn">Update</button>
+                <p id="rename-error" class="error-msg"></p>
+                <p id="rename-success" class="success-msg"></p>
             </div>
         </section>
+
     </main>
-    <script type="module" src="static/js/clean.js">
- 
-    </script>
+    <div id="show_null">
+    </div>
+
+    <script type="module" src="static/js/clean.js"></script>
 </body>
 </html>

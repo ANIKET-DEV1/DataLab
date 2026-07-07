@@ -6,7 +6,7 @@ from ..models.models import User,Dataset
 from ..repository.dataset import DatasetRepository
 from starlette.concurrency import run_in_threadpool
 from .deps import get_current_user ,get_verified_user_dataset,APP_DIR
-from ..schemas.dataset import DatasetVisualized
+from ..schemas.dataset import ColumnWiseClean, DatasetVisualized
 from ..service import data_engine
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
@@ -119,13 +119,32 @@ async def columns(
     dataset: Dataset = Depends(get_verified_user_dataset)
 ):
     try:
-        graph_data = await run_in_threadpool(
+        data = await run_in_threadpool(
             data_engine.data_engine_columns,
             dataset=dataset,
         )
-        if not graph_data:
+        if not data:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
-        return graph_data
+        return data
     except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
      
+@router.post("/column-clean")
+async def column_clean(
+    request:Request,
+    ColumnWiseClean: ColumnWiseClean,
+    dataset: Dataset = Depends(get_verified_user_dataset),
+    ):
+    try:
+        data = await run_in_threadpool(
+            data_engine.column_wise_clean,
+            dataset=dataset,
+            payload=ColumnWiseClean
+        )
+        if not data:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="No data return")
+        return data
+    except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+   

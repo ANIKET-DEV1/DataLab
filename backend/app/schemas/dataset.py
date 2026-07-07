@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, Field, SecretStr, model_validator
 import uuid
 from uuid import UUID
 from fastapi import HTTPException,status
@@ -40,3 +40,36 @@ class DatasetVisualized(BaseModel):
     chart_type:chart 
     x_column:str
     y_column:str | None = None
+
+class CleanStrategy(str, Enum):
+    fill_na = 'fill-na'
+    drop_na = 'drop-na'
+
+class FillStrategy(str, Enum):
+    mean = 'mean'
+    mode = 'mode'
+    custom = 'custom'  
+
+class ColumnWiseClean(BaseModel):
+    column_name: str
+    clean_type: CleanStrategy
+    fill_type: FillStrategy | None = None
+    custom_fill_value: str | None = None
+
+    @model_validator(mode='after')
+    def validate_conditional_fill_parameters(self) -> 'ColumnWiseClean':
+        if self.clean_type == CleanStrategy.fill_na:
+            if not self.fill_type:
+                raise ValueError("Validation Error: 'fill_type' is strictly required when 'clean_type' is set to 'fill-na'.")
+            
+          
+            if self.fill_type == FillStrategy.custom and (self.custom_fill_value is None or str(self.custom_fill_value).strip() == ""):
+                raise ValueError("Validation Error: You selected a 'custom' fill strategy, but left the custom fill value blank.")
+        
+        return self
+
+class overallclean(BaseModel):
+      clean_type:CleanStrategy
+
+    
+

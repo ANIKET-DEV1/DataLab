@@ -1,8 +1,9 @@
+import os
 import math
 from fastapi import HTTPException
 import pandas as pd
 from ..models.models import Dataset
-from ..schemas.dataset import DatasetVisualized,chart
+from ..schemas.dataset import DatasetVisualized,chart,ColumnWiseClean,FillStrategy,CleanStrategy
 
 def sanitize_dict_list(raw_records: list[dict]) -> list[dict]:
     clean_records = []
@@ -54,7 +55,7 @@ def data_engine_preview(dataset: Dataset):
         "info": null_info  
     }
 
-def _read_dataframe(dataset: Dataset, nrows: int = 500) -> pd.DataFrame:
+def _read_dataframe(dataset: Dataset, nrows:int | None = None) -> pd.DataFrame:
     file_path = dataset.file_path
     ext = dataset.file_type.value
     try:
@@ -78,11 +79,15 @@ def _safe_float(v):
 
 
 def data_engine_columns(dataset: Dataset) -> dict:
-    df = _read_dataframe(dataset, nrows=5) 
+    df = _read_dataframe(dataset) 
+    null_counts = df.isnull().sum()
     return {
         "columns": list(df.columns),
         "columns-dataTypes": {
             str(col): str(dtype) for col, dtype in df.dtypes.items()
+        },
+        "columns-null": {
+            str(col): int(count) for col, count in null_counts.items()
         }
     }
 
@@ -134,7 +139,6 @@ def data_engine_visual(dataset: Dataset, payload: DatasetVisualized) -> dict:
                 "values": [_safe_float(v) for v in summary.values],
             }
 
-        # Both categorical → crosstab (multi-series)
         top_x = df[x_col].value_counts().head(10).index
         top_y = df[y_col].value_counts().head(5).index
         filtered = df[df[x_col].isin(top_x) & df[y_col].isin(top_y)]
@@ -150,3 +154,63 @@ def data_engine_visual(dataset: Dataset, payload: DatasetVisualized) -> dict:
         }
 
     raise HTTPException(status_code=400, detail=f"Unknown chart type: '{chart_type}'.")
+
+def column_wise_clean(dataset: Dataset, payload: ColumnWiseClean):
+    try:
+        df = _read_dataframe(dataset)
+        column = payload.column_name
+        
+        if column not in df.columns:
+            raise HTTPException(status_code=400, detail=f"Column '{column}' not found.")
+
+        clean_type = payload.clean_type
+        if clean_type == 'drop-na':
+            df.dropna(subset=[column], inplace=True)
+            
+        elif clean_type == 'fill-na':
+            strategy = payload.fill_type
+            if strategy in ["mean", "mode"]:
+                if pd.api.types.is_numeric_dtype(df[column]):
+                    df[column] = df[column].fillna(df[column].mean())
+                else:
+                    mode = df[column].mode()
+                    if not mode.empty:
+                        df[column] = df[column].fillna(mode[0])
+            elif strategy == 'custom':
+                value = payload.custom_fill_value
+                if pd.api.types.is_numeric_dtype(df[column]):
+                    try:
+                        numeric_value = float(value) if '.' in value else int(value)
+                        df[column] = df[column].fillna(numeric_value)
+                    except ValueError:
+                        df[column] = df[column].fillna(value)
+                else:
+                    df[column] = df[column].fillna(value)
+
+
+        temp_file_path = f"{dataset.file_path}.tmp"
+        
+
+        if dataset.file_type == "csv":
+            df.to_csv(temp_file_path, index=False)
+        elif dataset.file_type == "xlsx":
+            df.to_excel(temp_file_path, index=False)
+        elif dataset.file_type == "json":
+            df.to_json(temp_file_path, index=False)
+        import os
+        os.replace(temp_file_path, dataset.file_path)
+        raw_preview = df.head(10).to_dict(orient="records")
+        null_counts = df.isnull().sum()
+
+        return {
+            "preview": sanitize_dict_list(raw_preview),
+            "columns": list(df.columns),
+            "columns-dataTypes": {str(col): str(dtype) for col, dtype in df.dtypes.items()},
+            "columns-null": {str(col): int(count) for col, count in null_counts.items()}
+        }
+
+    except HTTPException:
+        raise  
+    except Exception as e:
+        print(f"CRITICAL ENGINE FAULT: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal Cleaning Engine Server Error")
