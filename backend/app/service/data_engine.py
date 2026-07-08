@@ -1,9 +1,10 @@
 import os
 import math
+from fastapi import status
 from fastapi import HTTPException
 import pandas as pd
 from ..models.models import Dataset
-from ..schemas.dataset import DatasetVisualized,chart,ColumnWiseClean,FillStrategy,CleanStrategy
+from ..schemas import dataset as ds
 
 def sanitize_dict_list(raw_records: list[dict]) -> list[dict]:
     clean_records = []
@@ -93,7 +94,7 @@ def data_engine_columns(dataset: Dataset) -> dict:
 
 
 CHART_SINGLE_SERIES = {"bar", "line", "pie", "hist"}
-def data_engine_visual(dataset: Dataset, payload: DatasetVisualized) -> dict:
+def data_engine_visual(dataset: Dataset, payload: ds.DatasetVisualized) -> dict:
     df = _read_dataframe(dataset, nrows=500)
 
     x_col = payload.x_column
@@ -155,7 +156,7 @@ def data_engine_visual(dataset: Dataset, payload: DatasetVisualized) -> dict:
 
     raise HTTPException(status_code=400, detail=f"Unknown chart type: '{chart_type}'.")
 
-def column_wise_clean(dataset: Dataset, payload: ColumnWiseClean):
+def column_wise_clean(dataset: Dataset, payload: ds.ColumnWiseClean):
     try:
         df = _read_dataframe(dataset)
         column = payload.column_name
@@ -214,3 +215,65 @@ def column_wise_clean(dataset: Dataset, payload: ColumnWiseClean):
     except Exception as e:
         print(f"CRITICAL ENGINE FAULT: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal Cleaning Engine Server Error")
+    
+def overall_clean(dataset :Dataset, payload: ds.overallclean):
+    try:
+        df = _read_dataframe(dataset)
+        
+        clean_type = payload.clean_type
+        if clean_type == 'drop-na':
+            if payload.axis == 0:
+                df.dropna(axis=0,inplace=True)
+            elif payload.axis == 1:
+                df.dropna(axis=1,inplace=True)
+            else:
+                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                    detail="Please Select Axis")
+        elif clean_type == 'fill-na':
+            raw_val = str(payload.custom_fill_value).strip()
+
+            for col in df.columns:
+                if pd.api.types.is_numeric_dtype(df[col]):
+                    try:
+                        numeric_val = float(raw_val) if '.' in raw_val else int(raw_val)
+                        df[col] = df[col].fillna(numeric_val)
+                    except ValueError:
+                        print(f"Skipping global fill on numeric column '{col}': '{raw_val}' cannot be safely cast.")
+                        continue
+                elif pd.api.types.is_datetime64_any_dtype(df[col]):
+                    try:
+                        datetime_val = pd.to_datetime(raw_val)
+                        df[col] = df[col].fillna(datetime_val)
+                    except (ValueError, TypeError):
+                        continue
+
+                else:
+                    df[col] = df[col].fillna(raw_val)
+            
+
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Please Select option amoung them")
+        temp_file_path = f"{dataset.file_path}.tmp"
+        
+
+        if dataset.file_type == "csv":
+            df.to_csv(temp_file_path, index=False)
+        elif dataset.file_type == "xlsx":
+            df.to_excel(temp_file_path, index=False)
+        elif dataset.file_type == "json":
+            df.to_json(temp_file_path, index=False)
+        import os
+        os.replace(temp_file_path, dataset.file_path)
+    
+
+        return {
+            'message':'Successfully overall clean'
+        }
+
+    except HTTPException:
+        raise  
+    except Exception as e:
+        print(f"CRITICAL ENGINE FAULT: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal Cleaning Engine Server Error")
+    

@@ -6,6 +6,7 @@ from datetime import datetime
 
 from enum import Enum
 from ..models.models import Dataset,FileType
+
 class BaseSchema(BaseModel):
     model_config = {"from_attributes": True}
 
@@ -68,8 +69,23 @@ class ColumnWiseClean(BaseModel):
         
         return self
 
-class overallclean(BaseModel):
-      clean_type:CleanStrategy
+from typing import Optional, Literal
 
+class overallclean(BaseModel):
+    clean_type: CleanStrategy
+    axis: Optional[Literal[0, 1]] = None
+    custom_fill_value: Optional[str] = None
+
+    @model_validator(mode='after')
+    def validate_overall_clean_logic(self) -> 'overallclean':
+        if self.clean_type == CleanStrategy.fill_na:
+            if self.custom_fill_value is None or str(self.custom_fill_value).strip() == "":
+                raise ValueError("Validation Error: custom value is strictly required when 'clean_type' is set to 'fill-na'.")
+        
+        if self.clean_type == CleanStrategy.drop_na:
+            if self.axis is None:
+                raise ValueError("Validation Error: Axis is strictly required when 'drop-na' Selected.")
+        
+        return self
     
 

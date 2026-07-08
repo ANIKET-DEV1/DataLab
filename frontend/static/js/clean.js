@@ -62,8 +62,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     
     document.querySelectorAll('input[name="scope"]').forEach(radio => {
             radio.addEventListener('change', () => {
-                const value= radio.value
-                if( value=="drop"){
+                const Changes= radio.value
+                if(Changes =="drop-na"){
                     overallFillNaRadio.classList.add('hidden')
                     overalldropNaRadio.classList.remove('hidden')
                 }
@@ -187,20 +187,53 @@ function wireUpButtons(datasetId) {
     document.getElementById('overall-clean-btn')?.addEventListener('click', async () => {
         hideError('overall-clean-error');
         hideSuccess('overall-clean-success');
+        const userConfirmed = confirm(
+        "⚠️ Commit Changes Permanently?\n\nThis operation will directly modify your original dataset file on the server This action cannot be undone. Do you want to proceed?"
+        );
 
-        const dropScope = document.querySelector('input[name="drop-na-scope"]:checked')?.value;
-        const fillValue = document.getElementById('global-fill-na').value.trim();
-
-        if (!dropScope && !fillValue) {
-            return showError('overall-clean-error', "Choose drop NA scope or enter a fill value.");
+        if (!userConfirmed) {
+            return; 
         }
 
+        const type=document.querySelector('input[name="scope"]:checked')?.value
+
+        if (!type) {
+            return showError('overall-clean-error', "Choose drop NA scope or enter a fill value.");
+        }
+        const payload={
+            clean_type:type
+        }
+        if(type=='drop-na'){
+            const strategy = document.querySelector('input[name="drop-na-scope"]:checked').value
+            if(!strategy){
+                return showError('overall-clean-error', "Choose drop NA axis");
+            }
+        
+            if(strategy == 'row'){
+                payload.axis=0
+            }
+            else{
+                payload.axis=1
+            }
+        }
+        else{
+            const value= document.querySelector("#global-fill-na").value
+            if(!value || value=="" || value.trim == '' || value.length < 1){
+                return showError('overall-clean-error', "Please Provide Some Value to fill null values");   
+            }
+            else{
+                payload.custom_fill_value=value
+            }
+        }
+
+
         try {
-            const data = await apiFetch(`/process/overall-clean?dataset_id=${datasetId}`, {
+            const data = await apiFetch(`/datasets/overall-clean?dataset_id=${datasetId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ drop_scope: dropScope, fill_value: fillValue || null })
+                body: JSON.stringify(payload)
             });
+            await initializeClean(datasetId)
             showSuccess('overall-clean-success', data.message || "Dataset cleaned.");
         } catch (err) {
             showError('overall-clean-error', err.message);
@@ -223,6 +256,7 @@ function wireUpButtons(datasetId) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ columns: selected, strategy })
             });
+            await initializeClean(datasetId)
             showSuccess('encoding-success', data.message || "Encoding applied.");
         } catch (err) {
             showError('encoding-error', err.message);
