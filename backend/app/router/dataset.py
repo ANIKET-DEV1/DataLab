@@ -6,7 +6,7 @@ from ..models.models import User,Dataset
 from ..repository.dataset import DatasetRepository
 from starlette.concurrency import run_in_threadpool
 from .deps import get_current_user ,get_verified_user_dataset,APP_DIR
-from ..schemas.dataset import ColumnWiseClean, DatasetVisualized ,overallclean
+from ..schemas.dataset import ColumnWiseClean, DatasetVisualized ,overallclean, renameColumn
 from ..service import data_engine
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
@@ -159,6 +159,25 @@ async def apply_on_all(
             data_engine.overall_clean,
             dataset=dataset,
             payload=overall_clean_data
+        )
+        if not data:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="No data return")
+        return data
+    except Exception as e:
+                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+   
+@router.post("/rename-column")
+async def rename_col(
+    request:Request,
+    rename_columns: renameColumn,
+    dataset: Dataset = Depends(get_verified_user_dataset),
+):
+    try:
+        data= await run_in_threadpool(
+            data_engine.rename_column,
+            dataset= dataset,
+            payload=rename_columns
         )
         if not data:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,

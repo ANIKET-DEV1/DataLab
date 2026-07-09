@@ -277,3 +277,40 @@ def overall_clean(dataset :Dataset, payload: ds.overallclean):
         print(f"CRITICAL ENGINE FAULT: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal Cleaning Engine Server Error")
     
+def rename_column(dataset: Dataset, payload: ds.renameColumn):
+    try:
+        df = _read_dataframe(dataset)
+        
+        old_column = payload.old_column
+        if old_column not in df.columns:
+            raise HTTPException(status_code=400, detail=f"Column' not found in dataset.")
+        
+
+        newColName = str(payload.new_name_columns)
+        if newColName and newColName.strip()!='':
+            df.rename(columns={old_column:newColName}, inplace=True)
+        else:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                                detail="Please Provide Valid Details")
+        temp_file_path = f"{dataset.file_path}.tmp"
+        
+        if dataset.file_type == "csv":
+            df.to_csv(temp_file_path, index=False)
+        elif dataset.file_type == "xlsx":
+            df.to_excel(temp_file_path, index=False)
+        elif dataset.file_type == "json":
+            df.to_json(temp_file_path, index=False)
+        import os
+        os.replace(temp_file_path, dataset.file_path)
+    
+
+        return {
+            'message':'Successfully rename'
+        }
+
+    except HTTPException:
+        raise  
+    except Exception as e:
+        print(f"CRITICAL ENGINE FAULT: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal Cleaning Engine Server Error")
+

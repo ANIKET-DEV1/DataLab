@@ -241,45 +241,36 @@ function wireUpButtons(datasetId) {
     });
 
     // Encoding
-    document.getElementById('encoding-btn')?.addEventListener('click', async () => {
-        hideError('encoding-error');
-        hideSuccess('encoding-success');
-
-        const selected = [...document.querySelectorAll("#categorical-columns option:checked")].map(o => o.value);
-        const strategy = document.querySelector('input[name="encoding-type"]:checked')?.value;
-
-        if (selected.length === 0) return showError('encoding-error', "Select at least one column to encode.");
-
-        try {
-            const data = await apiFetch(`/process/encode?dataset_id=${datasetId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ columns: selected, strategy })
-            });
-            await initializeClean(datasetId)
-            showSuccess('encoding-success', data.message || "Encoding applied.");
-        } catch (err) {
-            showError('encoding-error', err.message);
-        }
-    });
+    // document.getElementById('encoding-btn')?.addEventListener('click', async () => {
+       
+    // });
 
     // Rename
     document.getElementById('rename-btn')?.addEventListener('click', async () => {
         hideError('rename-error');
         hideSuccess('rename-success');
+        const userConfirmed = confirm(
+        "⚠️ Commit Changes Permanently?\n\nThis operation will directly modify your original dataset file on the server This action cannot be undone. Do you want to proceed?"
+        );
 
+        if (!userConfirmed) {
+            return; 
+        }
         const column = document.querySelector("#rename-column-select").value;
         const newName = document.getElementById('new-column-name').value.trim();
 
         if (!column) return showError('rename-error', "Select a column to rename.");
         if (!newName) return showError('rename-error', "Enter a new column name.");
         if (column === newName) return showError('rename-error', "New name is the same as the current name.");
-
+        const payload={
+            old_column: column,
+            new_name_columns:newName
+        }
         try {
-            const data = await apiFetch(`/process/rename?dataset_id=${datasetId}`, {
+            const data = await apiFetch(`/datasets/rename-column?dataset_id=${datasetId}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ column, new_name: newName })
+                body: JSON.stringify(payload)
             });
             showSuccess('rename-success', data.message || "Column renamed.");
 

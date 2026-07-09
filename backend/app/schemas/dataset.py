@@ -89,3 +89,6 @@ class overallclean(BaseModel):
         return self
     
 
+class renameColumn(BaseModel):
+    old_column:str 
+    new_name_columns:str 
