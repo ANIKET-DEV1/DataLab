@@ -2,7 +2,7 @@ import { populateDropdownMenu } from "./chart.js";
 
 function showError(elId, msg) {
     const el = document.getElementById(elId);
-    if (el) { el.textContent = msg; el.style.display = "block"; }
+    if (el) { el.textContent = msg; el.style.display = "flex"; }
 }
 function hideError(elId) {
     const el = document.getElementById(elId);
@@ -10,7 +10,7 @@ function hideError(elId) {
 }
 function showSuccess(elId, msg) {
     const el = document.getElementById(elId);
-    if (el) { el.textContent = msg; el.style.display = "block"; }
+    if (el) { el.textContent = msg; el.style.display = "flex"; }
 }
 function hideSuccess(elId) {
     const el = document.getElementById(elId);
@@ -25,10 +25,11 @@ async function apiFetch(url, options = {}) {
 }
 
 function showView(viewId) {
-    document.querySelectorAll('.panel').forEach(panel => {
+    // Only toggle panels that are direct children of #panels (skip navbar)
+    document.querySelectorAll('#panels section').forEach(panel => {
         panel.classList.toggle('hidden', panel.id !== viewId);
     });
-    document.querySelectorAll('.nav-link').forEach(link => {
+    document.querySelectorAll('.sidebar-item').forEach(link => {
         link.classList.toggle('active', link.dataset.view === viewId);
     });
 }
@@ -36,7 +37,7 @@ function showView(viewId) {
 document.addEventListener("DOMContentLoaded", async () => {
     const datasetId = localStorage.getItem('active_id');
 
-    document.querySelectorAll('.nav-link').forEach(link => {
+    document.querySelectorAll('.sidebar-item[data-view]').forEach(link => {
         link.addEventListener('click', e => {
             e.preventDefault();
             showView(link.dataset.view);

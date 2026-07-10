@@ -61,7 +61,15 @@ async function loadDatasets() {
     // Display datasets
     if (!data.datasets || data.datasets.length === 0) {
       console.log('No datasets found');
-      datasetsContainer.innerHTML = '<div class="empty-message">No datasets yet. <a href="/upload">Upload one</a></div>';
+      datasetsContainer.innerHTML = `
+        <div style="grid-column:1/-1">
+          <div class="empty-state">
+            <div class="empty-state-icon">📂</div>
+            <h3>No datasets yet</h3>
+            <p>Upload a CSV or Excel file to get started with your analysis.</p>
+            <a href="/upload" class="btn btn-primary" style="margin-top:8px;">📤 Upload Dataset</a>
+          </div>
+        </div>`;
       return;
     }
 
@@ -69,14 +77,30 @@ async function loadDatasets() {
 
     // Create dataset cards
     datasetsContainer.innerHTML = data.datasets.map(dataset => `
-      <div class="dataset-card">
-        <h3>${escapeHtml(dataset.original_name)}</h3>
-        <p><strong>File Type:</strong> ${escapeHtml(dataset.file_type)}</p>
-        <p><strong>Uploaded:</strong> ${new Date(dataset.created_at).toLocaleDateString()}</p>
-        <p><strong>Size:</strong> ${(dataset.file_size_bytes / 1024).toFixed(2)} KB</p>
-        <p><strong>Last Accessed:</strong> ${new Date(dataset.last_accessed_at).toLocaleDateString()}</p>
-        <button value="delete" class="del" onClick="del('${dataset.id}')">Delete</button>
-        <button value="Select" class="Data-select" onClick="selectbybutton('${dataset.id}','${dataset.original_name}')">Select<button>
+      <div class="dataset-card animate-in" id="card-${escapeHtml(dataset.id)}">
+        <h3>📄 ${escapeHtml(dataset.original_name)}</h3>
+        <div class="meta-row">
+          <span class="meta-label">File Type</span>
+          <span class="meta-value">${escapeHtml(dataset.file_type)}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Size</span>
+          <span class="meta-value">${(dataset.file_size_bytes / 1024).toFixed(2)} KB</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Uploaded</span>
+          <span class="meta-value">${new Date(dataset.created_at).toLocaleDateString()}</span>
+        </div>
+        <div class="meta-row">
+          <span class="meta-label">Last Accessed</span>
+          <span class="meta-value">${new Date(dataset.last_accessed_at).toLocaleDateString()}</span>
+        </div>
+        <div class="dataset-card-actions">
+          <button class="btn btn-primary btn-sm" style="flex:1;" onClick="selectbybutton('${dataset.id}','${escapeHtml(dataset.original_name)}')">
+            ✓ Select
+          </button>
+          <button class="btn btn-danger btn-sm" onClick="del('${dataset.id}')">🗑</button>
+        </div>
       </div>
     `).join('');
 
@@ -89,7 +113,12 @@ async function loadDatasets() {
       loadingDiv.style.display = 'none';
     }
     
-    datasetsContainer.innerHTML = '<div class="empty-message" style="color: red;">Error loading datasets: ' + error.message + '</div>';
+    datasetsContainer.innerHTML = `
+      <div style="grid-column:1/-1">
+        <div class="msg-error" style="justify-content:center;padding:20px;">
+          ✗ Error loading datasets: ${error.message}
+        </div>
+      </div>`;
   }
 }
 
@@ -110,8 +139,6 @@ async function del(id){
     catch{
       alert("We couldnt delete")
     }
-  } else {
-     alert("Glad you're staying!");
   }
 
 };

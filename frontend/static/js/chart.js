@@ -12,7 +12,10 @@ export function showError(message) {
 
 export function hideError() {
     const errorBlock = document.querySelector("#error");
-    if (errorBlock) errorBlock.style.display = "none";
+    if (errorBlock) {
+        errorBlock.style.display = "none";
+        errorBlock.textContent = "";
+    }
 }
 
 export function populateDropdownMenu(selectElement, columnsArray, allowOptionalNone) {

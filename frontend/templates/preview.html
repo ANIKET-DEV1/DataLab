@@ -3,32 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataLab</title>
+    <title>DataLab — Preview</title>
+    <meta name="description" content="Preview your dataset statistics and structure in DataLab.">
+    <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        .data-table{
-            margin-top: 2rem;
-            border: 2px solid black;
-            
+        .section-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 28px 0 14px;
         }
-        .data-table th{
-                border: 2px solid cyan;
-            }
-        .data-table td{
-            text-align: center;
+        .section-label h2 { margin: 0; font-size: 1.1rem; }
+        .section-label .label-line {
+            flex: 1;
+            height: 1px;
+            background: var(--border);
         }
-        .error{
-            display: none;
-            color: red;
+        #error { display: none; margin-bottom: 20px; }
+        .preview-loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 60px 20px;
         }
+        .preview-loading p { color: var(--text-muted); }
     </style>
 </head>
 <body>
-    <p><a href="/upload">Upload Dataset</a> | <a href="/preview">Preview</a> | <a href="/visualize">Visualize</a> | <a href="/ml">ML</a> | <a href="/clean">Clean</a></p>
-    <button id="logoutBtn" type="button">Logout</button>
-    <p class="error" id="error"></p>
-    <div id="previewTableContainer"></div>
-    <div id="describeTableContainer"></div>
-    <div id="infoTableContainer"></div>
-    <script src="/static/js/engine.js"></script>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <div class="brand-icon">🔬</div>
+        <span class="brand-name">DataLab</span>
+    </a>
+    <div class="nav-links">
+        <a href="/" class="nav-link">🏠 Home</a>
+        <a href="/upload" class="nav-link">📤 Upload</a>
+        <a href="/preview" class="nav-link active">🔍 Preview</a>
+        <a href="/visualize" class="nav-link">📊 Visualize</a>
+        <a href="/clean" class="nav-link">🧹 Clean</a>
+        <a href="/ml" class="nav-link">🤖 ML <span class="nav-badge">Soon</span></a>
+    </div>
+    <div class="nav-right">
+        <button id="logoutBtn" class="btn btn-danger btn-sm">Logout</button>
+    </div>
+</nav>
+
+<!-- ── Main ── -->
+<main class="page-wrap">
+    <div class="page-header animate-in">
+        <h1>Dataset Preview</h1>
+        <p>Explore your data — first rows, descriptive statistics, and column info.</p>
+    </div>
+
+    <!-- Error -->
+    <div id="error" class="msg-error animate-in"></div>
+
+    <!-- Loading -->
+    <div class="preview-loading animate-in animate-in-delay-1" id="preview-loading">
+        <div class="loader" style="width:32px;height:32px;border-width:3px;"></div>
+        <p>Fetching dataset preview…</p>
+    </div>
+
+    <!-- Tables -->
+    <div id="preview-wrap" style="display:none;">
+        <div class="section-label animate-in animate-in-delay-1">
+            <h2>📋 Data Sample</h2>
+            <div class="label-line"></div>
+        </div>
+        <div class="table-wrapper animate-in animate-in-delay-2" id="previewTableContainer"></div>
+
+        <div class="section-label animate-in animate-in-delay-2">
+            <h2>📊 Descriptive Statistics</h2>
+            <div class="label-line"></div>
+        </div>
+        <div class="table-wrapper animate-in animate-in-delay-3" id="describeTableContainer"></div>
+
+        <div class="section-label animate-in animate-in-delay-3">
+            <h2>🗂️ Column Info</h2>
+            <div class="label-line"></div>
+        </div>
+        <div class="table-wrapper animate-in animate-in-delay-4" id="infoTableContainer"></div>
+    </div>
+</main>
+
+<script src="/static/js/engine.js"></script>
+<script>
+    // Logout
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                const res = await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' });
+                if (res.ok) { localStorage.clear(); window.location.href = '/login'; }
+                else alert('Unable to logout right now.');
+            } catch { alert('Unable to logout right now.'); }
+        });
+    }
+
+    // After engine.js loads data, hide loading & show preview-wrap
+    // We patch the engine's behavior by listening for table inserts
+    const observer = new MutationObserver(() => {
+        const hasContent = document.getElementById('previewTableContainer').innerHTML.trim();
+        if (hasContent) {
+            document.getElementById('preview-loading').style.display = 'none';
+            document.getElementById('preview-wrap').style.display = 'block';
+            observer.disconnect();
+        }
+    });
+    observer.observe(document.getElementById('previewTableContainer'), { childList: true });
+
+    // Also handle if error shown (engine.js sets error element)
+    const errEl = document.getElementById('error');
+    const errorObs = new MutationObserver(() => {
+        if (errEl.style.display === 'block') {
+            document.getElementById('preview-loading').style.display = 'none';
+        }
+    });
+    errorObs.observe(errEl, { attributes: true, attributeFilter: ['style'] });
+</script>
 </body>
 </html>

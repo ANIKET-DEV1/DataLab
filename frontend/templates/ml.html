@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataLab — ML Studio (Coming Soon)</title>
+    <meta name="description" content="Machine Learning studio coming soon to DataLab.">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        /* ── Hero ── */
+        .ml-hero {
+            text-align: center;
+            padding: 60px 24px 20px;
+            max-width: 680px;
+            margin: 0 auto;
+        }
+        .ml-hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 18px;
+            border-radius: 99px;
+            background: linear-gradient(135deg, rgba(255,181,71,0.12), rgba(255,107,0,0.08));
+            border: 1px solid rgba(255,181,71,0.3);
+            font-size: 0.78rem;
+            font-weight: 700;
+            color: var(--warning);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 28px;
+            animation: pulse-glow 2.5s ease-in-out infinite;
+        }
+        .ml-hero h1 {
+            font-size: clamp(2rem, 5vw, 3rem);
+            margin-bottom: 16px;
+            line-height: 1.2;
+        }
+        .ml-hero p {
+            font-size: 1.05rem;
+            line-height: 1.75;
+            max-width: 520px;
+            margin: 0 auto 32px;
+        }
+
+        /* ── Orb animation ── */
+        .ml-orb-wrap {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 36px;
+        }
+        .ml-orb-ring {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            background: conic-gradient(from 0deg, var(--accent), var(--accent-2), var(--warning), var(--accent)) border-box;
+            -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: destination-out;
+            mask-composite: exclude;
+            animation: spin 3.5s linear infinite;
+        }
+        .ml-orb-inner {
+            position: absolute;
+            inset: 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(99,137,255,0.2), rgba(162,89,255,0.2));
+            border: 1px solid rgba(99,137,255,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        /* ── Feature Cards ── */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 16px;
+            max-width: 900px;
+            margin: 0 auto 40px;
+        }
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px 20px;
+            backdrop-filter: blur(10px);
+            transition: all var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+        .feature-card::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform var(--transition-slow);
+        }
+        .feature-card:hover {
+            border-color: rgba(99,137,255,0.2);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 32px rgba(99,137,255,0.12);
+        }
+        .feature-card:hover::after { transform: scaleX(1); }
+        .feature-card .fc-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            display: block;
+        }
+        .feature-card h3 {
+            font-size: 0.95rem;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+        .feature-card p {
+            font-size: 0.8rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+        .feature-card .fc-tag {
+            margin-top: 12px;
+        }
+
+        /* ── Roadmap ── */
+        .roadmap {
+            max-width: 580px;
+            margin: 0 auto 40px;
+        }
+        .roadmap-title {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+        .roadmap-item {
+            display: flex;
+            gap: 16px;
+            align-items: flex-start;
+            padding: 16px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .roadmap-item:last-child { border-bottom: none; }
+        .roadmap-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+        .roadmap-dot.done { background: var(--success); box-shadow: 0 0 8px rgba(0,214,143,0.4); }
+        .roadmap-dot.progress { background: var(--warning); box-shadow: 0 0 8px rgba(255,181,71,0.4); animation: pulse-glow 1.5s ease infinite; }
+        .roadmap-dot.planned { background: var(--text-muted); }
+        .roadmap-item-content h4 { font-size: 0.9rem; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+        .roadmap-item-content p  { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* ── Notify CTA ── */
+        .notify-section {
+            text-align: center;
+            max-width: 460px;
+            margin: 0 auto 60px;
+            padding: 36px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            backdrop-filter: blur(12px);
+        }
+        .notify-section h2 { margin-bottom: 8px; font-size: 1.2rem; }
+        .notify-section p  { font-size: 0.875rem; margin-bottom: 20px; }
+        .notify-input-row {
+            display: flex;
+            gap: 10px;
+        }
+        .notify-input-row input {
+            flex: 1;
+        }
+        #notify-msg { display: none; margin-top: 12px; min-height: 0; }
+    </style>
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <div class="brand-icon">🔬</div>
+        <span class="brand-name">DataLab</span>
+    </a>
+    <div class="nav-links">
+        <a href="/" class="nav-link">🏠 Home</a>
+        <a href="/upload" class="nav-link">📤 Upload</a>
+        <a href="/preview" class="nav-link">🔍 Preview</a>
+        <a href="/visualize" class="nav-link">📊 Visualize</a>
+        <a href="/clean" class="nav-link">🧹 Clean</a>
+        <a href="/ml" class="nav-link active">🤖 ML <span class="nav-badge">Soon</span></a>
+    </div>
+</nav>
+
+<!-- ── Hero Section ── -->
+<section class="ml-hero animate-in">
+    <div class="ml-hero-badge">
+        ⏳ &nbsp; Coming Soon
+    </div>
+
+    <div class="ml-orb-wrap">
+        <div class="ml-orb-ring"></div>
+        <div class="ml-orb-inner">🤖</div>
+    </div>
+
+    <h1>ML Studio is <span class="gradient-text">on its way</span></h1>
+    <p>We're building a powerful no-code machine learning studio directly inside DataLab. Train, evaluate and deploy models — all from your browser.</p>
+
+    <a href="/" class="btn btn-ghost btn-lg" style="margin-bottom:8px;">← Back to Dashboard</a>
+</section>
+
+<!-- ── Feature Cards ── -->
+
+<script>
+    function handleNotify() {
+        const email = document.getElementById('notify-email').value.trim();
+        const msg = document.getElementById('notify-msg');
+        if (!email || !email.includes('@')) {
+            msg.className = 'msg-error';
+            msg.textContent = '✗ Please enter a valid email address.';
+            msg.style.display = 'flex';
+            return;
+        }
+        // In a real app, you'd POST to an API here
+        msg.className = 'msg-success';
+        msg.textContent = '✓ You\'re on the list! We\'ll be in touch.';
+        msg.style.display = 'flex';
+        document.getElementById('notify-btn').disabled = true;
+        document.getElementById('notify-email').disabled = true;
+    }
+
+    document.getElementById('notify-email').addEventListener('keydown', e => {
+        if (e.key === 'Enter') handleNotify();
+    });
+</script>
+</body>
+</html>

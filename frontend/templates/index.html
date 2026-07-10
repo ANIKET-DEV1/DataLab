@@ -3,93 +3,106 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataLab</title>
+    <title>DataLab — Dashboard</title>
+    <meta name="description" content="Manage and explore your datasets with DataLab.">
+    <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f5f5f5;
-        }
-        .header {
+        .header-row {
             display: flex;
+            align-items: flex-end;
             justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .greeting {
+            font-size: clamp(1rem, 2.5vw, 1.15rem);
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-bottom: 4px;
+        }
+        .greeting span { color: var(--accent); font-weight: 700; }
+        .stats-row {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 20px 0 6px;
+        }
+        .active-badge {
+            display: inline-flex;
             align-items: center;
-            margin-bottom: 20px;
+            gap: 6px;
+            padding: 5px 14px;
+            background: rgba(0,214,143,0.1);
+            border: 1px solid rgba(0,214,143,0.25);
+            border-radius: 99px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            color: var(--success);
         }
-        .nav-links {
-            margin: 10px 0;
+        .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse-glow 1.5s ease infinite; }
+        #loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 14px;
+            padding: 60px 20px;
         }
-        .nav-links a {
-            margin-right: 15px;
-            text-decoration: none;
-            color: #007bff;
-        }
-        .nav-links a:hover {
-            text-decoration: underline;
-        }
-        #logoutBtn {
-            padding: 8px 16px;
-            background-color: #dc3545;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        #logoutBtn:hover {
-            background-color: #c82333;
-        }
-        #datasets {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-        .dataset-card {
-            background-color: white;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .dataset-card h3 {
-            margin: 0 0 10px 0;
-            color: #333;
-        }
-        .dataset-card p {
-            margin: 5px 0;
-            color: #666;
-            font-size: 14px;
-        }
-        .empty-message {
-            text-align: center;
-            color: #999;
-            padding: 40px;
-            font-size: 16px;
-        }
-        .loading {
-            text-align: center;
-            padding: 20px;
-        }
+        #loading p { color: var(--text-muted); }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>Hello <span id="username"></span></h1>
-        <button id="logoutBtn" type="button">Logout</button>
-    </div>
-    
+
+<!-- ── Navbar ── -->
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <div class="brand-icon">🔬</div>
+        <span class="brand-name">DataLab</span>
+    </a>
     <div class="nav-links">
-        <a href="/upload">Upload Dataset</a> | 
-        <a href="/preview">Preview</a> | 
-        <a href="/visualize">Visualize</a> | 
-        <a href="/ml">ML</a> | 
-        <a href="/clean">Clean</a>
+        <a href="/upload" class="nav-link">📤 Upload</a>
+        <a href="/preview" class="nav-link">🔍 Preview</a>
+        <a href="/visualize" class="nav-link">📊 Visualize</a>
+        <a href="/clean" class="nav-link">🧹 Clean</a>
+        <a href="/ml" class="nav-link">🤖 ML <span class="nav-badge">Soon</span></a>
+    </div>
+    <div class="nav-right">
+        <button id="logoutBtn" class="btn btn-danger btn-sm">Logout</button>
+    </div>
+</nav>
+
+<!-- ── Main Content ── -->
+<main class="page-wrap">
+    <div class="page-header animate-in">
+        <p class="greeting">Good to see you, <span id="username">…</span> 👋</p>
+        <h1>Your Datasets</h1>
+        <p>Select a dataset to set it as active, then explore it across the tools.</p>
     </div>
 
-    <h2>Your Datasets</h2>
-    <div id="loading" class="loading">Loading datasets...</div>
-    <div id="datasets"></div>
-    
-    <script src="/static/js/script.js"></script>
+    <div class="stats-row animate-in animate-in-delay-1" id="active-info" style="display:none;">
+        <div class="active-badge">
+            <span class="dot"></span>
+            Active: <strong id="active-name-label" style="margin-left:4px;color:var(--text-primary);">—</strong>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <div id="loading" class="animate-in animate-in-delay-1">
+        <div class="loader" style="width:32px;height:32px;border-width:3px;"></div>
+        <p>Loading your datasets…</p>
+    </div>
+
+    <!-- Dataset Grid -->
+    <div id="datasets" class="dataset-grid animate-in animate-in-delay-2"></div>
+</main>
+
+<script src="/static/js/script.js"></script>
+<script>
+    // Show active dataset indicator
+    const activeName = localStorage.getItem('active_name');
+    if (activeName) {
+        document.getElementById('active-name-label').textContent = activeName;
+        document.getElementById('active-info').style.display = 'flex';
+    }
+</script>
 </body>
 </html>

@@ -3,64 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>📊 DataLab - Visualize</title>
-    <!-- Include Free Chart.js Library CDN -->
+    <title>DataLab — Visualize</title>
+    <meta name="description" content="Create beautiful no-code charts from your dataset in DataLab.">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
     <style>
-        body { font-family: system-ui, sans-serif; background: #f4f6f9; margin: 30px; }
-        .vis-container { max-width: 800px; margin: auto; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .control-row { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-        select, button { padding: 8px 12px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; }
-        button { background: #007bff; color: white; cursor: pointer; border: none; font-weight: bold;}
-        button:hover { background: #0056b3; }
-        .canvas-container { position: relative; margin-top: 20px; height: 400px; width: 100%; }
-        .error{
-            display: none;
-            color: red;
+        .vis-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 20px;
+            align-items: start;
         }
+        @media (max-width: 780px) {
+            .vis-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Chart type buttons */
+        .chart-type-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .chart-type-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 12px 8px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            font-size: 0.78rem;
+            font-weight: 500;
+            text-align: center;
+            font-family: inherit;
+        }
+        .chart-type-btn:hover { border-color: rgba(255,255,255,0.15); color: var(--text-primary); }
+        .chart-type-btn.active {
+            border-color: rgba(99,137,255,0.5);
+            background: rgba(99,137,255,0.12);
+            color: var(--accent);
+        }
+        .chart-type-btn .chart-icon { font-size: 1.4rem; }
+
+        /* Error message override — chart.js sets display:block, we accommodate both */
+        #error {
+            display: none;
+            margin-top: 16px;
+            padding: 10px 14px;
+            background: rgba(255, 91, 122, 0.1);
+            border: 1px solid rgba(255, 91, 122, 0.25);
+            border-radius: var(--radius-sm);
+            color: var(--danger);
+            font-size: 0.875rem;
+            font-weight: 500;
+            animation: slideDown 0.2s ease;
+        }
+
+        /* Canvas wrapper — explicit sizing so chart renders correctly */
+        .canvas-wrap {
+            position: relative;
+            width: 100%;
+            height: 420px;
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: rgba(255,255,255,0.02);
+            border: 1px solid var(--border);
+            margin-top: 20px;
+        }
+
+        /* Canvas fills wrapper 100% */
+        #myChart {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* Empty placeholder */
+        .empty-chart {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .empty-chart.hidden-placeholder { opacity: 0; }
+        .empty-chart .icon { font-size: 3rem; opacity: 0.4; }
     </style>
 </head>
 <body>
 
-<div class="vis-container">
-    <h2>📊 No-Code Visualization Studio</h2>
-    <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 20px;">
-
-    <form id="visual-form">
-        <div class="control-row">
-            <!-- 1. Select Chart Type -->
-            <label>Chart Type:<br>
-                <select id="chartType">
-                    <option value="bar">Bar Chart</option>
-                    <option value="line">Line Chart</option>
-                    <option value="hist">Histogram (Distribution)</option>
-                    <option value="scatter">Scatter Plot (Scalar)</option>
-                    <option value="pie">Pie Chart</option>
-                </select>
-            </label>
-
-            <!-- 2. Target Columns (These can be dynamically populated using your dataset column array) -->
-            <label>X-Axis (or Target Column):<br>
-                <select id="xAxisCol"></select>
-            </label>
-
-            <label id="yAxisLabel">Y-Axis (Optional):<br>
-                <select id="yAxisCol"></select>
-            </label>
-
-            <label style="display: flex; align-items: flex-end;">
-                <button type="submit">Generate Plot</button>
-            </label>
-        </div>
-    </form>
-
-
-    <div class="canvas-container">
-        <p class="error" id="error"></p>
-        <canvas id="myChart"></canvas>
+<!-- ── Navbar ── -->
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <div class="brand-icon">🔬</div>
+        <span class="brand-name">DataLab</span>
+    </a>
+    <div class="nav-links">
+        <a href="/" class="nav-link">🏠 Home</a>
+        <a href="/upload" class="nav-link">📤 Upload</a>
+        <a href="/preview" class="nav-link">🔍 Preview</a>
+        <a href="/visualize" class="nav-link active">📊 Visualize</a>
+        <a href="/clean" class="nav-link">🧹 Clean</a>
+        <a href="/ml" class="nav-link">🤖 ML <span class="nav-badge">Soon</span></a>
     </div>
-</div>
+</nav>
 
+<!-- ── Main ── -->
+<main class="page-wrap">
+    <div class="page-header animate-in">
+        <h1>📊 Visualization Studio</h1>
+        <p>Create insightful charts from your data — no code required.</p>
+    </div>
+
+    <div class="vis-grid animate-in animate-in-delay-1">
+
+        <!-- ── Controls Panel ── -->
+        <div class="panel" style="position:sticky;top:90px;">
+            <h2 style="margin-bottom:20px;">Configuration</h2>
+
+            <form id="visual-form">
+                <!-- Chart Type -->
+                <div class="form-group" style="margin-bottom:18px;">
+                    <label>Chart Type</label>
+                    <div class="chart-type-grid">
+                        <button type="button" class="chart-type-btn active" data-type="bar">
+                            <span class="chart-icon">📊</span>Bar
+                        </button>
+                        <button type="button" class="chart-type-btn" data-type="line">
+                            <span class="chart-icon">📈</span>Line
+                        </button>
+                        <button type="button" class="chart-type-btn" data-type="hist">
+                            <span class="chart-icon">🔢</span>Histogram
+                        </button>
+                        <button type="button" class="chart-type-btn" data-type="scatter">
+                            <span class="chart-icon">🔵</span>Scatter
+                        </button>
+                        <button type="button" class="chart-type-btn" data-type="pie" style="grid-column:1/-1;">
+                            <span class="chart-icon">🥧</span>Pie Chart
+                        </button>
+                    </div>
+                    <!-- Hidden select read by chart.js -->
+                    <select id="chartType" style="display:none;" aria-hidden="true">
+                        <option value="bar">Bar Chart</option>
+                        <option value="line">Line Chart</option>
+                        <option value="hist">Histogram (Distribution)</option>
+                        <option value="scatter">Scatter Plot (Scalar)</option>
+                        <option value="pie">Pie Chart</option>
+                    </select>
+                </div>
+
+                <!-- X Axis -->
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label for="xAxisCol">X-Axis (or Target Column)</label>
+                    <select id="xAxisCol"></select>
+                </div>
+
+                <!-- Y Axis -->
+                <div class="form-group" id="yAxisLabel" style="margin-bottom:20px;">
+                    <label for="yAxisCol">Y-Axis (Optional)</label>
+                    <select id="yAxisCol"></select>
+                </div>
+
+                <!-- Error shown by chart.js -->
+                <p id="error"></p>
+
+                <button type="submit" id="generateBtn" class="btn btn-primary" style="width:100%;" disabled>
+                    Generate Plot
+                </button>
+            </form>
+        </div>
+
+        <!-- ── Chart Output Panel ── -->
+        <div class="panel">
+            <h2 style="margin-bottom:4px;">Chart Output</h2>
+            <p style="font-size:0.82rem;margin-bottom:4px;">Configure and hit Generate to render your visualization.</p>
+
+            <div class="canvas-wrap">
+                <!-- Empty placeholder — fades out once chart renders -->
+                <div class="empty-chart" id="empty-chart">
+                    <span class="icon">📊</span>
+                    <span>Your chart will appear here</span>
+                </div>
+                <!-- Canvas: chart.js manages display & sizing -->
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<!-- Chart type button → hidden select sync (non-module, runs first) -->
+<script>
+    document.querySelectorAll('.chart-type-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById('chartType').value = btn.dataset.type;
+        });
+    });
+
+    // Hide placeholder once form is submitted
+    document.getElementById('visual-form').addEventListener('submit', () => {
+        document.getElementById('empty-chart').classList.add('hidden-placeholder');
+    });
+</script>
+
+<!-- chart.js loaded as module AFTER the above inline script -->
 <script type="module" src="/static/js/chart.js"></script>
+
 </body>
 </html>

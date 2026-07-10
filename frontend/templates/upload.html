@@ -3,43 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>DataLab — Upload Dataset</title>
+    <meta name="description" content="Upload your CSV or Excel dataset to DataLab.">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .file-info {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            background: rgba(99,137,255,0.08);
+            border: 1px solid rgba(99,137,255,0.25);
+            border-radius: var(--radius-sm);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            animation: slideDown 0.2s ease;
+        }
+        .file-info .file-name { font-weight: 600; color: var(--text-primary); }
+        .file-info .file-size { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+        #upload-message { display: none; min-height: 0; }
+        .format-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+    </style>
 </head>
 <body>
-    <form id="uplaod_file">
-        <label for="File">File</label>
-        <input type="file" id="file">
-        <button value="submit">Upload</button>
-    </form>
-    
-    <script>
-        const form= document.getElementById("uplaod_file")
-        form.addEventListener('submit',async(evt)=>{
-            evt.preventDefault()
-            const fileInput = document.getElementById('file');
-            if (fileInput.files.length === 0) return alert("Please select a file");
 
-            const formData = new FormData();
+<!-- ── Navbar ── -->
+<nav class="navbar">
+    <a href="/" class="navbar-brand">
+        <div class="brand-icon">🔬</div>
+        <span class="brand-name">DataLab</span>
+    </a>
+    <div class="nav-links">
+        <a href="/" class="nav-link">🏠 Home</a>
+        <a href="/upload" class="nav-link active">📤 Upload</a>
+        <a href="/preview" class="nav-link">🔍 Preview</a>
+        <a href="/visualize" class="nav-link">📊 Visualize</a>
+        <a href="/clean" class="nav-link">🧹 Clean</a>
+        <a href="/ml" class="nav-link">🤖 ML <span class="nav-badge">Soon</span></a>
+    </div>
+</nav>
 
-            formData.append("file", fileInput.files[0]);
-            try{
-                const response=await fetch("/datasets/upload",{
+<!-- ── Main ── -->
+<main class="page-wrap">
+    <div class="page-header animate-in">
+        <h1>Upload Dataset</h1>
+        <p>Add a new dataset to your workspace. Supported formats below.</p>
+    </div>
+
+    <div class="card animate-in animate-in-delay-1" style="max-width:620px;">
+        <form id="uplaod_file">
+            <div class="dropzone" id="dropzone">
+                <span class="dropzone-icon">📁</span>
+                <h3>Drag & Drop your file here</h3>
+                <p>or click to browse from your computer</p>
+                <input type="file" id="file" accept=".csv,.xlsx,.xls,.json,.parquet">
+            </div>
+
+            <div class="file-info" id="file-info">
+                <span>📄</span>
+                <span class="file-name" id="file-info-name">—</span>
+                <span class="file-size" id="file-info-size">—</span>
+            </div>
+
+            <div class="format-chips">
+                <span class="info-chip">📋 CSV</span>
+                <span class="info-chip">📊 Excel (.xlsx / .xls)</span>
+                <span class="info-chip">🗃️ JSON</span>
+                <span class="info-chip">🦆 Parquet</span>
+            </div>
+
+            <p id="upload-message" class="msg-error" style="margin-top:16px;"></p>
+
+            <div style="margin-top:22px;display:flex;gap:12px;align-items:center;">
+                <button type="submit" id="uploadBtn" class="btn btn-primary btn-lg">
+                    <span id="uploadBtnText">📤 Upload</span>
+                    <span id="uploadBtnLoader" class="loader hidden"></span>
+                </button>
+                <a href="/" class="btn btn-ghost">Cancel</a>
+            </div>
+        </form>
+    </div>
+</main>
+
+<script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('file');
+    const fileInfo  = document.getElementById('file-info');
+    const fileInfoName = document.getElementById('file-info-name');
+    const fileInfoSize = document.getElementById('file-info-size');
+
+    function formatBytes(b) {
+        if (b < 1024) return b + ' B';
+        if (b < 1024 * 1024) return (b/1024).toFixed(1) + ' KB';
+        return (b/1024/1024).toFixed(2) + ' MB';
+    }
+
+    function showFileInfo(file) {
+        fileInfoName.textContent = file.name;
+        fileInfoSize.textContent = formatBytes(file.size);
+        fileInfo.style.display = 'flex';
+        dropzone.querySelector('h3').textContent = 'File selected ✓';
+    }
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files[0]) showFileInfo(fileInput.files[0]);
+    });
+
+    // Drag & drop
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('drag-over'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('drag-over'));
+    dropzone.addEventListener('drop', e => {
+        e.preventDefault();
+        dropzone.classList.remove('drag-over');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            const dt = new DataTransfer();
+            dt.items.add(file);
+            fileInput.files = dt.files;
+            showFileInfo(file);
+        }
+    });
+
+    const form = document.getElementById('uplaod_file');
+    form.addEventListener('submit', async (evt) => {
+        evt.preventDefault();
+        const message = document.getElementById('upload-message');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadBtnText = document.getElementById('uploadBtnText');
+        const uploadBtnLoader = document.getElementById('uploadBtnLoader');
+
+        message.style.display = 'none';
+
+        if (fileInput.files.length === 0) {
+            message.className = 'msg-error';
+            message.textContent = '✗ Please select a file first.';
+            message.style.display = 'flex';
+            return;
+        }
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        uploadBtn.disabled = true;
+        uploadBtnText.textContent = 'Uploading…';
+        uploadBtnLoader.classList.remove('hidden');
+
+        try {
+            const response = await fetch('/datasets/upload', {
                 method: 'POST',
                 body: formData,
                 credentials: 'same-origin'
             });
             const result = await response.json();
-                if(!response.ok){
-                    alert(result.detail)
-                }
-                else{
-                    window.location.href = "/";
-                }
+            if (!response.ok) {
+                message.className = 'msg-error';
+                message.textContent = '✗ ' + (result.detail || 'Upload failed.');
+                message.style.display = 'flex';
+                uploadBtn.disabled = false;
+                uploadBtnText.textContent = '📤 Upload';
+                uploadBtnLoader.classList.add('hidden');
+            } else {
+                message.className = 'msg-success';
+                message.textContent = '✓ Dataset uploaded! Redirecting…';
+                message.style.display = 'flex';
+                setTimeout(() => window.location.href = '/', 800);
             }
-            catch{
-                alert("Error Occured")
-            }
-        }); 
-    </script>
+        } catch {
+            message.className = 'msg-error';
+            message.textContent = '✗ An error occurred. Please try again.';
+            message.style.display = 'flex';
+            uploadBtn.disabled = false;
+            uploadBtnText.textContent = '📤 Upload';
+            uploadBtnLoader.classList.add('hidden');
+        }
+    });
+</script>
 </body>
 </html>

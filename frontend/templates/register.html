@@ -3,39 +3,200 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>DataLab — Register</title>
+    <meta name="description" content="Create your DataLab account and start exploring data.">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .input-icon-wrap { position: relative; }
+        .input-icon-wrap input { padding-left: 42px; }
+        .input-icon-wrap .icon {
+            position: absolute;
+            left: 13px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            padding: 4px;
+            transition: color var(--transition-fast);
+        }
+        .password-toggle:hover { color: var(--text-primary); }
+        .strength-bar {
+            height: 3px;
+            border-radius: 99px;
+            background: rgba(255,255,255,0.06);
+            margin-top: 6px;
+            overflow: hidden;
+        }
+        .strength-fill {
+            height: 100%;
+            border-radius: 99px;
+            transition: width 0.3s ease, background 0.3s ease;
+            width: 0%;
+        }
+        #message { display: none; min-height: 0; }
+    </style>
 </head>
 <body>
-    <form id="Register_form">
-        <label for="username">Username:</label>
-        <input type="text" id="username"><br>
-        <label for="email">Email:</label>
-        <input type="email" id="email"><br>
-        <label for="password">password:</label>
-        <input type="password" id="password"><br>
-        <label for="confirm_password">confirm_password:</label>
-        <input type="password" id="confirm_password"><br>
-        <button type="submit">Register</button>
-        <p id="message" style="color: red;"></p>
-    </form>
-    <script>
-        const form=document.querySelector("#Register_form")
-        form.addEventListener("submit",(evt)=>{
-            error=[]
-            const username=document.getElementById("username").value
-            const email=document.getElementById("email").value
-            const password=document.getElementById("password").value
-            const confirm_password=document.getElementById("confirm_password").value
-            const message=document.getElementById("message")
-            if (length(username) <= 2 ){
-                error.append("username must be greater than 2")
-            }
-            else if (length(password)<8 || length(confirm_password)<8){
-                error.append("password must be greater than 8")
-            }
-            
+<div class="auth-page">
+    <div class="auth-card animate-in">
+        <div class="auth-header">
+            <div class="brand-icon">🔬</div>
+            <h1 class="gradient-text">Create Account</h1>
+            <p>Join DataLab and start exploring your data</p>
+        </div>
 
-        })
-    </script>
+        <form id="Register_form" class="auth-form" autocomplete="on">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <div class="input-icon-wrap">
+                    <span class="icon">👤</span>
+                    <input type="text" id="username" placeholder="Choose a username" required autocomplete="username">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <div class="input-icon-wrap">
+                    <span class="icon">✉️</span>
+                    <input type="email" id="email" placeholder="you@example.com" required autocomplete="email">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-icon-wrap">
+                    <span class="icon">🔑</span>
+                    <input type="password" id="password" placeholder="Min. 8 characters" required autocomplete="new-password">
+                    <button type="button" class="password-toggle" id="togglePwd">👁️</button>
+                </div>
+                <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <div class="input-icon-wrap">
+                    <span class="icon">🔒</span>
+                    <input type="password" id="confirm_password" placeholder="Repeat your password" required autocomplete="new-password">
+                </div>
+            </div>
+
+            <p id="message" class="msg-error"></p>
+
+            <button type="submit" id="regBtn" class="btn btn-primary btn-lg" style="width:100%;margin-top:4px;">
+                <span id="regBtnText">Create Account</span>
+                <span id="regBtnLoader" class="loader hidden"></span>
+            </button>
+        </form>
+
+        <div class="auth-footer" style="margin-top:24px;">
+            Already have an account? <a href="/login">Sign in →</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Password strength indicator
+    const pwdInput = document.getElementById('password');
+    const strengthFill = document.getElementById('strengthFill');
+
+    pwdInput.addEventListener('input', () => {
+        const val = pwdInput.value;
+        let score = 0;
+        if (val.length >= 8) score++;
+        if (/[A-Z]/.test(val)) score++;
+        if (/[0-9]/.test(val)) score++;
+        if (/[^A-Za-z0-9]/.test(val)) score++;
+
+        const colors = ['#ff5b7a', '#ffb547', '#6389ff', '#00d68f'];
+        const widths = ['25%', '50%', '75%', '100%'];
+        if (val.length === 0) {
+            strengthFill.style.width = '0%';
+        } else {
+            strengthFill.style.width = widths[score - 1] || '20%';
+            strengthFill.style.background = colors[score - 1] || '#ff5b7a';
+        }
+    });
+
+    // Password toggle
+    document.getElementById('togglePwd').addEventListener('click', () => {
+        const pwd = document.getElementById('password');
+        const toggle = document.getElementById('togglePwd');
+        if (pwd.type === 'password') { pwd.type = 'text'; toggle.textContent = '🙈'; }
+        else { pwd.type = 'password'; toggle.textContent = '👁️'; }
+    });
+
+    const form = document.querySelector('#Register_form');
+    form.addEventListener('submit', async (evt) => {
+        evt.preventDefault();
+        const username = document.getElementById('username').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const confirm_password = document.getElementById('confirm_password').value;
+        const message = document.getElementById('message');
+        const regBtn = document.getElementById('regBtn');
+        const regBtnText = document.getElementById('regBtnText');
+        const regBtnLoader = document.getElementById('regBtnLoader');
+
+        message.style.display = 'none';
+        const errors = [];
+
+        if (username.length <= 2) errors.push('Username must be longer than 2 characters.');
+        if (password.length < 8)  errors.push('Password must be at least 8 characters.');
+        if (password !== confirm_password) errors.push('Passwords do not match.');
+
+        if (errors.length > 0) {
+            message.className = 'msg-error';
+            message.textContent = '✗ ' + errors[0];
+            message.style.display = 'flex';
+            return;
+        }
+
+        regBtn.disabled = true;
+        regBtnText.textContent = 'Creating account…';
+        regBtnLoader.classList.remove('hidden');
+
+        try {
+            const response = await fetch('/auth/register', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, email, password }),
+                credentials: 'same-origin'
+            });
+            const result = await response.json();
+            if (response.ok) {
+                message.className = 'msg-success';
+                message.textContent = '✓ Account created! Redirecting to login…';
+                message.style.display = 'flex';
+                setTimeout(() => window.location.href = '/login', 1200);
+            } else {
+                message.className = 'msg-error';
+                message.textContent = '✗ ' + (result.detail || 'Registration failed.');
+                message.style.display = 'flex';
+                regBtn.disabled = false;
+                regBtnText.textContent = 'Create Account';
+                regBtnLoader.classList.add('hidden');
+            }
+        } catch {
+            message.className = 'msg-error';
+            message.textContent = '✗ Something went wrong. Please try again.';
+            message.style.display = 'flex';
+            regBtn.disabled = false;
+            regBtnText.textContent = 'Create Account';
+            regBtnLoader.classList.add('hidden');
+        }
+    });
+</script>
 </body>
 </html>
