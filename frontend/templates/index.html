@@ -5,50 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DataLab — Dashboard</title>
     <meta name="description" content="Manage and explore your datasets with DataLab.">
+
     <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        .header-row {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-        .greeting {
-            font-size: clamp(1rem, 2.5vw, 1.15rem);
-            color: var(--text-secondary);
-            font-weight: 400;
-            margin-bottom: 4px;
-        }
-        .greeting span { color: var(--accent); font-weight: 700; }
-        .stats-row {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin: 20px 0 6px;
-        }
-        .active-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 5px 14px;
-            background: rgba(0,214,143,0.1);
-            border: 1px solid rgba(0,214,143,0.25);
-            border-radius: 99px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--success);
-        }
-        .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); animation: pulse-glow 1.5s ease infinite; }
-        #loading {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 14px;
-            padding: 60px 20px;
-        }
-        #loading p { color: var(--text-muted); }
-    </style>
+    <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
 </head>
 <body>
 
@@ -81,7 +40,7 @@
     <div class="stats-row animate-in animate-in-delay-1" id="active-info" style="display:none;">
         <div class="active-badge">
             <span class="dot"></span>
-            Active: <strong id="active-name-label" style="margin-left:4px;color:var(--text-primary);">—</strong>
+            Active: <strong id="active-name-label" style="margin-left:4px;">—</strong>
         </div>
     </div>
 
@@ -95,6 +54,7 @@
     <div id="datasets" class="dataset-grid animate-in animate-in-delay-2"></div>
 </main>
 
+<script src="/static/js/auth.js"></script>
 <script src="/static/js/script.js"></script>
 <script>
     // Show active dataset indicator

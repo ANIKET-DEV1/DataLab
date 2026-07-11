@@ -204,7 +204,10 @@
     </div>
 </main>
 
-<!-- Chart type button → hidden select sync (non-module, runs first) -->
+<!-- auth guard (must be before chart.js) -->
+<script src="/static/js/auth.js"></script>
+
+<!-- Chart type button → hidden select sync -->
 <script>
     document.querySelectorAll('.chart-type-btn').forEach(btn => {
         btn.addEventListener('click', () => {

@@ -89,6 +89,7 @@
     </div>
 </main>
 
+<script src="/static/js/auth.js"></script>
 <script src="/static/js/engine.js"></script>
 <script>
     // Logout
@@ -97,8 +98,14 @@
         logoutBtn.addEventListener('click', async () => {
             try {
                 const res = await fetch('/auth/logout', { method: 'POST', credentials: 'same-origin' });
-                if (res.ok) { localStorage.clear(); window.location.href = '/login'; }
-                else alert('Unable to logout right now.');
+                if (res.ok) {
+                    localStorage.removeItem('active_id');
+                    localStorage.removeItem('active_name');
+                    localStorage.removeItem('active_ts');
+                    window.location.href = '/';
+                } else {
+                    alert('Unable to logout right now.');
+                }
             } catch { alert('Unable to logout right now.'); }
         });
     }

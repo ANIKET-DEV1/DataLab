@@ -1,14 +1,17 @@
 # JWT 
 from jose import jwt, JWTError
-from fastapi import Depends, HTTPException, Request, status, Response
+from fastapi import Depends, HTTPException, Request, logger, status, Response
+import logging
 from uuid import uuid4
+import redis
+from redis.exceptions import ConnectionError, TimeoutError, RedisError
 from ..database.redis import is_jti_in_blacklist
 from ..models.models import User
 from datetime import datetime, timedelta, timezone
 from ..schemas.token import TokenData
 from ..core.config import get_config
 
-
+logger = logging.getLogger("auth_engine")
 system = get_config()
 SECRET_KEY = system.secret_key.get_secret_value()
 ALGORITHM = system.algorithms
@@ -35,19 +38,28 @@ async def verify_token(token: str) -> TokenData:
         verified:bool | None =payload.get("verified")
         jti: str | None = payload.get("jti")
 
-        if not verified:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Please verify Email. Check Your Mail"
-            )
-        if user_id is None or  await is_jti_in_blacklist(jti) :
+        if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token or expired session"
             )
 
-        return TokenData(user_id=user_id,jti=jti)
+        if not verified:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Please verify Email. Check Your Mail"
+            )
+
+        is_blacklisted = await is_jti_in_blacklist(jti)
         
+        if is_blacklisted:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token or expired session"
+            )
+
+        return TokenData(user_id=user_id, jti=jti)
+
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

@@ -1,18 +1,32 @@
+import redis
 from redis.asyncio import Redis
+import logging
+import redis
+from redis.exceptions import RedisError  
+logger = logging.getLogger("database")
 from ..core.config import get_config
 
 system = get_config()
 
 _redis_client = Redis.from_url(
     system.REDIS_URL,
-    decode_responses=True
+    decode_responses=True,
+    socket_timeout=0.2,          
+    socket_connect_timeout=0.2,  
+    retry_on_timeout=False
 )
 #logout
 async def add_jti_to_blacklist(jti: str):
     return await _redis_client.set(f"blacklist:{jti}", "blacklisted")
 
 async def is_jti_in_blacklist(jti: str) -> bool:
-    return await _redis_client.exists(f"blacklist:{jti}")
+    if not jti:
+        return False  
+    try:
+        return await _redis_client.exists(f"blacklist:{jti}")   
+    except (redis.exceptions.ConnectionError, redis.exceptions.TimeoutError, redis.exceptions.RedisError) as e:
+        logger.error(f"UPSTASH OUTAGE DETECTED: Returning fallback False for JTI check. Details: {e}")
+        return False
 
 #Mail handler
 async def mail_send(email) -> bool:

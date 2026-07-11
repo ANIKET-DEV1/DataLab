@@ -1,3 +1,11 @@
+/* ── Shared logout utility — call this from anywhere ── */
+function doLogout() {
+  localStorage.removeItem('active_id');
+  localStorage.removeItem('active_name');
+  localStorage.removeItem('active_ts');
+  window.location.href = '/';
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
   await loadDatasets();
 
@@ -9,10 +17,8 @@ document.addEventListener('DOMContentLoaded', async () => {
           method: 'POST',
           credentials: 'same-origin'
         });
-
         if (res.ok) {
-          localStorage.clear()
-          window.location.href = '/login';
+          doLogout();
         } else {
           alert('Unable to logout right now.');
         }
@@ -39,6 +45,14 @@ async function loadDatasets() {
     console.log('Response status:', response.status);
 
     if (!response.ok) {
+      // 401 = session expired / token invalid → clear stale localStorage and go to landing
+      if (response.status === 401) {
+        localStorage.removeItem('active_id');
+        localStorage.removeItem('active_name');
+        localStorage.removeItem('active_ts');
+        window.location.href = '/';
+        return;
+      }
       const errorText = await response.text();
       console.error('Server response:', errorText);
       throw new Error(`Failed to load datasets: ${response.status}`);
@@ -157,9 +171,25 @@ function escapeHtml(text) {
 
 let activeDatasetId = null;
 
-async function selectbybutton(newId,newName) {
+function selectbybutton(newId, newName) {
     activeDatasetId = newId;
     localStorage.setItem('active_id', newId);
     localStorage.setItem('active_name', newName);
-    console.log(`Workspace switched. Old file dropped. Active focus is now: ${newName}`);
+    localStorage.setItem('active_ts', Date.now().toString());
+
+    // Visual feedback: highlight the selected card
+    document.querySelectorAll('.dataset-card').forEach(c => c.style.borderColor = '');
+    const card = document.getElementById(`card-${newId}`);
+    if (card) {
+        card.style.borderColor = 'rgba(99,137,255,0.55)';
+        card.style.boxShadow = '0 0 20px rgba(99,137,255,0.2)';
+    }
+
+    // Update active badge in header
+    const label = document.getElementById('active-name-label');
+    const info  = document.getElementById('active-info');
+    if (label) label.textContent = newName;
+    if (info)  info.style.display = 'flex';
+
+    console.log(`Active dataset set: ${newName} (id: ${newId})`);
 }

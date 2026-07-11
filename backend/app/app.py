@@ -21,8 +21,24 @@ app.include_router(dataset.router)
 
 
 @app.get('/')
-def start(request:Request,user:models.User=Depends(deps.get_current_user)):
-    return RedirectResponse(url='/datasets/view', status_code=303)
+async def start(request: Request):
+    """Show landing page for guests, redirect to dashboard for logged-in users."""
+    try:
+        # Attempt to resolve the current user
+        from .database.session import get_db as _get_db
+        from .router.deps import get_current_user as _get_user
+        async for db in _get_db():
+            user = await _get_user(request, db)
+            # Logged-in: go to dashboard
+            return RedirectResponse(url='/datasets/view', status_code=303)
+    except HTTPException:
+        # Not authenticated: show landing page
+        return templates.TemplateResponse(name="landing.html", request=request)
+
+@app.get('/landing', response_class=HTMLResponse)
+def get_landing_page(request: Request):
+    """Public landing / marketing page."""
+    return templates.TemplateResponse(name="landing.html", request=request)
 
 @app.get("/login", response_class=HTMLResponse)
 def get_login_page(request: Request):

@@ -1,0 +1,310 @@
+/* =============================================
+   DataLab — Ledger Theme
+   Loads on top of /static/css/style.css to re-skin
+   the shared component classes (navbar, btn, auth-*,
+   dataset-grid, etc.) toward the paper/ledger brand.
+   Nothing here renames or removes a class/id — every
+   selector below targets markup that already exists,
+   so auth.js / script.js and the login/register fetch
+   calls are completely unaffected.
+   ============================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+/* ---- Tokens ---- */
+:root {
+    --bg-primary: #EEF0EA;
+    --bg-card: #FBFAF6;
+    --border: #D8DAD1;
+    --text-primary: #181C1A;
+    --text-secondary: #535B56;
+    --text-muted: #7A8177;
+    --accent: #1F5D46;
+    --accent-2: #2C5DA6;
+    --accent-3: #D98E2B;
+    --error: #C1443B;
+    --success: #1F5D46;
+    --radius-sm: 6px;
+    --radius-md: 10px;
+    --radius-lg: 14px;
+    --radius-xl: 20px;
+    --transition-fast: 0.15s ease;
+    --transition-base: 0.25s ease;
+}
+
+html, body { height: 100%; }
+body {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    font-family: 'Inter', sans-serif !important;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Graph-paper backdrop, used site-wide */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+        linear-gradient(rgba(24,28,26,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(24,28,26,0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+    pointer-events: none;
+    z-index: 0;
+}
+
+h1, h2, h3, .brand-name, .greeting span { font-family: 'Space Grotesk', sans-serif !important; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ============================================================
+   Navbar + buttons (dashboard, and any other app page using
+   the shared /static/css/style.css components)
+   ============================================================ */
+.navbar {
+    background: rgba(238,240,234,0.92) !important;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border) !important;
+    box-shadow: none !important;
+    position: relative;
+    z-index: 1;
+}
+.navbar-brand, .brand-name { color: var(--text-primary) !important; }
+.nav-link {
+    color: var(--text-secondary) !important;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82rem;
+    border-radius: var(--radius-sm);
+    transition: background var(--transition-fast), color var(--transition-fast);
+}
+.nav-link:hover { color: var(--text-primary) !important; background: rgba(31,93,70,0.08) !important; }
+.nav-badge {
+    background: rgba(217,142,43,0.12) !important;
+    color: var(--accent-3) !important;
+    border: 1px solid rgba(217,142,43,0.3);
+}
+
+.btn-danger {
+    background: transparent !important;
+    color: var(--error) !important;
+    border: 1px solid rgba(193,68,59,0.35) !important;
+}
+.btn-danger:hover { background: rgba(193,68,59,0.08) !important; }
+.btn-primary {
+    background: var(--accent) !important;
+    border: 1px solid var(--accent) !important;
+    color: #fff !important;
+    font-weight: 600;
+    transition: background var(--transition-fast), transform var(--transition-fast);
+}
+.btn-primary:hover:not(:disabled) { background: #18493A !important; transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.75; transform: none; }
+
+.loader {
+    border-color: var(--border) !important;
+    border-top-color: var(--accent) !important;
+}
+/* Loader sitting inside a solid primary button needs a light ring instead */
+.btn-primary .loader {
+    border-color: rgba(255,255,255,0.35) !important;
+    border-top-color: #fff !important;
+}
+
+/* ============================================================
+   Dashboard page
+   ============================================================ */
+.page-wrap { max-width: 1080px; position: relative; z-index: 1; }
+.page-header h1 { color: var(--text-primary) !important; letter-spacing: -0.02em; }
+.page-header p:last-child { color: var(--text-secondary) !important; }
+.greeting { font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.01em; }
+.greeting span { color: var(--accent) !important; }
+
+.active-badge {
+    background: rgba(31,93,70,0.08) !important;
+    border: 1px solid rgba(31,93,70,0.25) !important;
+    color: var(--accent) !important;
+    font-family: 'IBM Plex Mono', monospace;
+}
+.active-badge strong { color: var(--text-primary) !important; }
+.dot { background: var(--accent) !important; }
+
+#loading p { color: var(--text-muted) !important; font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }
+
+.dataset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
+/* Re-skins whatever markup script.js injects into #datasets, without
+   needing to know its exact class names. */
+#datasets > * {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-lg) !important;
+    color: var(--text-primary) !important;
+    transition: border-color var(--transition-base), transform var(--transition-base) !important;
+}
+#datasets > *:hover { border-color: rgba(31,93,70,0.35) !important; transform: translateY(-2px); }
+#datasets a, #datasets button { font-family: 'Inter', sans-serif; }
+
+.header-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.stats-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 20px 0 6px; }
+#loading { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 60px 20px; }
+
+/* ============================================================
+   Auth pages (login + register)
+   ============================================================ */
+.auth-glow {
+    position: fixed;
+    width: 520px; height: 520px;
+    border-radius: 50%;
+    filter: blur(110px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0;
+    animation: glowIn 1.4s ease .1s forwards;
+}
+.auth-glow-1 { background: rgba(31,93,70,0.16); top: -160px; left: -140px; }
+.auth-glow-2 { background: rgba(44,93,166,0.12); bottom: -160px; right: -140px; }
+/* Register page reuses .auth-glow-2 with an amber tint instead of blue */
+body.register .auth-glow-2 { background: rgba(217,142,43,0.12); }
+
+.auth-page { position: relative; z-index: 1; }
+
+.auth-card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-xl) !important;
+    box-shadow: 0 24px 60px rgba(24,28,26,0.08) !important;
+    position: relative;
+    overflow: hidden;
+}
+.auth-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+}
+
+.auth-header .brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 52px; height: 52px;
+    border-radius: var(--radius-md);
+    background: rgba(31,93,70,0.08);
+    border: 1px solid rgba(31,93,70,0.2);
+    margin: 0 auto 14px;
+}
+.auth-header .brand-icon svg { width: 26px; height: 26px; color: var(--accent); }
+.auth-header h1 {
+    background: none !important;
+    -webkit-text-fill-color: var(--text-primary) !important;
+    color: var(--text-primary) !important;
+    letter-spacing: -0.02em;
+}
+.auth-header p { color: var(--text-secondary) !important; font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }
+
+.form-group label {
+    color: var(--text-secondary) !important;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.input-icon-wrap input {
+    background: #FFFFFF !important;
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-md) !important;
+    color: var(--text-primary) !important;
+    transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.input-icon-wrap input::placeholder { color: var(--text-muted); }
+.input-icon-wrap input:focus {
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 0 3px rgba(31,93,70,0.12) !important;
+    outline: none;
+}
+.input-icon-wrap .icon svg { width: 17px; height: 17px; color: var(--text-muted); }
+.password-toggle { display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted) !important; }
+.password-toggle svg { width: 18px; height: 18px; display: block; }
+.password-toggle:hover { color: var(--accent) !important; }
+
+.strength-bar { background: var(--border) !important; }
+
+#message { display: none; min-height: 0; }
+#message.msg-error {
+    background: rgba(193,68,59,0.08);
+    border: 1px solid rgba(193,68,59,0.25);
+    color: var(--error) !important;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 0.85rem;
+}
+#message.msg-success {
+    background: rgba(31,93,70,0.08);
+    border: 1px solid rgba(31,93,70,0.25);
+    color: var(--accent) !important;
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-size: 0.85rem;
+}
+
+.auth-divider { color: var(--text-muted) !important; font-size: 0.82rem; }
+.auth-divider span { font-family: 'IBM Plex Mono', monospace; }
+.auth-footer { color: var(--text-muted) !important; font-size: 0.85rem; }
+.auth-footer a { color: var(--accent-2) !important; font-weight: 600; transition: color var(--transition-fast); }
+.auth-footer a:hover { color: var(--accent) !important; }
+
+/* ============================================================
+   Animation — shared "cool open" treatment
+   ============================================================ */
+@keyframes glowIn {
+    from { opacity: 0; transform: scale(0.85); }
+    to   { opacity: 1; transform: scale(1); }
+}
+@keyframes cardRise {
+    0%   { opacity: 0; transform: translateY(32px) scale(0.96); filter: blur(8px); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+@keyframes itemRise {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+/* Redefines the keyframe already referenced by style.css's .animate-in
+   classes (dashboard, and anywhere else that uses them) — same class
+   names, softer blur+scale motion instead of a flat fade. */
+@keyframes fadeInUp {
+    0%   { opacity: 0; transform: translateY(24px) scale(0.97); filter: blur(6px); }
+    100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+.auth-card { opacity: 0; animation: cardRise 0.7s cubic-bezier(.16,1,.3,1) forwards; }
+.auth-header,
+.auth-form .form-group,
+.auth-form button[type="submit"],
+.auth-divider,
+.auth-footer {
+    opacity: 0;
+    animation: itemRise 0.55s ease forwards;
+}
+.auth-header                          { animation-delay: 0.18s; }
+.auth-form .form-group:nth-of-type(1) { animation-delay: 0.26s; }
+.auth-form .form-group:nth-of-type(2) { animation-delay: 0.32s; }
+.auth-form .form-group:nth-of-type(3) { animation-delay: 0.38s; }
+.auth-form .form-group:nth-of-type(4) { animation-delay: 0.44s; }
+.auth-form button[type="submit"]      { animation-delay: 0.50s; }
+.auth-divider                         { animation-delay: 0.56s; }
+.auth-footer                          { animation-delay: 0.60s; }
+
+@media (prefers-reduced-motion: reduce) {
+    .animate-in, .animate-in-delay-1, .animate-in-delay-2,
+    .auth-glow, .auth-card, .auth-header, .auth-form .form-group,
+    .auth-form button[type="submit"], .auth-divider, .auth-footer {
+        animation: none !important;
+        opacity: 1 !important;
+        filter: none !important;
+        transform: none !important;
+    }
+}

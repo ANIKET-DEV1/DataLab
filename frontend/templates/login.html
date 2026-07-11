@@ -6,43 +6,23 @@
     <title>DataLab — Login</title>
     <meta name="description" content="Sign in to DataLab — your no-code data science platform.">
     <link rel="stylesheet" href="/static/css/style.css">
-    <style>
-        .input-icon-wrap { position: relative; }
-        .input-icon-wrap input { padding-left: 42px; }
-        .input-icon-wrap .icon {
-            position: absolute;
-            left: 13px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 1rem;
-            pointer-events: none;
-            opacity: 0.5;
-        }
-        .password-toggle {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            color: var(--text-muted);
-            cursor: pointer;
-            font-size: 1rem;
-            padding: 4px;
-            transition: color var(--transition-fast);
-        }
-        .password-toggle:hover { color: var(--text-primary); }
-        #message {
-            display: none;
-            min-height: 0;
-        }
-    </style>
+    <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
 </head>
 <body>
+
+<div class="auth-glow auth-glow-1"></div>
+<div class="auth-glow auth-glow-2"></div>
+
 <div class="auth-page">
     <div class="auth-card animate-in">
         <div class="auth-header">
-            <div class="brand-icon">🔬</div>
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 2h6"/>
+                    <path d="M10 2v6.2a2 2 0 0 1-.4 1.2L4.7 16.8A2.5 2.5 0 0 0 6.7 20.5h10.6a2.5 2.5 0 0 0 2-4.2l-4.9-7.4a2 2 0 0 1-.4-1.2V2"/>
+                    <path d="M7.5 14.5h9"/>
+                </svg>
+            </div>
             <h1 class="gradient-text">Welcome back</h1>
             <p>Sign in to continue to DataLab</p>
         </div>
@@ -51,7 +31,12 @@
             <div class="form-group">
                 <label for="username">Username</label>
                 <div class="input-icon-wrap">
-                    <span class="icon">👤</span>
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="8" r="4"/>
+                            <path d="M4 20c0-3.9 3.6-7 8-7s8 3.1 8 7"/>
+                        </svg>
+                    </span>
                     <input type="text" id="username" placeholder="Enter your username" required autocomplete="username">
                 </div>
             </div>
@@ -59,9 +44,21 @@
             <div class="form-group">
                 <label for="password">Password</label>
                 <div class="input-icon-wrap">
-                    <span class="icon">🔑</span>
+                    <span class="icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="8" cy="15" r="3.5"/>
+                            <path d="M10.6 12.4 18 5"/>
+                            <path d="M15.5 7.5 18 5l2.2 2.2"/>
+                            <path d="M17 6 19 8"/>
+                        </svg>
+                    </span>
                     <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
-                    <button type="button" class="password-toggle" id="togglePwd" title="Show/hide password">👁️</button>
+                    <button type="button" class="password-toggle" id="togglePwd" title="Show/hide password">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/>
+                            <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
@@ -87,15 +84,18 @@
     const nextUrl = new URLSearchParams(window.location.search).get('next') || '/';
 
     // Password toggle
+    const eyeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    const eyeOffIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18"/><path d="M10.6 10.6a3 3 0 0 0 4.2 4.2"/><path d="M6.6 6.7C4.3 8.2 2 12 2 12s3.6 7 10 7c1.8 0 3.4-.5 4.7-1.2"/><path d="M17.7 17.4C20 15.9 22 12 22 12s-1.6-3.1-4.4-5.1A11.4 11.4 0 0 0 12 5c-.7 0-1.4.06-2 .18"/></svg>';
+
     document.getElementById('togglePwd').addEventListener('click', () => {
         const pwd = document.getElementById('password');
         const toggle = document.getElementById('togglePwd');
         if (pwd.type === 'password') {
             pwd.type = 'text';
-            toggle.textContent = '🙈';
+            toggle.innerHTML = eyeOffIcon;
         } else {
             pwd.type = 'password';
-            toggle.textContent = '👁️';
+            toggle.innerHTML = eyeIcon;
         }
     });
 

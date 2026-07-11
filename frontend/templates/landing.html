@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataLab — No-Code Data Science Platform</title>
+<meta name="description" content="DataLab is a browser-based, no-code platform to upload, clean, visualize and analyze your datasets.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          paper: '#EEF0EA',
+          card: '#FBFAF6',
+          ink: '#181C1A',
+          inkmute: '#535B56',
+          line: '#D8DAD1',
+          ledger: '#1F5D46',
+          formula: '#2C5DA6',
+          flag: '#D98E2B',
+          nullred: '#C1443B',
+        },
+        fontFamily: {
+          display: ['"Space Grotesk"', 'sans-serif'],
+          body: ['Inter', 'sans-serif'],
+          mono: ['"IBM Plex Mono"', 'monospace'],
+        },
+        keyframes: {
+          growbar: {
+            '0%':   { transform: 'scaleY(0)' },
+            '100%': { transform: 'scaleY(1)' },
+          },
+          strike: {
+            '0%':   { opacity: 1 },
+            '60%':  { opacity: 1 },
+            '100%': { opacity: 0 },
+          },
+          checkin: {
+            '0%':   { opacity: 0, transform: 'scale(0.5)' },
+            '60%':  { opacity: 0 },
+            '100%': { opacity: 1, transform: 'scale(1)' },
+          },
+          blink: {
+            '0%, 49%':  { opacity: 1 },
+            '50%, 100%':{ opacity: 0 },
+          },
+        },
+        animation: {
+          growbar: 'growbar 0.9s cubic-bezier(.2,.8,.2,1) forwards',
+          strike: 'strike 2.6s ease-in forwards',
+          checkin: 'checkin 2.6s ease-in forwards',
+          blink: 'blink 1s step-end infinite',
+        },
+      },
+    },
+  };
+</script>
+
+<style>
+  html { scroll-behavior: smooth; }
+  body {
+    background-color: #EEF0EA;
+    background-image:
+      linear-gradient(rgba(27,31,29,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(27,31,29,0.05) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+  .no-grid { background-image: none; }
+
+  ::selection { background: #1F5D46; color: #FBFAF6; }
+
+  .rev { opacity: 0; transform: translateY(18px); transition: opacity .6s ease, transform .6s ease; }
+  .rev.vis { opacity: 1; transform: none; }
+  .rev-d1{transition-delay:.08s} .rev-d2{transition-delay:.16s} .rev-d3{transition-delay:.24s} .rev-d4{transition-delay:.32s} .rev-d5{transition-delay:.4s} .rev-d6{transition-delay:.48s}
+
+  .bar-anim { transform-origin: bottom; animation-fill-mode: both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+    .rev { opacity: 1 !important; transform: none !important; }
+  }
+
+  :focus-visible { outline: 2px solid #1F5D46; outline-offset: 2px; }
+</style>
+</head>
+
+<body class="font-body text-ink antialiased">
+
+<!-- ===== NAV — styled like a formula bar ===== -->
+<header id="nav" class="sticky top-0 z-50 border-b border-line bg-paper/90 backdrop-blur transition-colors">
+  <div class="mx-auto max-w-6xl px-5">
+    <div class="flex h-14 items-center gap-3 border-b border-line/70">
+      <span class="font-mono text-xs text-inkmute select-none">ƒx</span>
+      <div class="h-4 w-px bg-line"></div>
+      <a href="#top" class="font-display text-base font-700 tracking-tight text-ink hover:text-ledger transition-colors">DataLab</a>
+      <nav class="ml-auto hidden md:flex items-center gap-1 font-mono text-[13px] text-inkmute">
+        <a href="#features" class="rounded px-3 py-1.5 hover:bg-ink/5 hover:text-ink transition-colors">features</a>
+        <a href="#how-it-works" class="rounded px-3 py-1.5 hover:bg-ink/5 hover:text-ink transition-colors">how-it-works</a>
+        <a href="#faq" class="rounded px-3 py-1.5 hover:bg-ink/5 hover:text-ink transition-colors">faq</a>
+      </nav>
+      <div class="ml-auto md:ml-6 flex items-center gap-2">
+        <a href="/login" class="rounded-md px-3 py-1.5 text-sm font-medium text-inkmute hover:text-ink transition-colors">Sign in</a>
+        <a href="/register" class="rounded-md bg-ledger px-4 py-1.5 text-sm font-medium text-white hover:bg-ledger/90 transition-colors">Get started free</a>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ===== HERO ===== -->
+  <section class="mx-auto max-w-6xl px-5 pt-16 pb-20 md:pt-24 md:pb-28">
+    <div class="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+
+      <div class="md:col-span-6">
+        <span class="inline-flex items-center gap-2 rounded border border-ledger/30 bg-ledger/10 px-3 py-1 font-mono text-[11px] font-medium uppercase tracking-wider text-ledger">
+          <span class="h-1.5 w-1.5 rounded-full bg-ledger"></span> named range: no_code_data
+        </span>
+
+        <h1 class="mt-6 font-display text-[2.6rem] leading-[1.05] tracking-tight text-ink sm:text-6xl">
+          Your spreadsheet,
+          <span class="text-ledger">solved.</span>
+        </h1>
+
+        <p class="mt-6 max-w-md text-[1.05rem] leading-relaxed text-inkmute">
+          Upload a messy dataset. Clean it, chart it, and understand it — entirely
+          in your browser, without writing a single formula or a line of code.
+        </p>
+
+        <div class="mt-9 flex flex-wrap items-center gap-3">
+          <a href="/register" class="rounded-md bg-ledger px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-ledger/90 transition-colors">
+            Start for free →
+          </a>
+          <a href="/login" class="rounded-md border border-line px-6 py-3 text-sm font-semibold text-ink hover:bg-ink/5 transition-colors">
+            Sign in
+          </a>
+        </div>
+
+        <p class="mt-5 font-mono text-[12px] text-inkmute">no credit card &middot; no install &middot; csv or xlsx</p>
+      </div>
+
+      <!-- SIGNATURE: messy cells resolving into a clean chart -->
+      <div class="md:col-span-6">
+        <div class="rounded-xl border border-line bg-card shadow-[0_1px_0_rgba(0,0,0,0.02)] overflow-hidden">
+          <div class="flex items-center gap-2 border-b border-line px-4 py-2.5">
+            <span class="h-2.5 w-2.5 rounded-full bg-nullred/70"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-flag/70"></span>
+            <span class="h-2.5 w-2.5 rounded-full bg-ledger/70"></span>
+            <span class="ml-3 font-mono text-[11px] text-inkmute">sales_q3.csv — Visualization Studio</span>
+          </div>
+
+          <div class="p-6">
+            <svg viewBox="0 0 460 220" class="w-full h-auto" role="img" aria-label="Messy spreadsheet cells resolving into a clean bar chart">
+              <!-- raw cell grid, left -->
+              <g font-family="IBM Plex Mono, monospace" font-size="9">
+                <!-- header row -->
+                <rect x="0" y="0" width="150" height="18" fill="#E4E7DE"/>
+                <text x="6" y="12" fill="#535B56">region</text>
+                <text x="70" y="12" fill="#535B56">revenue</text>
+
+                <!-- rows -->
+                <g>
+                  <rect x="0" y="20" width="150" height="18" fill="#FBFAF6" stroke="#D8DAD1"/>
+                  <text x="6" y="32" fill="#181C1A">north</text>
+                  <text x="70" y="32" fill="#181C1A">42,100</text>
+                </g>
+                <g class="bar-anim" style="animation:strike 2.6s ease-in forwards">
+                  <rect x="0" y="38" width="150" height="18" fill="#FBFAF6" stroke="#D8DAD1"/>
+                  <text x="6" y="50" fill="#181C1A">south</text>
+                  <text x="70" y="50" fill="#C1443B">null</text>
+                  <line x1="66" y1="43" x2="140" y2="47" stroke="#C1443B" stroke-width="1.2"/>
+                </g>
+                <g>
+                  <rect x="0" y="56" width="150" height="18" fill="#FBFAF6" stroke="#D8DAD1"/>
+                  <text x="6" y="68" fill="#181C1A">east</text>
+                  <text x="70" y="68" fill="#181C1A">31,800</text>
+                </g>
+                <g class="bar-anim" style="animation:strike 2.6s ease-in forwards">
+                  <rect x="0" y="74" width="150" height="18" fill="#FBFAF6" stroke="#D8DAD1"/>
+                  <text x="6" y="86" fill="#181C1A">west</text>
+                  <text x="70" y="86" fill="#C1443B">null</text>
+                  <line x1="66" y1="79" x2="140" y2="83" stroke="#C1443B" stroke-width="1.2"/>
+                </g>
+                <g>
+                  <rect x="0" y="92" width="150" height="18" fill="#FBFAF6" stroke="#D8DAD1"/>
+                  <text x="6" y="104" fill="#181C1A">central</text>
+                  <text x="70" y="104" fill="#181C1A">27,450</text>
+                </g>
+              </g>
+
+              <!-- arrow -->
+              <g stroke="#535B56" stroke-width="1.5" fill="none">
+                <line x1="170" y1="65" x2="210" y2="65"/>
+                <polyline points="202,59 210,65 202,71"/>
+              </g>
+              <text x="172" y="52" font-family="IBM Plex Mono, monospace" font-size="8" fill="#D98E2B">clean + chart</text>
+
+              <!-- resulting clean bar chart, right -->
+              <g transform="translate(230,10)">
+                <line x1="0" y1="150" x2="210" y2="150" stroke="#D8DAD1"/>
+                <g class="bar-anim" style="animation-delay:.3s" >
+                  <rect x="10"  y="60"  width="30" height="90" fill="#1F5D46" class="bar-anim" style="animation:growbar .9s cubic-bezier(.2,.8,.2,1) .5s forwards; transform:scaleY(0)"/>
+                </g>
+                <g>
+                  <rect x="55" y="30" width="30" height="120" fill="#2C5DA6" class="bar-anim" style="animation:growbar .9s cubic-bezier(.2,.8,.2,1) .65s forwards; transform:scaleY(0)"/>
+                </g>
+                <g>
+                  <rect x="100" y="80" width="30" height="70" fill="#1F5D46" class="bar-anim" style="animation:growbar .9s cubic-bezier(.2,.8,.2,1) .8s forwards; transform:scaleY(0)"/>
+                </g>
+                <g>
+                  <rect x="145" y="95" width="30" height="55" fill="#D98E2B" class="bar-anim" style="animation:growbar .9s cubic-bezier(.2,.8,.2,1) .95s forwards; transform:scaleY(0)"/>
+                </g>
+                <text x="10" y="164" font-family="IBM Plex Mono, monospace" font-size="8" fill="#535B56">N</text>
+                <text x="60" y="164" font-family="IBM Plex Mono, monospace" font-size="8" fill="#535B56">S</text>
+                <text x="105" y="164" font-family="IBM Plex Mono, monospace" font-size="8" fill="#535B56">E</text>
+                <text x="150" y="164" font-family="IBM Plex Mono, monospace" font-size="8" fill="#535B56">W</text>
+              </g>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== STATUS BAR — reuses real spreadsheet status-bar vocabulary ===== -->
+  <section class="border-y border-line bg-card/60">
+    <div class="mx-auto max-w-6xl px-5 py-5 flex flex-wrap items-center justify-center gap-x-10 gap-y-3 font-mono text-[13px] text-inkmute">
+      <span><span class="text-ink font-medium">COUNT</span> 5 tools</span>
+      <span class="text-line">|</span>
+      <span><span class="text-ink font-medium">SUM</span> $0 cost</span>
+      <span class="text-line">|</span>
+      <span><span class="text-ink font-medium">AVERAGE</span> &lt;60s setup</span>
+      <span class="text-line">|</span>
+      <span><span class="text-ink font-medium">MODE</span> 100% browser</span>
+    </div>
+  </section>
+
+  <!-- ===== FEATURES — cards tagged with real grid cell references ===== -->
+  <section id="features" class="mx-auto max-w-6xl px-5 py-24">
+    <div class="rev max-w-xl mb-14">
+      <span class="font-mono text-[11px] uppercase tracking-wider text-formula">/features</span>
+      <h2 class="mt-3 font-display text-3xl sm:text-4xl tracking-tight">Every cell, accounted for.</h2>
+      <p class="mt-4 text-inkmute leading-relaxed">A complete toolkit for exploring, cleaning and visualizing data — laid out like the sheet you already know.</p>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 border-t border-l border-line">
+      <article class="rev rev-d1 group border-b border-r border-line bg-card p-7 hover:bg-ledger/5 transition-colors">
+        <span class="font-mono text-[11px] text-inkmute">A1</span>
+        <h3 class="mt-3 font-display text-lg">Dataset upload</h3>
+        <p class="mt-2 text-sm text-inkmute leading-relaxed">Drag and drop a CSV or Excel file. DataLab parses it instantly and detects column types on its own.</p>
+      </article>
+      <article class="rev rev-d2 group border-b border-r border-line bg-card p-7 hover:bg-ledger/5 transition-colors">
+        <span class="font-mono text-[11px] text-inkmute">B1</span>
+        <h3 class="mt-3 font-display text-lg">Data preview</h3>
+        <p class="mt-2 text-sm text-inkmute leading-relaxed">See a styled table alongside descriptive statistics and column types, all in a single view.</p>
+      </article>
+      <article class="rev rev-d3 group border-b border-r border-line bg-card p-7 hover:bg-ledger/5 transition-colors">
+        <span class="font-mono text-[11px] text-inkmute">C1</span>
+        <h3 class="mt-3 font-display text-lg">Visualization studio</h3>
+        <p class="mt-2 text-sm text-inkmute leading-relaxed">Generate bar, line, histogram, scatter and pie charts from any column — no matplotlib, no pandas.</p>
+      </article>
+      <article class="rev rev-d4 group border-b border-r border-line bg-card p-7 hover:bg-ledger/5 transition-colors">
+        <span class="font-mono text-[11px] text-inkmute">A2</span>
+        <h3 class="mt-3 font-display text-lg">Clean workspace</h3>
+        <p class="mt-2 text-sm text-inkmute leading-relaxed">Handle missing values column-by-column or globally: fill with mean, mode, a custom value, or drop rows.</p>
+      </article>
+      <article class="rev rev-d5 group border-b border-r border-line bg-card p-7 hover:bg-ledger/5 transition-colors">
+        <span class="font-mono text-[11px] text-inkmute">B2</span>
+        <h3 class="mt-3 font-display text-lg">Column rename</h3>
+        <p class="mt-2 text-sm text-inkmute leading-relaxed">Rename any header instantly — the change syncs across every tool using that dataset.</p>
+      </article>
+      <article class="rev rev-d6 group border-b border-r border-line bg-card p-7 hover:bg-ledger/5 transition-colors relative">
+        <span class="font-mono text-[11px] text-inkmute">C2</span>
+        <span class="absolute top-6 right-6 rounded-full border border-flag/40 bg-flag/10 px-2.5 py-0.5 font-mono text-[10px] text-flag">soon</span>
+        <h3 class="mt-3 font-display text-lg">ML studio</h3>
+        <p class="mt-2 text-sm text-inkmute leading-relaxed">Train classification and regression models, evaluate them with real metrics, and export — no Python required.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===== SPOTLIGHT: Visualization ===== -->
+  <section class="border-y border-line bg-card/40">
+    <div class="mx-auto max-w-6xl px-5 py-24">
+      <div class="grid md:grid-cols-2 gap-14 items-center rev">
+        <div>
+          <span class="font-mono text-[11px] uppercase tracking-wider text-ledger">/visualize</span>
+          <h2 class="mt-3 font-display text-3xl tracking-tight leading-tight">Turn raw numbers into <span class="text-ledger">read­able charts.</span></h2>
+          <p class="mt-4 text-inkmute leading-relaxed">Pick a chart type, choose your columns, and generate. DataLab handles the aggregation, scaling and rendering for you.</p>
+          <ul class="mt-6 space-y-3 text-sm text-inkmute">
+            <li class="flex gap-3"><span class="text-ledger font-mono">✓</span> Five chart types — bar, line, histogram, scatter, pie</li>
+            <li class="flex gap-3"><span class="text-ledger font-mono">✓</span> Automatic aggregation and frequency counting</li>
+            <li class="flex gap-3"><span class="text-ledger font-mono">✓</span> Interactive charts, powered by Chart.js</li>
+            <li class="flex gap-3"><span class="text-ledger font-mono">✓</span> Works on any numeric or categorical column</li>
+          </ul>
+        </div>
+        <div class="rounded-xl border border-line bg-card p-6 shadow-sm">
+          <svg viewBox="0 0 400 220" class="w-full h-auto" role="img" aria-label="Bar and pie chart mockup">
+            <line x1="20" y1="180" x2="380" y2="180" stroke="#D8DAD1"/>
+            <rect x="45"  y="70"  width="34" height="110" fill="#1F5D46"/>
+            <rect x="100" y="30"  width="34" height="150" fill="#2C5DA6"/>
+            <rect x="155" y="100" width="34" height="80"  fill="#D98E2B"/>
+            <rect x="210" y="55"  width="34" height="125" fill="#1F5D46"/>
+            <circle cx="320" cy="105" r="55" fill="none" stroke="#D8DAD1" stroke-width="1"/>
+            <path d="M320,105 L320,50 A55,55 0 0,1 365,130 Z" fill="#2C5DA6"/>
+            <path d="M320,105 L365,130 A55,55 0 0,1 300,158 Z" fill="#D98E2B"/>
+            <path d="M320,105 L300,158 A55,55 0 1,1 320,50 Z" fill="#1F5D46"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SPOTLIGHT: Cleaning ===== -->
+  <section>
+    <div class="mx-auto max-w-6xl px-5 py-24">
+      <div class="grid md:grid-cols-2 gap-14 items-center rev">
+        <div class="rounded-xl border border-line bg-card p-6 shadow-sm md:order-1 order-2">
+          <svg viewBox="0 0 400 220" class="w-full h-auto" role="img" aria-label="Data cleaning table mockup">
+            <g font-family="IBM Plex Mono, monospace" font-size="10">
+              <rect x="0" y="0" width="400" height="26" fill="#E4E7DE"/>
+              <text x="14" y="17" fill="#535B56">customer</text>
+              <text x="150" y="17" fill="#535B56">signup_date</text>
+              <text x="280" y="17" fill="#535B56">plan</text>
+
+              <rect x="0" y="28" width="400" height="28" fill="#FBFAF6" stroke="#D8DAD1"/>
+              <text x="14" y="47" fill="#181C1A">a. shah</text>
+              <text x="150" y="47" fill="#181C1A">2026-02-11</text>
+              <text x="280" y="47" fill="#181C1A">pro</text>
+
+              <rect x="0" y="58" width="400" height="28" fill="#FBFAF6" stroke="#D8DAD1"/>
+              <text x="14" y="77" fill="#181C1A">m. iyer</text>
+              <text x="150" y="77" fill="#C1443B">null</text>
+              <text x="280" y="77" fill="#181C1A">free</text>
+              <rect x="145" y="63" width="70" height="18" fill="none" stroke="#C1443B" stroke-dasharray="3 2"/>
+
+              <rect x="0" y="88" width="400" height="28" fill="#FBFAF6" stroke="#D8DAD1"/>
+              <text x="14" y="107" fill="#181C1A">r. desai</text>
+              <text x="150" y="107" fill="#181C1A">2026-04-02</text>
+              <text x="280" y="107" fill="#181C1A">pro</text>
+
+              <rect x="0" y="118" width="400" height="28" fill="#1F5D46" fill-opacity="0.08" stroke="#1F5D46" stroke-dasharray="3 2"/>
+              <text x="14" y="137" fill="#181C1A">m. iyer</text>
+              <text x="150" y="137" fill="#1F5D46">2026-03-19</text>
+              <text x="280" y="137" fill="#181C1A">free</text>
+              <text x="330" y="137" fill="#1F5D46">← filled</text>
+            </g>
+          </svg>
+        </div>
+        <div class="md:order-2 order-1">
+          <span class="font-mono text-[11px] uppercase tracking-wider text-formula">/clean</span>
+          <h2 class="mt-3 font-display text-3xl tracking-tight leading-tight">Fix messy data <span class="text-formula">without pandas.</span></h2>
+          <p class="mt-4 text-inkmute leading-relaxed">Null values, inconsistent columns, wrong names — the clean workspace fixes all of it through a simple interface.</p>
+          <ul class="mt-6 space-y-3 text-sm text-inkmute">
+            <li class="flex gap-3"><span class="text-formula font-mono">✓</span> Column-wise null fill: custom value, mean or mode</li>
+            <li class="flex gap-3"><span class="text-formula font-mono">✓</span> Global drop of missing rows or columns</li>
+            <li class="flex gap-3"><span class="text-formula font-mono">✓</span> Null count preview, column by column</li>
+            <li class="flex gap-3"><span class="text-formula font-mono">✓</span> Column rename in a single click</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== HOW IT WORKS — a real, ordered sequence ===== -->
+  <section id="how-it-works" class="border-y border-line bg-card/40">
+    <div class="mx-auto max-w-6xl px-5 py-24">
+      <div class="rev max-w-xl mb-14">
+        <span class="font-mono text-[11px] uppercase tracking-wider text-ledger">/how-it-works</span>
+        <h2 class="mt-3 font-display text-3xl sm:text-4xl tracking-tight">Zero to insight, four rows down.</h2>
+        <p class="mt-4 text-inkmute leading-relaxed">No setup, no installation, no code — just upload and start exploring.</p>
+      </div>
+
+      <ol class="rev divide-y divide-line border-y border-line font-mono">
+        <li class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8 py-5">
+          <span class="w-8 shrink-0 text-inkmute text-sm">1</span>
+          <span class="font-display font-medium text-base w-full sm:w-56">Create an account</span>
+          <span class="text-sm text-inkmute font-body">Sign up in seconds with just a username and password.</span>
+        </li>
+        <li class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8 py-5">
+          <span class="w-8 shrink-0 text-inkmute text-sm">2</span>
+          <span class="font-display font-medium text-base w-full sm:w-56">Upload a dataset</span>
+          <span class="text-sm text-inkmute font-body">Drag and drop your CSV or Excel file into DataLab.</span>
+        </li>
+        <li class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8 py-5">
+          <span class="w-8 shrink-0 text-inkmute text-sm">3</span>
+          <span class="font-display font-medium text-base w-full sm:w-56">Clean and explore</span>
+          <span class="text-sm text-inkmute font-body">Fix nulls, rename columns, and preview statistics instantly.</span>
+        </li>
+        <li class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-8 py-5">
+          <span class="w-8 shrink-0 text-inkmute text-sm">4</span>
+          <span class="font-display font-medium text-base w-full sm:w-56">Visualize</span>
+          <span class="text-sm text-inkmute font-body">Generate charts straight from your cleaned dataset.</span>
+        </li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section id="faq" class="mx-auto max-w-6xl px-5 py-24">
+    <div class="rev max-w-xl mb-14">
+      <span class="font-mono text-[11px] uppercase tracking-wider text-formula">/faq</span>
+      <h2 class="mt-3 font-display text-3xl sm:text-4xl tracking-tight">Frequently asked questions</h2>
+    </div>
+
+    <div class="rev max-w-3xl divide-y divide-line border-y border-line" id="faq-list">
+      <div class="faq-item">
+        <button class="faq-q w-full flex items-center justify-between gap-4 py-5 text-left font-medium hover:text-ledger transition-colors" aria-expanded="false">
+          <span>Is DataLab free to use?</span>
+          <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
+        </button>
+        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
+          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">Yes. Create an account, upload your datasets, and start exploring — there's no cost.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q w-full flex items-center justify-between gap-4 py-5 text-left font-medium hover:text-ledger transition-colors" aria-expanded="false">
+          <span>What file formats are supported?</span>
+          <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
+        </button>
+        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
+          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">CSV (.csv) and Excel (.xlsx, .xls) today. JSON and Parquet support are on the roadmap.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q w-full flex items-center justify-between gap-4 py-5 text-left font-medium hover:text-ledger transition-colors" aria-expanded="false">
+          <span>Do I need to know Python or SQL?</span>
+          <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
+        </button>
+        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
+          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">Not at all. DataLab is built for working with data without writing any code — everything is point-and-click.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q w-full flex items-center justify-between gap-4 py-5 text-left font-medium hover:text-ledger transition-colors" aria-expanded="false">
+          <span>Are my datasets secure?</span>
+          <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
+        </button>
+        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
+          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">Each dataset is tied to your authenticated account only, using secure JWT tokens — no other user can view or access it.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q w-full flex items-center justify-between gap-4 py-5 text-left font-medium hover:text-ledger transition-colors" aria-expanded="false">
+          <span>When will ML Studio launch?</span>
+          <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
+        </button>
+        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
+          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">It's in active development — no-code training for classification and regression, evaluation metrics, and model export.</p>
+        </div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q w-full flex items-center justify-between gap-4 py-5 text-left font-medium hover:text-ledger transition-colors" aria-expanded="false">
+          <span>Can I manage multiple datasets?</span>
+          <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
+        </button>
+        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
+          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">Yes — upload and manage as many datasets as you need, and switch between them from your dashboard in one click.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== CTA ===== -->
+  <section class="mx-auto max-w-6xl px-5 pb-24">
+    <div class="rev rounded-xl border border-ledger/25 bg-ledger/5 px-8 py-16 text-center">
+      <h2 class="font-display text-3xl sm:text-4xl tracking-tight">Ready to explore your data?</h2>
+      <p class="mt-4 text-inkmute max-w-md mx-auto">Join DataLab and start turning raw datasets into answers — for free, right now.</p>
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <a href="/register" class="rounded-md bg-ledger px-6 py-3 text-sm font-semibold text-white hover:bg-ledger/90 transition-colors">Create free account</a>
+        <a href="/login" class="rounded-md border border-line px-6 py-3 text-sm font-semibold text-ink hover:bg-ink/5 transition-colors">Already have an account</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="border-t border-line bg-card/60">
+  <div class="mx-auto max-w-6xl px-5 py-14">
+    <div class="flex flex-wrap justify-between gap-12">
+      <div class="max-w-xs">
+        <span class="font-display text-lg font-700">DataLab</span>
+        <p class="mt-3 text-sm text-inkmute leading-relaxed">A no-code data science platform. Upload, clean, visualize and analyze your datasets — entirely from your browser.</p>
+      </div>
+      <div class="flex flex-wrap gap-14 font-mono text-sm">
+        <div>
+          <h4 class="text-[11px] uppercase tracking-wider text-inkmute mb-3">Platform</h4>
+          <a href="/register" class="block mb-2 text-inkmute hover:text-ledger transition-colors">Get started</a>
+          <a href="#features" class="block mb-2 text-inkmute hover:text-ledger transition-colors">Features</a>
+          <a href="#how-it-works" class="block mb-2 text-inkmute hover:text-ledger transition-colors">How it works</a>
+          <a href="/ml" class="block mb-2 text-inkmute hover:text-ledger transition-colors">ML Studio (soon)</a>
+        </div>
+        <div>
+          <h4 class="text-[11px] uppercase tracking-wider text-inkmute mb-3">Tools</h4>
+          <a href="/upload" class="block mb-2 text-inkmute hover:text-ledger transition-colors">Upload dataset</a>
+          <a href="/preview" class="block mb-2 text-inkmute hover:text-ledger transition-colors">Preview data</a>
+          <a href="/visualize" class="block mb-2 text-inkmute hover:text-ledger transition-colors">Visualize</a>
+          <a href="/clean" class="block mb-2 text-inkmute hover:text-ledger transition-colors">Clean workspace</a>
+        </div>
+        <div>
+          <h4 class="text-[11px] uppercase tracking-wider text-inkmute mb-3">Account</h4>
+          <a href="/login" class="block mb-2 text-inkmute hover:text-ledger transition-colors">Sign in</a>
+          <a href="/register" class="block mb-2 text-inkmute hover:text-ledger transition-colors">Create account</a>
+        </div>
+      </div>
+    </div>
+    <div class="mt-12 pt-6 border-t border-line flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-inkmute">
+      <span>© 2026 DataLab. All rights reserved.</span>
+      <span>crafted by <a href="https://awsmx.vercel.app" target="_blank" rel="noopener noreferrer" class="text-ledger hover:text-formula transition-colors">awsmx</a></span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // nav shadow on scroll
+  const nav = document.getElementById('nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('shadow-sm', window.scrollY > 8);
+  }, { passive: true });
+
+  // smooth in-page anchors
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth' }); }
+    });
+  });
+
+  // scroll reveal
+  const revObs = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('vis');
+        revObs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+  document.querySelectorAll('.rev').forEach(el => revObs.observe(el));
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const btn = item.querySelector('.faq-q');
+    const panel = item.querySelector('.faq-a');
+    const arrow = item.querySelector('.faq-arrow');
+    btn.addEventListener('click', () => {
+      const isOpen = btn.getAttribute('aria-expanded') === 'true';
+      document.querySelectorAll('.faq-q').forEach(b => {
+        b.setAttribute('aria-expanded', 'false');
+        b.parentElement.querySelector('.faq-a').style.gridTemplateRows = '0fr';
+        b.parentElement.querySelector('.faq-arrow').style.transform = 'rotate(0deg)';
+      });
+      if (!isOpen) {
+        btn.setAttribute('aria-expanded', 'true');
+        panel.style.gridTemplateRows = '1fr';
+        arrow.style.transform = 'rotate(180deg)';
+      }
+    });
+  });
+</script>
+
+</body>
+</html>
