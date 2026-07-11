@@ -90,9 +90,10 @@ async function loadDatasets() {
     console.log('Found', data.datasets.length, 'datasets');
 
     // Create dataset cards
+    
     datasetsContainer.innerHTML = data.datasets.map(dataset => `
       <div class="dataset-card animate-in" id="card-${escapeHtml(dataset.id)}">
-        <h3>📄 ${escapeHtml(dataset.original_name)}</h3>
+        <h3> <i data-lucide="file-chart-column" style="width:16px;"></i> ${escapeHtml(dataset.original_name)}</h3>
         <div class="meta-row">
           <span class="meta-label">File Type</span>
           <span class="meta-value">${escapeHtml(dataset.file_type)}</span>
@@ -113,10 +114,13 @@ async function loadDatasets() {
           <button class="btn btn-primary btn-sm" style="flex:1;" onClick="selectbybutton('${dataset.id}','${escapeHtml(dataset.original_name)}')">
             ✓ Select
           </button>
-          <button class="btn btn-danger btn-sm" onClick="del('${dataset.id}')">🗑</button>
+          <button class="btn btn-danger btn-sm" onClick="del('${dataset.id}')"><i data-lucide="Trash2" style="width:16px;"></i></button>
         </div>
       </div>
     `).join('');
+    if (window.lucide) {
+    lucide.createIcons();
+}
 
   } catch (error) {
     console.error('Error loading datasets:', error);

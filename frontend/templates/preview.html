@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DataLab — Preview</title>
     <meta name="description" content="Preview your dataset statistics and structure in DataLab.">
+        <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
     <style>
         .section-label {
             display: flex;
@@ -39,12 +41,11 @@
         <span class="brand-name">DataLab</span>
     </a>
     <div class="nav-links">
-        <a href="/" class="nav-link">🏠 Home</a>
-        <a href="/upload" class="nav-link">📤 Upload</a>
-        <a href="/preview" class="nav-link active">🔍 Preview</a>
-        <a href="/visualize" class="nav-link">📊 Visualize</a>
-        <a href="/clean" class="nav-link">🧹 Clean</a>
-        <a href="/ml" class="nav-link">🤖 ML <span class="nav-badge">Soon</span></a>
+        <a href="/" class="nav-link"><i data-lucide="house" style="width:16px;"></i> Home</a>
+                <a href="/upload" class="nav-link"><i data-lucide="Upload" style="width:16px;color:#1F5D46;"></i> Upload</a>
+        <a href="/visualize" class="nav-link"><i data-lucide="ChartSpline" style="width:16px;color:#1F5D46;"></i> Visualize</a>
+        <a href="/clean" class="nav-link"><i data-lucide="BrushCleaning" style="width:16px;color:#1F5D46;"></i> Clean</a>
+        <a href="/ml" class="nav-link"><i data-lucide="BrainCircuit" style="width:16px;color:#1F5D46;"></i> ML <span class="nav-badge">Soon</span></a>
     </div>
     <div class="nav-right">
         <button id="logoutBtn" class="btn btn-danger btn-sm">Logout</button>
@@ -130,6 +131,9 @@
         }
     });
     errorObs.observe(errEl, { attributes: true, attributeFilter: ['style'] });
+</script>
+<script>
+        lucide.createIcons();
 </script>
 </body>
 </html>

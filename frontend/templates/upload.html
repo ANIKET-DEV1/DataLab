@@ -5,7 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DataLab — Upload Dataset</title>
     <meta name="description" content="Upload your CSV or Excel dataset to DataLab.">
+        <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
     <style>
         .file-info {
             display: none;
@@ -34,12 +36,11 @@
         <span class="brand-name">DataLab</span>
     </a>
     <div class="nav-links">
-        <a href="/" class="nav-link">🏠 Home</a>
-        <a href="/upload" class="nav-link active">📤 Upload</a>
-        <a href="/preview" class="nav-link">🔍 Preview</a>
-        <a href="/visualize" class="nav-link">📊 Visualize</a>
-        <a href="/clean" class="nav-link">🧹 Clean</a>
-        <a href="/ml" class="nav-link">🤖 ML <span class="nav-badge">Soon</span></a>
+        <a href="/" class="nav-link"><i data-lucide="house" style="width:16px;"></i> Home</a>
+        <a href="/preview" class="nav-link"><i data-lucide="ScanSearch" style="width:16px;color:#1F5D46;"></i> Preview</a>
+        <a href="/visualize" class="nav-link"><i data-lucide="ChartSpline" style="width:16px;color:#1F5D46;"></i> Visualize</a>
+        <a href="/clean" class="nav-link"><i data-lucide="BrushCleaning" style="width:16px;color:#1F5D46;"></i> Clean</a>
+        <a href="/ml" class="nav-link"><i data-lucide="BrainCircuit" style="width:16px;color:#1F5D46;"></i> ML <span class="nav-badge">Soon</span></a>
     </div>
 </nav>
 
@@ -84,6 +85,10 @@
         </form>
     </div>
 </main>
+
+<script>
+        lucide.createIcons();
+</script>
 
 <script>
     const dropzone = document.getElementById('dropzone');
