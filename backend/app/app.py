@@ -93,3 +93,27 @@ def get_clean_page(request: Request,
         name="clean.html", 
         request=request,
         context={"username": user.username})
+
+@app.get("/change-password", response_class=HTMLResponse)
+def passwordreset(request: Request, 
+                token:str
+                ):
+    return templates.TemplateResponse(
+        name="password-reset.html", 
+        request=request,
+        )
+
+@app.get("/email-verify", response_class=HTMLResponse)
+def getMail(request: Request, ):
+    return templates.TemplateResponse(
+        name="get-email.html", 
+        request=request,
+        )
+
+@app.get("/mail-verification", response_class=HTMLResponse)
+def getMail(request: Request,
+            token:str ):
+    return templates.TemplateResponse(
+        name="verify-email.html", 
+        request=request,
+        )

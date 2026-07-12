@@ -22,8 +22,8 @@ class UserCreate(User):
         return self
     
 class UserPasswordReset(BaseModel):
-    new_password: SecretStr = Field(..., min_length=8, max_length=100) 
-    confirm_password: SecretStr = Field(..., min_length=8, max_length=100) 
+    new_password: SecretStr = Field(..., min_length=8, max_length=15) 
+    confirm_password: SecretStr = Field(..., min_length=8, max_length=15) 
     @model_validator(mode="after")
     def verify_passwords_match(self) -> "UserCreate":
         pw = self.new_password.get_secret_value()

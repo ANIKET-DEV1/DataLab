@@ -78,12 +78,15 @@ async function loadDatasets() {
       datasetsContainer.innerHTML = `
         <div style="grid-column:1/-1">
           <div class="empty-state">
-            <div class="empty-state-icon">📂</div>
+            <div class="empty-state-icon"><i data-lucide="folder" style="width:36px;"></i></div>
             <h3>No datasets yet</h3>
             <p>Upload a CSV or Excel file to get started with your analysis.</p>
-            <a href="/upload" class="btn btn-primary" style="margin-top:8px;">📤 Upload Dataset</a>
+            <a href="/upload" class="btn btn-primary" style="margin-top:8px;"><i data-lucide="upload" style="width:36px;"></i> Upload Dataset</a>
           </div>
         </div>`;
+          if (window.lucide) {
+    lucide.createIcons();
+}
       return;
     }
 

@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DataLab — PasswordReset</title>
+    <meta name="description" content="Sign in to DataLab — your no-code data science platform.">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
+</head>
+<body>
+
+<div class="auth-glow auth-glow-1"></div>
+<div class="auth-glow auth-glow-2"></div>
+
+<div class="auth-page">
+    <div class="auth-card animate-in">
+        <div class="auth-header">
+            <div class="brand-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 2h6"/>
+                    <path d="M10 2v6.2a2 2 0 0 1-.4 1.2L4.7 16.8A2.5 2.5 0 0 0 6.7 20.5h10.6a2.5 2.5 0 0 0 2-4.2l-4.9-7.4a2 2 0 0 1-.4-1.2V2"/>
+                    <path d="M7.5 14.5h9"/>
+                </svg>
+            </div>
+            <h1 class="gradient-text">DATALAB</h1>
+            <p>Change Password</p>
+        </div>
+
+        <form id="getEmailForm" class="auth-form" autocomplete="on">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <div class="input-icon-wrap">
+                    <input type="email" id="emailInput" placeholder="datalab@mail.xyz" required autocomplete="email">
+                </div>
+            </div>
+
+
+            <p id="message" class="msg-error"></p>
+
+            <button type="submit" id="ChangeBtn" class="btn btn-primary btn-lg" style="width:100%;margin-top:4px;">
+                <span id="ChangePassword">Send Mail</span>
+                <span id="ChangePasswordLoader" class="loader hidden"></span>
+            </button>
+        </form>
+
+    </div>
+</div>
+
+<script>
+    
+    document.getElementById('getEmailForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById('emailInput').value;
+        const messageElement = document.getElementById('message');
+        const ChangeBtn = document.getElementById('ChangeBtn');
+        const ChangePasswordText = document.getElementById('ChangePassword');
+        const ChangePasswordLoader = document.getElementById('ChangePasswordLoader');
+
+        messageElement.style.display = 'none';
+        ChangeBtn.disabled = true;
+        ChangePasswordText.textContent = 'Sending Mail';
+        ChangePasswordLoader.classList.remove('hidden');
+
+        try {
+            const response = await fetch(`/auth/password-reset`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                messageElement.className = 'msg-success';
+                messageElement.textContent = '✓ ' + (result.message || 'Check Your Mail');
+                messageElement.style.display = 'flex';
+                ChangePasswordText.textContent = 'Sended';
+        ChangePasswordLoader.classList.add('hidden')
+;
+            } else {
+                messageElement.className = 'msg-error';
+                messageElement.textContent = '✗ ' + (result.detail || 'Failed to Send Mail. Check your credentials.');
+                messageElement.style.display = 'flex';
+                ChangeBtn.disabled = false;
+                ChangePasswordText.textContent = 'Send Mail';
+                ChangePasswordLoader.classList.add('hidden');
+            }
+        } catch (error) {
+            console.error('Error logging in:', error);
+            messageElement.className = 'msg-error';
+            messageElement.textContent = '✗ Something went wrong. Please try again.';
+            messageElement.style.display = 'flex';
+            ChangeBtn.disabled = false;
+            ChangePasswordText.textContent = 'Send Mail';
+            ChangePasswordLoader.classList.add('hidden');
+        }
+    });
+</script>
+</body>
+</html>

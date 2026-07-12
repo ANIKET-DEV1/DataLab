@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
 from jose import jwt,ExpiredSignatureError,JWTError
 import uuid
+import urllib.parse
 from backend.app.models.models import User
 from ..core.config import get_config
 system = get_config()
@@ -19,8 +20,9 @@ class password_mail_verification():
         
         return jwt.encode(payload,SECRET_KEY,ALGORITHM)
     
-    def verify_passwaord_reset_token(token:str) -> uuid.UUID | None:
+    def verify_password_reset_token(token:str) -> uuid.UUID | None:
         try:
+            print(len(token))
             payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
 
             user_id:str|None = payload.get("sub")
@@ -30,9 +32,12 @@ class password_mail_verification():
                 
             return uuid.UUID(str(user_id))
             
-        except ExpiredSignatureError:
+        except ExpiredSignatureError as e:
+            print(e)
             return None
-        except JWTError:
+        
+        except JWTError as e:
+            print(e)
             return None
 
 

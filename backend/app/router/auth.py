@@ -73,7 +73,7 @@ async def verify_email(request: Request,
             status_code=400, 
             detail="The verification link is invalid or has expired. Please request a new one."
         )
-    result = await update_verify_email(db,user_id)
+    result = await update_verify_email(db,user_id) 
     if not result:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
     await mail_work_done(email=result.email)
@@ -101,7 +101,8 @@ async def verified_reset_password(request: Request,
     token:str=Query(...,description="The cryptographic token sent via email"),
     db: AsyncSession = Depends(get_db)
 ):
-    user_id=password_mail_verification.verify_passwaord_reset_token(token)
+    user_id=password_mail_verification.verify_password_reset_token(token)
+    print(user_id)
     if not user_id:
         raise HTTPException(
             status_code=400, 
@@ -109,6 +110,7 @@ async def verified_reset_password(request: Request,
         )
     result = await update_password(db,user_id,cred=cred)
     if not result:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="Error Occured")
     await mail_work_done(email=result.email)
     return {"message":"Succesful"}

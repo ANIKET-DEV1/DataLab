@@ -1,163 +1,144 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataLab — Clean Workspace</title>
-    <meta name="description" content="Clean, rename and transform your dataset columns in DataLab.">
-        <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
-    <style>
-        /* ── Sidebar Layout ── */
-        .clean-layout {
-            display: grid;
-            grid-template-columns: 220px 1fr;
-            gap: 20px;
-            align-items: start;
-        }
-        @media (max-width: 720px) {
-            .clean-layout { grid-template-columns: 1fr; }
-            .clean-sidebar { display: flex; flex-wrap: wrap; gap: 6px; }
-            .clean-sidebar .sidebar-item { flex: 1; text-align: center; }
-        }
+﻿{% extends "base.html" %}
 
-        /* ── Sidebar ── */
-        .clean-sidebar {
-            position: sticky;
-            top: 90px;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-        .sidebar-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 11px 14px;
-            border-radius: var(--radius-sm);
-            border: 1px solid transparent;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-            font-weight: 500;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all var(--transition-base);
-            background: none;
-            width: 100%;
-            text-align: left;
-            font-family: inherit;
-        }
-        .sidebar-item:hover {
-            background: rgba(255,255,255,0.05);
-            color: var(--text-primary);
-            border-color: var(--border);
-        }
-        .sidebar-item.active {
-            background: rgba(99,137,255,0.12);
-            color: var(--accent);
-            border-color: rgba(99,137,255,0.3);
-        }
-        .sidebar-item .icon { font-size: 1.1rem; flex-shrink: 0; }
-        .sidebar-sep {
-            height: 1px;
-            background: var(--border);
-            margin: 6px 0;
-        }
+{% block title %}DataLab — Clean Workspace{% endblock %}
+{% block meta_description %}Clean, rename and transform your dataset columns in DataLab.{% endblock %}
 
-        /* ── Panel Header ── */
-        .panel-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 22px;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--border);
-        }
-        .panel-header h2 { margin: 0; font-size: 1.15rem; }
+{% block nav_clean %}active{% endblock %}
 
-        /* ── Field Group ── */
-        .field-stack { display: flex; flex-direction: column; gap: 20px; }
-        .field-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+{% block page_styles %}
+<style>
+    /* ── Sidebar Layout ── */
+    .clean-layout {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+    @media (max-width: 720px) {
+        .clean-layout { grid-template-columns: 1fr; }
+        .clean-sidebar { display: flex; flex-wrap: wrap; gap: 6px; }
+        .clean-sidebar .sidebar-item { flex: 1; text-align: center; }
+    }
 
-        /* ── Null counter chip ── */
-        .null-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 10px;
-            background: rgba(255, 91, 122, 0.1);
-            border: 1px solid rgba(255, 91, 122, 0.25);
-            border-radius: 99px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--danger);
-            font-family: 'JetBrains Mono', monospace;
-        }
-        .clean-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 10px;
-            background: rgba(0, 214, 143, 0.1);
-            border: 1px solid rgba(0, 214, 143, 0.2);
-            border-radius: 99px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--success);
-        }
+    /* ── Sidebar ── */
+    .clean-sidebar {
+        position: sticky;
+        top: 90px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    .sidebar-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 14px;
+        border-radius: var(--radius-sm);
+        border: 1px solid transparent;
+        color: var(--text-secondary);
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: all var(--transition-base);
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-family: inherit;
+    }
+    .sidebar-item:hover {
+        background: rgba(255,255,255,0.05);
+        color: var(--text-primary);
+        border-color: var(--border);
+    }
+    .sidebar-item.active {
+        background: rgba(99,137,255,0.12);
+        color: var(--accent);
+        border-color: rgba(99,137,255,0.3);
+    }
+    .sidebar-item .icon { font-size: 1.1rem; flex-shrink: 0; }
+    .sidebar-sep {
+        height: 1px;
+        background: var(--border);
+        margin: 6px 0;
+    }
 
-        /* ── Messages ── */
-        .msg-area { min-height: 0; }
-        .error-msg, .success-msg { display: none; }
+    /* ── Panel Header ── */
+    .panel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 22px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--border);
+    }
+    .panel-header h2 { margin: 0; font-size: 1.15rem; }
 
-        /* ── Upcoming Feature ── */
-        .upcoming-orb {
-            position: relative;
-            width: 90px; height: 90px;
-            margin: 0 auto;
-        }
-        .upcoming-orb::before {
-            content: '';
-            position: absolute;
-            inset: -8px;
-            border-radius: 50%;
-            background: conic-gradient(from 0deg, var(--warning), var(--accent-2), var(--warning));
-            animation: spin 4s linear infinite;
-            opacity: 0.3;
-        }
-        .upcoming-orb-inner {
-            position: relative;
-            width: 90px; height: 90px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(255,181,71,0.15), rgba(255,107,0,0.1));
-            border: 1px solid rgba(255,181,71,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.4rem;
-        }
-    </style>
-</head>
-<body>
+    /* ── Field Group ── */
+    .field-stack { display: flex; flex-direction: column; gap: 20px; }
+    .field-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
 
-<!-- ── Navbar ── -->
-<nav class="navbar">
-    <a href="/" class="navbar-brand">
-        <div class="brand-icon">🔬</div>
-        <span class="brand-name">DataLab</span>
-    </a>
-    <div class="nav-links">
-        <a href="/" class="nav-link"><i data-lucide="house" style="width:16px;"></i> Home</a>
-        <a href="/upload" class="nav-link"><i data-lucide="Upload" style="width:16px;color:#1F5D46;"></i> Upload</a>
-        <a href="/preview" class="nav-link"><i data-lucide="ScanSearch" style="width:16px;color:#1F5D46;"></i> Preview</a>
-        <a href="/visualize" class="nav-link"><i data-lucide="ChartSpline" style="width:16px;color:#1F5D46;"></i> Visualize</a>
-        <a href="/ml" class="nav-link"><i data-lucide="BrainCircuit" style="width:16px;color:#1F5D46;"></i> ML <span class="nav-badge">Soon</span></a>
-        
+    /* ── Null counter chip ── */
+    .null-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        background: rgba(255, 91, 122, 0.1);
+        border: 1px solid rgba(255, 91, 122, 0.25);
+        border-radius: 99px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--danger);
+        font-family: 'JetBrains Mono', monospace;
+    }
+    .clean-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        background: rgba(0, 214, 143, 0.1);
+        border: 1px solid rgba(0, 214, 143, 0.2);
+        border-radius: 99px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--success);
+    }
 
-    </div>
-</nav>
+    /* ── Messages ── */
+    .msg-area { min-height: 0; }
+    .error-msg, .success-msg { display: none; }
 
+    /* ── Upcoming Feature ── */
+    .upcoming-orb {
+        position: relative;
+        width: 90px; height: 90px;
+        margin: 0 auto;
+    }
+    .upcoming-orb::before {
+        content: '';
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        background: conic-gradient(from 0deg, var(--warning), var(--accent-2), var(--warning));
+        animation: spin 4s linear infinite;
+        opacity: 0.3;
+    }
+    .upcoming-orb-inner {
+        position: relative;
+        width: 90px; height: 90px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, rgba(255,181,71,0.15), rgba(255,107,0,0.1));
+        border: 1px solid rgba(255,181,71,0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.4rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
 <!-- ── Main ── -->
 <main class="page-wrap">
     <div class="page-header animate-in">
@@ -420,7 +401,9 @@
     <!-- Null info (kept for clean.js compatibility) -->
     <div id="show_null" style="display:none;"></div>
 </main>
+{% endblock %}
 
+{% block page_scripts %}
 <script>
     // ── View switcher (mirrors clean.js showView but usable from sidebar buttons too) ──
     function showView(viewId) {
@@ -438,10 +421,5 @@
     document.querySelectorAll('.sidebar-item').forEach(el => el.classList.add('nav-link'));
     document.querySelectorAll('#panels section').forEach(el => el.classList.add('panel'));
 </script>
-<script>
-        lucide.createIcons();
-</script>
-<script src="/static/js/auth.js"></script>
 <script type="module" src="/static/js/clean.js"></script>
-</body>
-</html>
+{% endblock %}

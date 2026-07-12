@@ -1,130 +1,120 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataLab — Visualize</title>
-    <meta name="description" content="Create beautiful no-code charts from your dataset in DataLab.">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
-    <style>
-        .vis-grid {
-            display: grid;
-            grid-template-columns: 300px 1fr;
-            gap: 20px;
-            align-items: start;
-        }
-        @media (max-width: 780px) {
-            .vis-grid { grid-template-columns: 1fr; }
-        }
+﻿{% extends "base.html" %}
 
-        /* Chart type buttons */
-        .chart-type-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .chart-type-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            padding: 12px 8px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-sm);
-            color: var(--text-secondary);
-            cursor: pointer;
-            transition: all var(--transition-base);
-            font-size: 0.78rem;
-            font-weight: 500;
-            text-align: center;
-            font-family: inherit;
-        }
-        .chart-type-btn:hover { border-color: rgba(255,255,255,0.15); color: var(--text-primary); }
-        .chart-type-btn.active {
-            border-color: rgba(99,137,255,0.5);
-            background: rgba(99,137,255,0.12);
-            color: var(--accent);
-        }
-        .chart-type-btn .chart-icon { font-size: 1.4rem; }
+{% block title %}DataLab — Visualize{% endblock %}
+{% block meta_description %}Create beautiful no-code charts from your dataset in DataLab.{% endblock %}
 
-        /* Error message override — chart.js sets display:block, we accommodate both */
-        #error {
-            display: none;
-            margin-top: 16px;
-            padding: 10px 14px;
-            background: rgba(255, 91, 122, 0.1);
-            border: 1px solid rgba(255, 91, 122, 0.25);
-            border-radius: var(--radius-sm);
-            color: var(--danger);
-            font-size: 0.875rem;
-            font-weight: 500;
-            animation: slideDown 0.2s ease;
-        }
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
 
-        /* Canvas wrapper — explicit sizing so chart renders correctly */
-        .canvas-wrap {
-            position: relative;
-            width: 100%;
-            height: 420px;
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            background: rgba(255,255,255,0.02);
-            border: 1px solid var(--border);
-            margin-top: 20px;
-        }
+{% block nav_visualize %}active{% endblock %}
 
-        /* Canvas fills wrapper 100% */
-        #myChart {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100% !important;
-            height: 100% !important;
-        }
+{% block page_styles %}
+<style>
+    .vis-grid {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 20px;
+        align-items: start;
+    }
+    @media (max-width: 780px) {
+        .vis-grid { grid-template-columns: 1fr; }
+    }
 
-        /* Empty placeholder */
-        .empty-chart {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            color: var(--text-muted);
-            font-size: 0.875rem;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-        .empty-chart.hidden-placeholder { opacity: 0; }
-        .empty-chart .icon { font-size: 3rem; opacity: 0.4; }
-    </style>
-</head>
-<body>
+    /* ── Page heading icon ── */
+    .page-header h1 { display: flex; align-items: center; gap: 10px; }
+    .h1-icon { width: 26px; height: 26px; color: var(--accent); flex-shrink: 0; }
 
-<!-- ── Navbar ── -->
-<nav class="navbar">
-    <a href="/" class="navbar-brand">
-        <div class="brand-icon">🔬</div>
-        <span class="brand-name">DataLab</span>
-    </a>
-    <div class="nav-links">
-        <a href="/" class="nav-link"><i data-lucide="house" style="width:16px;"></i> Home</a>
-        <a href="/upload" class="nav-link"><i data-lucide="Upload" style="width:16px;color:#1F5D46;"></i> Upload</a>
-        <a href="/preview" class="nav-link"><i data-lucide="ScanSearch" style="width:16px;color:#1F5D46;"></i> Preview</a>
-        <a href="/clean" class="nav-link"><i data-lucide="BrushCleaning" style="width:16px;color:#1F5D46;"></i> Clean</a>
-        <a href="/ml" class="nav-link"><i data-lucide="BrainCircuit" style="width:16px;color:#1F5D46;"></i> ML <span class="nav-badge">Soon</span></a>
-    </div>
-</nav>
+    /* ── Chart type buttons ── */
+    .chart-type-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 8px;
+    }
+    .chart-type-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 12px 8px;
+        background: #FFFFFF;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all var(--transition-base);
+        font-size: 0.78rem;
+        font-weight: 500;
+        text-align: center;
+        font-family: inherit;
+    }
+    .chart-type-btn:hover { border-color: rgba(31,93,70,0.3); color: var(--text-primary); }
+    .chart-type-btn.active {
+        border-color: rgba(31,93,70,0.5);
+        background: rgba(31,93,70,0.10);
+        color: var(--accent);
+    }
+    /* Icons inherit currentColor, so they follow the button's own
+       text color instead of carrying their own hard-coded hex —
+       grey when idle, ledger green when active, no separate rule
+       needed per state. */
+    .chart-icon, .chart-icon svg { width: 18px; height: 18px; color: inherit; }
 
+    #error {
+        display: none;
+        margin-top: 16px;
+        padding: 10px 14px;
+        background: rgba(193,68,59,0.08);
+        border: 1px solid rgba(193,68,59,0.25);
+        border-radius: var(--radius-sm);
+        color: var(--danger);
+        font-size: 0.875rem;
+        font-weight: 500;
+        animation: slideDown 0.2s ease;
+    }
+
+    .canvas-wrap {
+        position: relative;
+        width: 100%;
+        height: 420px;
+        border-radius: var(--radius-md);
+        overflow: hidden;
+        background: #FFFFFF;
+        border: 1px solid var(--border);
+        margin-top: 20px;
+    }
+
+    #myChart {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    .empty-chart {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        color: var(--text-muted);
+        font-size: 0.875rem;
+        pointer-events: none;
+        transition: opacity 0.3s ease;
+    }
+    .empty-chart.hidden-placeholder { opacity: 0; }
+    .empty-chart .icon, .empty-chart .icon svg { width: 36px; height: 36px; color: inherit; opacity: 0.5; }
+</style>
+{% endblock %}
+
+{% block content %}
 <!-- ── Main ── -->
 <main class="page-wrap">
     <div class="page-header animate-in">
-        <h1><i data-lucide="ChartSpline" style="width:26px;color:#b5d7cb;background-color:rgb(78, 77, 77)"></i>  Visualization Studio</h1>
+        <h1><i data-lucide="chart-spline" class="h1-icon"></i> Visualization Studio</h1>
         <p>Create insightful charts from your data — no code required.</p>
     </div>
 
@@ -140,19 +130,19 @@
                     <label>Chart Type</label>
                     <div class="chart-type-grid">
                         <button type="button" class="chart-type-btn active" data-type="bar">
-                            <span class="chart-icon"><i data-lucide="ChartColumn" style="width:16px;color:#1F5D46;"></i> </span>Bar
+                            <span class="chart-icon"><i data-lucide="chart-column"></i></span>Bar
                         </button>
                         <button type="button" class="chart-type-btn" data-type="line">
-                            <span class="chart-icon"><i data-lucide="ChartLine" style="width:16px;color:#1F5D46;"></i> </span>Line
+                            <span class="chart-icon"><i data-lucide="chart-line"></i></span>Line
                         </button>
                         <button type="button" class="chart-type-btn" data-type="hist">
-                            <span class="chart-icon"><i data-lucide="ChartColumnBig" style="width:16px;color:#1F5D46;"></i> </span>Histogram
+                            <span class="chart-icon"><i data-lucide="chart-column-big"></i></span>Histogram
                         </button>
                         <button type="button" class="chart-type-btn" data-type="scatter">
-                            <span class="chart-icon"><i data-lucide="ChartScatter" style="width:16px;color:#1F5D46;"></i> </span>Scatter
+                            <span class="chart-icon"><i data-lucide="chart-scatter"></i></span>Scatter
                         </button>
                         <button type="button" class="chart-type-btn" data-type="pie" style="grid-column:1/-1;">
-                            <span class="chart-icon"><i data-lucide="ChartPie" style="width:16px;color:#1F5D46;"></i> </span>Pie Chart
+                            <span class="chart-icon"><i data-lucide="chart-pie"></i></span>Pie Chart
                         </button>
                     </div>
                     <!-- Hidden select read by chart.js -->
@@ -194,7 +184,7 @@
             <div class="canvas-wrap">
                 <!-- Empty placeholder — fades out once chart renders -->
                 <div class="empty-chart" id="empty-chart">
-                    <span class="icon"><i data-lucide="ChartSpline" style="width:36px;color:#0480ec;"></i> </span>
+                    <span class="icon"><i data-lucide="chart-spline"></i></span>
                     <span>Your chart will appear here</span>
                 </div>
                 <!-- Canvas: chart.js manages display & sizing -->
@@ -204,10 +194,9 @@
 
     </div>
 </main>
+{% endblock %}
 
-<!-- auth guard (must be before chart.js) -->
-<script src="/static/js/auth.js"></script>
-
+{% block page_scripts %}
 <!-- Chart type button → hidden select sync -->
 <script>
     document.querySelectorAll('.chart-type-btn').forEach(btn => {
@@ -226,8 +215,4 @@
 
 <!-- chart.js loaded as module AFTER the above inline script -->
 <script type="module" src="/static/js/chart.js"></script>
-<script>
-        lucide.createIcons();
-</script>
-</body>
-</html>
+{% endblock %}

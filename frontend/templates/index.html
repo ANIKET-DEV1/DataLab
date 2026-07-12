@@ -1,34 +1,11 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataLab — Dashboard</title>
-    <meta name="description" content="Manage and explore your datasets with DataLab.">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
-</head>
-<body>
+﻿{% extends "base.html" %}
 
-<!-- ── Navbar ── -->
-<nav class="navbar">
-    <a href="/" class="navbar-brand">
-        <div class="brand-icon">🔬</div>
-        <span class="brand-name">DataLab</span>
-    </a>
-    <div class="nav-links">
-        <a href="/upload" class="nav-link"><i data-lucide="Upload" style="width:16px;color:#1F5D46;"></i> Upload</a>
-        <a href="/preview" class="nav-link"><i data-lucide="ScanSearch" style="width:16px;color:#1F5D46;"></i> Preview</a>
-        <a href="/visualize" class="nav-link"><i data-lucide="ChartSpline" style="width:16px;color:#1F5D46;"></i> Visualize</a>
-        <a href="/clean" class="nav-link"><i data-lucide="BrushCleaning" style="width:16px;color:#1F5D46;"></i> Clean</a>
-        <a href="/ml" class="nav-link"><i data-lucide="BrainCircuit" style="width:16px;color:#1F5D46;"></i> ML <span class="nav-badge">Soon</span></a>
-    </div>
-    <div class="nav-right">
-        <button id="logoutBtn" class="btn btn-danger btn-sm">Logout</button>
-    </div>
-</nav>
+{% block title %}DataLab — Dashboard{% endblock %}
+{% block meta_description %}Manage and explore your datasets with DataLab.{% endblock %}
 
+{% block nav_home %}active{% endblock %}
+
+{% block content %}
 <!-- ── Main Content ── -->
 <main class="page-wrap">
     <div class="page-header animate-in">
@@ -53,12 +30,9 @@
     <!-- Dataset Grid -->
     <div id="datasets" class="dataset-grid animate-in animate-in-delay-2"></div>
 </main>
+{% endblock %}
 
-<script>
-        lucide.createIcons();
-</script>
-<script src="/static/js/auth.js"></script>
-
+{% block page_scripts %}
 <script src="/static/js/script.js"></script>
 <script>
     // Show active dataset indicator
@@ -67,8 +41,5 @@
         document.getElementById('active-name-label').textContent = activeName;
         document.getElementById('active-info').style.display = 'flex';
     }
-
 </script>
-
-</body>
-</html>
+{% endblock %}

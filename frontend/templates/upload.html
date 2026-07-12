@@ -1,49 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DataLab — Upload Dataset</title>
-    <meta name="description" content="Upload your CSV or Excel dataset to DataLab.">
-        <script src="https://unpkg.com/lucide@latest"></script>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
-    <style>
-        .file-info {
-            display: none;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: rgba(99,137,255,0.08);
-            border: 1px solid rgba(99,137,255,0.25);
-            border-radius: var(--radius-sm);
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            animation: slideDown 0.2s ease;
-        }
-        .file-info .file-name { font-weight: 600; color: var(--text-primary); }
-        .file-info .file-size { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
-        #upload-message { display: none; min-height: 0; }
-        .format-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
-    </style>
-</head>
-<body>
+﻿{% extends "base.html" %}
 
-<!-- ── Navbar ── -->
-<nav class="navbar">
-    <a href="/" class="navbar-brand">
-        <div class="brand-icon">🔬</div>
-        <span class="brand-name">DataLab</span>
-    </a>
-    <div class="nav-links">
-        <a href="/" class="nav-link"><i data-lucide="house" style="width:16px;"></i> Home</a>
-        <a href="/preview" class="nav-link"><i data-lucide="ScanSearch" style="width:16px;color:#1F5D46;"></i> Preview</a>
-        <a href="/visualize" class="nav-link"><i data-lucide="ChartSpline" style="width:16px;color:#1F5D46;"></i> Visualize</a>
-        <a href="/clean" class="nav-link"><i data-lucide="BrushCleaning" style="width:16px;color:#1F5D46;"></i> Clean</a>
-        <a href="/ml" class="nav-link"><i data-lucide="BrainCircuit" style="width:16px;color:#1F5D46;"></i> ML <span class="nav-badge">Soon</span></a>
-    </div>
-</nav>
+{% block title %}DataLab — Upload Dataset{% endblock %}
+{% block meta_description %}Upload your CSV or Excel dataset to DataLab.{% endblock %}
 
+{% block nav_upload %}active{% endblock %}
+
+{% block page_styles %}
+<style>
+    .file-info {
+        display: none;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        background: rgba(99,137,255,0.08);
+        border: 1px solid rgba(99,137,255,0.25);
+        border-radius: var(--radius-sm);
+        font-size: 0.875rem;
+        color: var(--text-secondary);
+        animation: slideDown 0.2s ease;
+    }
+    .file-info .file-name { font-weight: 600; color: var(--text-primary); }
+    .file-info .file-size { margin-left: auto; font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; }
+    #upload-message { display: none; min-height: 0; }
+    .format-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+</style>
+{% endblock %}
+
+{% block content %}
 <!-- ── Main ── -->
 <main class="page-wrap">
     <div class="page-header animate-in">
@@ -55,7 +38,7 @@
         <form id="uplaod_file">
             <div class="dropzone" id="dropzone">
                 <span class="dropzone-icon"><i data-lucide="Folder" style="width:36px;"></i> </span>
-                <h3>Drag & Drop your file here</h3>
+                <h3>Drag &amp; Drop your file here</h3>
                 <p>or click to browse from your computer</p>
                 <input type="file" id="file" accept=".csv,.xlsx,.xls,.json,.parquet">
             </div>
@@ -84,11 +67,9 @@
         </form>
     </div>
 </main>
+{% endblock %}
 
-<script>
-        lucide.createIcons();
-</script>
-
+{% block page_scripts %}
 <script>
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('file');
@@ -182,5 +163,4 @@
         }
     });
 </script>
-</body>
-</html>
+{% endblock %}

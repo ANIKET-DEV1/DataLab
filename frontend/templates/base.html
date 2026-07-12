@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}DataLab{% endblock %}</title>
+    <meta name="description" content="{% block meta_description %}DataLab — Your intelligent data workspace.{% endblock %}">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
+    {% block head_extra %}{% endblock %}
+
+    {% block page_styles %}{% endblock %}
+</head>
+<body>
+
+<!-- ── Navbar ── -->
+<nav class="navbar" id="mainNav">
+    <a href="/" class="navbar-brand">
+        <div class="brand-icon">🔬</div>
+        <span class="brand-name">DataLab</span>
+    </a>
+
+    <!-- Desktop nav links -->
+    <div class="nav-links">
+        <a href="/" class="nav-link {% block nav_home %}{% endblock %}">
+            <i data-lucide="house" style="width:16px;"></i> Home
+        </a>
+        <a href="/upload" class="nav-link {% block nav_upload %}{% endblock %}">
+            <i data-lucide="Upload" style="width:16px;color:#1F5D46;"></i> Upload
+        </a>
+        <a href="/preview" class="nav-link {% block nav_preview %}{% endblock %}">
+            <i data-lucide="ScanSearch" style="width:16px;color:#1F5D46;"></i> Preview
+        </a>
+        <a href="/visualize" class="nav-link {% block nav_visualize %}{% endblock %}">
+            <i data-lucide="ChartSpline" style="width:16px;color:#1F5D46;"></i> Visualize
+        </a>
+        <a href="/clean" class="nav-link {% block nav_clean %}{% endblock %}">
+            <i data-lucide="BrushCleaning" style="width:16px;color:#1F5D46;"></i> Clean
+        </a>
+        <a href="/ml" class="nav-link {% block nav_ml %}{% endblock %}">
+            <i data-lucide="BrainCircuit" style="width:16px;color:#1F5D46;"></i> ML
+            <span class="nav-badge">Soon</span>
+        </a>
+    </div>
+
+    <div class="nav-right">
+        <button id="logoutBtn" class="btn btn-danger btn-sm">Logout</button>
+    </div>
+
+    <!-- Hamburger toggle (mobile only) — inside nav for layout, but overlay is a body sibling -->
+    <button class="nav-hamburger" id="navToggle" aria-label="Toggle menu" aria-expanded="false">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+    </button>
+</nav>
+
+<!-- ── Mobile Fullscreen Overlay — body-level sibling of nav ── -->
+<div class="mobile-overlay" id="mobileOverlay" aria-hidden="true">
+
+    <!-- Ambient glow blobs -->
+    <div class="mob-glow mob-glow-1"></div>
+    <div class="mob-glow mob-glow-2"></div>
+
+    <!-- Close (×) button -->
+    <button class="mobile-overlay-close" id="mobileClose" aria-label="Close menu">
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+        <span class="hamburger-bar"></span>
+    </button>
+
+    <!-- Brand at top -->
+    <div class="mob-brand">
+        <div class="brand-icon" style="width:44px;height:44px;font-size:1.3rem;border-radius:12px;">🔬</div>
+        <span class="brand-name" style="font-size:1.4rem;">DataLab</span>
+    </div>
+
+    <!-- Nav links -->
+    <nav class="mobile-overlay-nav">
+        <a href="/" class="mobile-nav-link {% block mob_home %}{% endblock %}">
+            <i data-lucide="house" style="width:20px;"></i> Home
+        </a>
+        <a href="/upload" class="mobile-nav-link">
+            <i data-lucide="Upload" style="width:20px;"></i> Upload
+        </a>
+        <a href="/preview" class="mobile-nav-link">
+            <i data-lucide="ScanSearch" style="width:20px;"></i> Preview
+        </a>
+        <a href="/visualize" class="mobile-nav-link">
+            <i data-lucide="ChartSpline" style="width:20px;"></i> Visualize
+        </a>
+        <a href="/clean" class="mobile-nav-link">
+            <i data-lucide="BrushCleaning" style="width:20px;"></i> Clean
+        </a>
+        <a href="/ml" class="mobile-nav-link">
+            <i data-lucide="BrainCircuit" style="width:20px;"></i> ML
+            <span class="nav-badge">Soon</span>
+        </a>
+
+        <!-- Divider -->
+        <div class="mob-divider"></div>
+
+        <button id="logoutBtnMobile" class="mob-logout-btn">
+            <i data-lucide="log-out" style="width:18px;"></i> Logout
+        </button>
+    </nav>
+</div>
+
+<!-- ── Page Content ── -->
+{% block content %}{% endblock %}
+
+<!-- ── Footer ── -->
+<footer class="site-footer">
+    <div class="footer-inner">
+        <span class="footer-brand">
+            <span style="font-size:1rem;">🔬</span>
+            <strong>DataLab</strong>
+        </span>
+    <div class="mt-12 pt-6 border-t border-line flex flex-wrap items-center justify-between gap-3 font-mono text-xs text-inkmute">
+      <span>© 2026 DataLab. All rights reserved.</span>
+      <span>crafted by <a href="https://awsmx.vercel.app" target="_blank" rel="noopener noreferrer" style="text-decoration:none;color:#1F5D46"class="text-ledger hover:text-formula transition-colors ">awsmx</a></span>
+    </div>
+</footer>
+
+<script>lucide.createIcons();</script>
+
+<script src="/static/js/auth.js"></script>
+
+<!-- ── Mobile overlay toggle ── -->
+<script>
+(function () {
+  const toggle  = document.getElementById('navToggle');
+  const overlay = document.getElementById('mobileOverlay');
+  const closeBtn= document.getElementById('mobileClose');
+
+  function openMenu() {
+    overlay.classList.add('is-open');
+    overlay.setAttribute('aria-hidden', 'false');
+    toggle.setAttribute('aria-expanded', 'true');
+    toggle.classList.add('is-active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMenu() {
+    overlay.classList.remove('is-open');
+    overlay.setAttribute('aria-hidden', 'true');
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.classList.remove('is-active');
+    document.body.style.overflow = '';
+  }
+
+  if (toggle) toggle.addEventListener('click', function () {
+    overlay.classList.contains('is-open') ? closeMenu() : openMenu();
+  });
+
+  if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+
+  if (overlay) overlay.querySelectorAll('.mobile-nav-link').forEach(function (link) {
+    link.addEventListener('click', closeMenu);
+  });
+
+  const logoutMobile  = document.getElementById('logoutBtnMobile');
+  const logoutDesktop = document.getElementById('logoutBtn');
+  if (logoutMobile && logoutDesktop) {
+    logoutMobile.addEventListener('click', function () {
+      closeMenu();
+      logoutDesktop.click();
+    });
+  }
+})();
+</script>
+
+{% block page_scripts %}{% endblock %}
+
+</body>
+</html>

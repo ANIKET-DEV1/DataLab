@@ -51,8 +51,8 @@ class User(Base):
         )
     storage_limit_bytes: Mapped[int] = mapped_column(
         Integer,
-        default=209715200,
-        server_default="209715200", 
+        default=52428800,
+        server_default="52428800", 
         nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
