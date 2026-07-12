@@ -54,7 +54,7 @@
     <div class="card animate-in animate-in-delay-1" style="max-width:620px;">
         <form id="uplaod_file">
             <div class="dropzone" id="dropzone">
-                <span class="dropzone-icon">📁</span>
+                <span class="dropzone-icon"><i data-lucide="Folder" style="width:36px;"></i> </span>
                 <h3>Drag & Drop your file here</h3>
                 <p>or click to browse from your computer</p>
                 <input type="file" id="file" accept=".csv,.xlsx,.xls,.json,.parquet">
@@ -67,17 +67,16 @@
             </div>
 
             <div class="format-chips">
-                <span class="info-chip">📋 CSV</span>
-                <span class="info-chip">📊 Excel (.xlsx / .xls)</span>
-                <span class="info-chip">🗃️ JSON</span>
-                <span class="info-chip">🦆 Parquet</span>
+                <span class="info-chip"><i data-lucide="FileText" style="width:16px;color:#1F5D46;"></i> CSV</span>
+                <span class="info-chip"><i data-lucide="sheet" style="width:16px;color:#1F5D46;"></i>  Excel (.xlsx)</span>
+                <span class="info-chip"><i data-lucide="FileBracesCorner" style="width:16px;color:#1F5D46;"></i> JSON</span>
             </div>
 
             <p id="upload-message" class="msg-error" style="margin-top:16px;"></p>
 
             <div style="margin-top:22px;display:flex;gap:12px;align-items:center;">
                 <button type="submit" id="uploadBtn" class="btn btn-primary btn-lg">
-                    <span id="uploadBtnText">📤 Upload</span>
+                    <span id="uploadBtnText"><i data-lucide="Upload" style="width:16px;color:#d6dedb;"></i> </span>
                     <span id="uploadBtnLoader" class="loader hidden"></span>
                 </button>
                 <a href="/" class="btn btn-ghost">Cancel</a>

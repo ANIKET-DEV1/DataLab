@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>DataLab — Clean Workspace</title>
     <meta name="description" content="Clean, rename and transform your dataset columns in DataLab.">
+        <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
     <style>
@@ -147,19 +148,20 @@
         <span class="brand-name">DataLab</span>
     </a>
     <div class="nav-links">
-        <a href="/" class="nav-link">🏠 Home</a>
-        <a href="/upload" class="nav-link">📤 Upload</a>
-        <a href="/preview" class="nav-link">🔍 Preview</a>
-        <a href="/visualize" class="nav-link">📊 Visualize</a>
-        <a href="/clean" class="nav-link active">🧹 Clean</a>
-        <a href="/ml" class="nav-link">🤖 ML <span class="nav-badge">Soon</span></a>
+        <a href="/" class="nav-link"><i data-lucide="house" style="width:16px;"></i> Home</a>
+        <a href="/upload" class="nav-link"><i data-lucide="Upload" style="width:16px;color:#1F5D46;"></i> Upload</a>
+        <a href="/preview" class="nav-link"><i data-lucide="ScanSearch" style="width:16px;color:#1F5D46;"></i> Preview</a>
+        <a href="/visualize" class="nav-link"><i data-lucide="ChartSpline" style="width:16px;color:#1F5D46;"></i> Visualize</a>
+        <a href="/ml" class="nav-link"><i data-lucide="BrainCircuit" style="width:16px;color:#1F5D46;"></i> ML <span class="nav-badge">Soon</span></a>
+        
+
     </div>
 </nav>
 
 <!-- ── Main ── -->
 <main class="page-wrap">
     <div class="page-header animate-in">
-        <h1>🧹 Clean Workspace</h1>
+        <h1><i data-lucide="BrushCleaning" style="width:26px;color:#1F5D46;"></i>  Clean Workspace</h1>
         <p>Handle missing values, rename columns and encode categorical data.</p>
         <p id="global-error" class="error-msg" style="margin-top:10px;"></p>
     </div>
@@ -169,21 +171,25 @@
         <!-- ── Sidebar ── -->
         <aside class="clean-sidebar">
             <button class="sidebar-item active" data-view="home" id="nav-home">
-                <span class="icon">🏠</span> Overview
+                <span class="icon"><i data-lucide="TableOfContents" style="width:16px;color:#1F5D46;"></i> </span> Overview
             </button>
             <div class="sidebar-sep"></div>
             <button class="sidebar-item" data-view="column-clean" id="nav-column-clean">
-                <span class="icon">🎯</span> Column Clean
+                <span class="icon"><i data-lucide="Columns3" style="width:16px;color:#1F5D46;"></i> </span> Column Clean
             </button>
             <button class="sidebar-item" data-view="overall-clean" id="nav-overall-clean">
-                <span class="icon">🌐</span> Overall Clean
+                <span class="icon"><i data-lucide="FilePenLine" style="width:16px;color:#1F5D46;"></i> </span> Overall Clean
             </button>
             <div class="sidebar-sep"></div>
             <button class="sidebar-item" data-view="rename" id="nav-rename">
-                <span class="icon">✏️</span> Rename Column
+                <span class="icon">
+                <i data-lucide="FilePen" style="width:16px;color:#1F5D46;"></i>
+             </span> Rename Column
             </button>
             <button class="sidebar-item" data-view="encoding" id="nav-encoding">
-                <span class="icon">🔠</span> Encoding
+                <span class="icon">
+                    <i data-lucide="SquareDashedKanban" style="width:16px;color:#1F5D46;"></i> 
+                </span> Encoding
                 <span class="tag tag-upcoming" style="margin-left:auto;font-size:0.6rem;">Soon</span>
             </button>
         </aside>
@@ -199,28 +205,38 @@
                 <p style="margin-bottom:20px;">Choose a workflow from the sidebar to begin cleaning your dataset. Operations are permanent and saved directly to your file.</p>
 
                 <div class="msg-warn" style="display:flex;">
-                    <span>⚠️</span>
+                    <span>
+                        <i data-lucide="TriangleAlert" style="width:16px;color:#eb2405;"></i> 
+                    </span>
                     <span>All cleaning operations are <strong>irreversible</strong>. Make sure to back up your data before proceeding.</span>
                 </div>
 
                 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:24px;">
                     <div class="card" style="padding:18px;cursor:pointer;" onclick="showView('column-clean')">
-                        <div style="font-size:1.6rem;margin-bottom:8px;">🎯</div>
+                        <div style="font-size:1.6rem;margin-bottom:8px;">
+                            <i data-lucide="Columns3" style="width:16px;color:#1F5D46;"></i> 
+                        </div>
                         <div style="font-weight:600;font-size:0.9rem;color:var(--text-primary);">Column Clean</div>
                         <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Fill or drop NAs per column</div>
                     </div>
                     <div class="card" style="padding:18px;cursor:pointer;" onclick="showView('overall-clean')">
-                        <div style="font-size:1.6rem;margin-bottom:8px;">🌐</div>
+                        <div style="font-size:1.6rem;margin-bottom:8px;">
+                            <i data-lucide="FilePenLine" style="width:16px;color:#1F5D46;"></i> 
+                        </div>
                         <div style="font-weight:600;font-size:0.9rem;color:var(--text-primary);">Overall Clean</div>
                         <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Global NA drop or fill</div>
                     </div>
                     <div class="card" style="padding:18px;cursor:pointer;" onclick="showView('rename')">
-                        <div style="font-size:1.6rem;margin-bottom:8px;">✏️</div>
+                        <div style="font-size:1.6rem;margin-bottom:8px;">
+                            <i data-lucide="FilePen" style="width:16px;color:#1F5D46;"></i> 
+                        </div>
                         <div style="font-weight:600;font-size:0.9rem;color:var(--text-primary);">Rename Column</div>
                         <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Rename any column header</div>
                     </div>
                     <div class="card" style="padding:18px;cursor:pointer;opacity:0.7;" onclick="showView('encoding')">
-                        <div style="font-size:1.6rem;margin-bottom:8px;">🔠</div>
+                        <div style="font-size:1.6rem;margin-bottom:8px;">
+                            <i data-lucide="SquareDashedKanban" style="width:16px;color:#1F5D46;"></i> 
+                        </div>
                         <div style="font-weight:600;font-size:0.9rem;color:var(--text-primary);">Encoding <span class="tag tag-upcoming" style="vertical-align:middle;">Soon</span></div>
                         <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">One-hot &amp; label encoding</div>
                     </div>
@@ -230,7 +246,7 @@
             <!-- ─ Column-Wise Clean ─ -->
             <section id="column-clean" class="panel hidden">
                 <div class="panel-header">
-                    <h2>🎯 Column-Wise Clean</h2>
+                        <i data-lucide="Columns3" style="width:26px;color:#1F5D46;"></i><h2>  Column-Wise Clean</h2>
                 </div>
                 <div class="field-stack">
 
@@ -238,7 +254,9 @@
                     <div class="form-group">
                         <label for="column-select">Select Column</label>
                         <select id="column-select"></select>
-                        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">⚠️ columns highlighted red have missing values.</p>
+                        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;display:flex;">
+                            <i data-lucide="ShieldAlert" style="width:16px;color:#ec2a08;"></i> columns highlighted red have missing values.
+                        </p>
                     </div>
 
                     <!-- Clean type -->
@@ -247,11 +265,11 @@
                         <div class="radio-group">
                             <div class="radio-option">
                                 <input type="radio" name="clean-type" id="fill-na" value="fill-na">
-                                <label for="fill-na">🧩 Fill NA</label>
+                                <label for="fill-na"><i data-lucide="PaintBucket" style="width:16px;color:#1F5D46;"></i>  Fill NA</label>
                             </div>
                             <div class="radio-option">
                                 <input type="radio" name="clean-type" id="drop-na-row-wise" value="drop-na">
-                                <label for="drop-na-row-wise">🗑️ Drop NA (Row)</label>
+                                <label for="drop-na-row-wise"><i data-lucide="WavesArrowDown" style="width:16px;color:#1F5D46;"></i> Drop NA (Row)</label>
                             </div>
                         </div>
                     </div>
@@ -263,15 +281,15 @@
                             <div class="radio-group">
                                 <div class="radio-option">
                                     <input type="radio" name="fill-type" value="custom" id="fill-custom" checked>
-                                    <label for="fill-custom">✏️ Custom</label>
+                                    <label for="fill-custom"><i data-lucide="PencilLine" style="width:16px;color:#1F5D46;"></i>  Custom</label>
                                 </div>
                                 <div class="radio-option">
                                     <input type="radio" name="fill-type" value="mean" id="fill-mean">
-                                    <label for="fill-mean">📊 Mean</label>
+                                    <label for="fill-mean"><i data-lucide="Dot" style="width:16px;color:#1F5D46;"></i>  Mean</label>
                                 </div>
                                 <div class="radio-option">
                                     <input type="radio" name="fill-type" value="mode" id="fill-mode">
-                                    <label for="fill-mode">🏅 Mode</label>
+                                    <label for="fill-mode"><i data-lucide="ChevronsLeftRightEllipsis" style="width:16px;color:#1F5D46;"></i>  Mode</label>
                                 </div>
                             </div>
                         </div>
@@ -294,7 +312,7 @@
             <!-- ─ Overall Clean ─ -->
             <section id="overall-clean" class="panel hidden">
                 <div class="panel-header">
-                    <h2>🌐 Overall Clean</h2>
+                    <h2><i data-lucide="FilePenLine" style="width:16px;color:#1F5D46;"></i>  Overall Clean</h2>
                 </div>
                 <div class="field-stack">
 
@@ -303,11 +321,11 @@
                         <div class="radio-group">
                             <div class="radio-option">
                                 <input type="radio" name="scope" value="drop-na" id="scope-drop">
-                                <label for="scope-drop">🗑️ Drop Null Rows/Cols</label>
+                                <label for="scope-drop"><i data-lucide="WavesArrowDown" style="width:16px;color:#1F5D46;"></i>  Drop Null Rows/Cols</label>
                             </div>
                             <div class="radio-option">
                                 <input type="radio" name="scope" value="fill-na" id="scope-fill">
-                                <label for="scope-fill">🧩 Global Fill Null</label>
+                                <label for="scope-fill"><i data-lucide="PencilLine" style="width:16px;color:#1F5D46;"></i>  Global Fill Null</label>
                             </div>
                         </div>
                     </div>
@@ -318,11 +336,11 @@
                         <div class="radio-group">
                             <div class="radio-option">
                                 <input type="radio" name="drop-na-scope" value="row" id="drop-row" checked>
-                                <label for="drop-row">↔️ Row-Wise</label>
+                                <label for="drop-row"><i data-lucide="ArrowRightFromLine" style="width:16px;color:#1F5D46;"></i> Row-Wise</label>
                             </div>
                             <div class="radio-option">
                                 <input type="radio" name="drop-na-scope" value="column" id="drop-col">
-                                <label for="drop-col">↕️ Column-Wise</label>
+                                <label for="drop-col"><i data-lucide="ArrowDownFromLine" style="width:16px;color:#1F5D46;"></i> Column-Wise</label>
                             </div>
                         </div>
                     </div>
@@ -346,13 +364,15 @@
             <!-- ─ Encoding — Upcoming Feature ─ -->
             <section id="encoding" class="panel hidden">
                 <div class="panel-header">
-                    <h2>🔠 Encoding</h2>
-                    <span class="tag tag-upcoming">⏳ Coming Soon</span>
+                    <i data-lucide="SquareDashedKanban" style="width:26px;color:#1F5D46;">Encoding</i> 
+                    <span class="tag tag-upcoming"><i data-lucide="Hourglass" style="width:16px;color:#1F5D46;"></i> Coming Soon</span>
                 </div>
 
                 <div class="upcoming-feature">
                     <div class="upcoming-orb">
-                        <div class="upcoming-orb-inner">🔠</div>
+                        <div class="upcoming-orb-inner">
+                            <i data-lucide="SquareDashedKanban" style="width:36px;color:#12d8ee;"></i>
+                        </div>
                     </div>
                     <h3>Encoding — Upcoming Feature</h3>
                     <p>One-Hot Encoding and Label Encoding support is currently under active development. This feature will let you automatically transform categorical columns for machine learning pipelines.</p>
@@ -373,7 +393,7 @@
             <!-- ─ Rename ─ -->
             <section id="rename" class="panel hidden">
                 <div class="panel-header">
-                    <h2>✏️ Rename Column</h2>
+<i data-lucide="FilePen" style="width:26px;color:#1F5D46;"></i>                    <h2> Rename Column</h2>
                 </div>
                 <div class="field-stack">
                     <div class="form-group">
@@ -417,6 +437,9 @@
     // We alias sidebar-item as nav-link for clean.js compatibility
     document.querySelectorAll('.sidebar-item').forEach(el => el.classList.add('nav-link'));
     document.querySelectorAll('#panels section').forEach(el => el.classList.add('panel'));
+</script>
+<script>
+        lucide.createIcons();
 </script>
 <script src="/static/js/auth.js"></script>
 <script type="module" src="/static/js/clean.js"></script>

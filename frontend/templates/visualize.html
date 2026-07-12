@@ -6,6 +6,7 @@
     <title>DataLab — Visualize</title>
     <meta name="description" content="Create beautiful no-code charts from your dataset in DataLab.">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
     <style>
@@ -112,19 +113,18 @@
         <span class="brand-name">DataLab</span>
     </a>
     <div class="nav-links">
-        <a href="/" class="nav-link">🏠 Home</a>
-        <a href="/upload" class="nav-link">📤 Upload</a>
-        <a href="/preview" class="nav-link">🔍 Preview</a>
-        <a href="/visualize" class="nav-link active">📊 Visualize</a>
-        <a href="/clean" class="nav-link">🧹 Clean</a>
-        <a href="/ml" class="nav-link">🤖 ML <span class="nav-badge">Soon</span></a>
+        <a href="/" class="nav-link"><i data-lucide="house" style="width:16px;"></i> Home</a>
+        <a href="/upload" class="nav-link"><i data-lucide="Upload" style="width:16px;color:#1F5D46;"></i> Upload</a>
+        <a href="/preview" class="nav-link"><i data-lucide="ScanSearch" style="width:16px;color:#1F5D46;"></i> Preview</a>
+        <a href="/clean" class="nav-link"><i data-lucide="BrushCleaning" style="width:16px;color:#1F5D46;"></i> Clean</a>
+        <a href="/ml" class="nav-link"><i data-lucide="BrainCircuit" style="width:16px;color:#1F5D46;"></i> ML <span class="nav-badge">Soon</span></a>
     </div>
 </nav>
 
 <!-- ── Main ── -->
 <main class="page-wrap">
     <div class="page-header animate-in">
-        <h1>📊 Visualization Studio</h1>
+        <h1><i data-lucide="ChartSpline" style="width:26px;color:#b5d7cb;background-color:rgb(78, 77, 77)"></i>  Visualization Studio</h1>
         <p>Create insightful charts from your data — no code required.</p>
     </div>
 
@@ -140,19 +140,19 @@
                     <label>Chart Type</label>
                     <div class="chart-type-grid">
                         <button type="button" class="chart-type-btn active" data-type="bar">
-                            <span class="chart-icon">📊</span>Bar
+                            <span class="chart-icon"><i data-lucide="ChartColumn" style="width:16px;color:#1F5D46;"></i> </span>Bar
                         </button>
                         <button type="button" class="chart-type-btn" data-type="line">
-                            <span class="chart-icon">📈</span>Line
+                            <span class="chart-icon"><i data-lucide="ChartLine" style="width:16px;color:#1F5D46;"></i> </span>Line
                         </button>
                         <button type="button" class="chart-type-btn" data-type="hist">
-                            <span class="chart-icon">🔢</span>Histogram
+                            <span class="chart-icon"><i data-lucide="ChartColumnBig" style="width:16px;color:#1F5D46;"></i> </span>Histogram
                         </button>
                         <button type="button" class="chart-type-btn" data-type="scatter">
-                            <span class="chart-icon">🔵</span>Scatter
+                            <span class="chart-icon"><i data-lucide="ChartScatter" style="width:16px;color:#1F5D46;"></i> </span>Scatter
                         </button>
                         <button type="button" class="chart-type-btn" data-type="pie" style="grid-column:1/-1;">
-                            <span class="chart-icon">🥧</span>Pie Chart
+                            <span class="chart-icon"><i data-lucide="ChartPie" style="width:16px;color:#1F5D46;"></i> </span>Pie Chart
                         </button>
                     </div>
                     <!-- Hidden select read by chart.js -->
@@ -194,7 +194,7 @@
             <div class="canvas-wrap">
                 <!-- Empty placeholder — fades out once chart renders -->
                 <div class="empty-chart" id="empty-chart">
-                    <span class="icon">📊</span>
+                    <span class="icon"><i data-lucide="ChartSpline" style="width:36px;color:#0480ec;"></i> </span>
                     <span>Your chart will appear here</span>
                 </div>
                 <!-- Canvas: chart.js manages display & sizing -->
@@ -226,6 +226,8 @@
 
 <!-- chart.js loaded as module AFTER the above inline script -->
 <script type="module" src="/static/js/chart.js"></script>
-
+<script>
+        lucide.createIcons();
+</script>
 </body>
 </html>
