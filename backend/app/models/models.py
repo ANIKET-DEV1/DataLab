@@ -1,3 +1,4 @@
+from typing import Optional
 import uuid
 import enum
 from datetime import datetime
@@ -55,6 +56,7 @@ class User(Base):
         server_default="52428800", 
         nullable=False
     )
+    logged_out_at:Mapped[Optional[datetime]]= mapped_column(nullable=True, default=None)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now(), nullable=False)
 
     datasets: Mapped[list["Dataset"]] = relationship("Dataset", back_populates="owner", cascade="all, delete-orphan")

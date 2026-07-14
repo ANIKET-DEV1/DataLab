@@ -95,9 +95,7 @@ def get_clean_page(request: Request,
         context={"username": user.username})
 
 @app.get("/change-password", response_class=HTMLResponse)
-def passwordreset(request: Request, 
-                token:str
-                ):
+def passwordreset(request: Request):
     return templates.TemplateResponse(
         name="password-reset.html", 
         request=request,

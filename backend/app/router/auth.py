@@ -1,8 +1,11 @@
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request,Response,status
 from typing import Annotated
+from fastapi.responses import JSONResponse
 from pydantic import EmailStr
 from ..schemas import auth as user
-from .deps import get_current_user,get_current_user_with_jti
+from .deps import get_current_user
 from ..security import jwt_handler as jwthandler
 from ..schemas.token import TokenData
 from ..database.session import get_db
@@ -50,16 +53,22 @@ def getuser(request: Request,response: Response, current_user:models.User=Depend
 #@limiter.limit("60/minute")
 async def logout(request: Request,
     response: Response,
-    token_data: Annotated[TokenData, Depends(get_current_user_with_jti)]
+    current_user:models.User = Depends(get_current_user),
+    db : AsyncSession =Depends(get_db)
 ):
-    await add_jti_to_blacklist(token_data.jti)
+    current_user.logged_out_at= datetime.utcnow()
+    
+    await db.commit()
+
+    response = JSONResponse(content={"message": "Logged out"})
     response.delete_cookie(
         key="access_token",
         httponly=True,
         secure=True,
         samesite="lax"
     )
-    return {"message": "Logout successful. Session cleared."}
+    return response
+    
 
 @auth.get("/verify-email")
 async def verify_email(request: Request,

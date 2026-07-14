@@ -120,7 +120,6 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username: usernameInput, password: passwordInput }),
-                credentials: 'same-origin'
             });
 
             const result = await response.json();

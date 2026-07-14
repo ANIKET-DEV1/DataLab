@@ -2,10 +2,8 @@
 from jose import jwt, JWTError
 from fastapi import Depends, HTTPException, Request, logger, status, Response
 import logging
-from uuid import uuid4
 import redis
 from redis.exceptions import ConnectionError, TimeoutError, RedisError
-from ..database.redis import is_jti_in_blacklist
 from ..models.models import User
 from datetime import datetime, timedelta, timezone
 from ..schemas.token import TokenData
@@ -18,10 +16,11 @@ ALGORITHM = system.algorithms
 
 
 def create_access_token(data: dict, expires_delta: timedelta = timedelta(days=7)) -> str:
+    now = datetime.now(timezone.utc)
     encoded_jwt = jwt.encode(
         {
             **data,
-            "jti": str(uuid4()),
+            'iat': int(now.timestamp()),
             "exp": datetime.now(timezone.utc) + expires_delta
         },
         key=SECRET_KEY,
@@ -29,36 +28,26 @@ def create_access_token(data: dict, expires_delta: timedelta = timedelta(days=7)
     )
     return encoded_jwt
 
-
-# This function verifies the JWT token signature and checks the Redis blacklist
 async def verify_token(token: str) -> TokenData:
-    try:
+    try:  
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str | None = payload.get("sub")
         verified:bool | None =payload.get("verified")
-        jti: str | None = payload.get("jti")
+        iat: int | None = payload.get("iat")
 
         if user_id is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid token or expired session"
             )
-
         if not verified:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Please verify Email. Check Your Mail"
             )
 
-        is_blacklisted = await is_jti_in_blacklist(jti)
-        
-        if is_blacklisted:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token or expired session"
-            )
-
-        return TokenData(user_id=user_id, jti=jti)
+        return TokenData(user_id=user_id,
+                         time=iat)
 
     except JWTError:
         raise HTTPException(
@@ -66,8 +55,6 @@ async def verify_token(token: str) -> TokenData:
             detail="Invalid token or expired session"
         )
 
-
-# Sets the access token in cookies securely
 def set_auth_cookies(response: Response, token: str) -> None:
     response.set_cookie(
         key="access_token",
