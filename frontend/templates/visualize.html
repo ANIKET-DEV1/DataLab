@@ -11,19 +11,29 @@
 
 {% block page_styles %}
 <style>
+    /* ============================================================
+       Layout — desktop is a fixed 300px control rail + fluid chart
+       panel. Below 960px the rail drops to full width above the
+       chart instead of squeezing into a narrow column, which is
+       what was collapsing awkwardly before.
+       ============================================================ */
     .vis-grid {
         display: grid;
         grid-template-columns: 300px 1fr;
         gap: 20px;
         align-items: start;
     }
-    @media (max-width: 780px) {
-        .vis-grid { grid-template-columns: 1fr; }
-    }
 
     /* ── Page heading icon ── */
-    .page-header h1 { display: flex; align-items: center; gap: 10px; }
+    .page-header h1 { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .h1-icon { width: 26px; height: 26px; color: var(--accent); flex-shrink: 0; }
+
+    /* ── Controls panel ── */
+    .vis-controls {
+        position: sticky;
+        top: 90px;
+    }
+    .vis-controls h2 { margin-bottom: 20px; }
 
     /* ── Chart type buttons ── */
     .chart-type-grid {
@@ -43,13 +53,14 @@
         border-radius: var(--radius-sm);
         color: var(--text-secondary);
         cursor: pointer;
-        transition: all var(--transition-base);
+        transition: all var(--transition-fast);
         font-size: 0.78rem;
         font-weight: 500;
         text-align: center;
         font-family: inherit;
     }
-    .chart-type-btn:hover { border-color: rgba(31,93,70,0.3); color: var(--text-primary); }
+    .chart-type-btn:hover { border-color: rgba(31,93,70,0.3); color: var(--text-primary); transform: translateY(-1px); }
+    .chart-type-btn:active { transform: scale(0.96); }
     .chart-type-btn.active {
         border-color: rgba(31,93,70,0.5);
         background: rgba(31,93,70,0.10);
@@ -59,7 +70,10 @@
        text color instead of carrying their own hard-coded hex —
        grey when idle, ledger green when active, no separate rule
        needed per state. */
-    .chart-icon, .chart-icon svg { width: 18px; height: 18px; color: inherit; }
+    .chart-icon, .chart-icon svg { width: 18px; height: 18px; color: inherit; transition: transform var(--transition-fast); }
+    .chart-type-btn:hover .chart-icon { transform: scale(1.08); }
+
+    .form-group { margin-bottom: 14px; }
 
     #error {
         display: none;
@@ -102,11 +116,45 @@
         gap: 14px;
         color: var(--text-muted);
         font-size: 0.875rem;
+        text-align: center;
+        padding: 0 20px;
         pointer-events: none;
         transition: opacity 0.3s ease;
     }
     .empty-chart.hidden-placeholder { opacity: 0; }
     .empty-chart .icon, .empty-chart .icon svg { width: 36px; height: 36px; color: inherit; opacity: 0.5; }
+
+    /* ============================================================
+       Responsive breakpoints
+       ============================================================ */
+
+    /* Tablet: rail moves above the chart, stops sticking (nothing
+       above it to stick against once it's full width), gets its
+       own card padding instead of squeezing the 300px column. */
+    @media (max-width: 960px) {
+        .vis-grid { grid-template-columns: 1fr; }
+        .vis-controls { position: static; top: auto; }
+    }
+
+    @media (max-width: 640px) {
+        .page-wrap { padding-left: 16px; padding-right: 16px; }
+        .h1-icon { width: 22px; height: 22px; }
+        .panel, .vis-controls { padding: 20px; }
+        .chart-type-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+        .chart-type-btn { padding: 10px 6px; font-size: 0.74rem; }
+        .canvas-wrap { height: 300px; margin-top: 16px; }
+        .empty-chart .icon, .empty-chart .icon svg { width: 30px; height: 30px; }
+        .empty-chart span:last-child { font-size: 0.8rem; }
+    }
+
+    @media (max-width: 400px) {
+        .panel, .vis-controls { padding: 16px; }
+        .canvas-wrap { height: 240px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .chart-type-btn, .chart-icon { transition: none !important; transform: none !important; }
+    }
 </style>
 {% endblock %}
 
@@ -118,15 +166,17 @@
         <p>Create insightful charts from your data — no code required.</p>
     </div>
 
+    <p id="error"></p>
+
     <div class="vis-grid animate-in animate-in-delay-1">
 
         <!-- ── Controls Panel ── -->
-        <div class="panel" style="position:sticky;top:90px;">
-            <h2 style="margin-bottom:20px;">Configuration</h2>
+        <div class="panel vis-controls">
+            <h2>Configuration</h2>
 
             <form id="visual-form">
                 <!-- Chart Type -->
-                <div class="form-group" style="margin-bottom:18px;">
+                <div class="form-group">
                     <label>Chart Type</label>
                     <div class="chart-type-grid">
                         <button type="button" class="chart-type-btn active" data-type="bar">
@@ -156,7 +206,7 @@
                 </div>
 
                 <!-- X Axis -->
-                <div class="form-group" style="margin-bottom:14px;">
+                <div class="form-group">
                     <label for="xAxisCol">X-Axis (or Target Column)</label>
                     <select id="xAxisCol"></select>
                 </div>
@@ -168,7 +218,7 @@
                 </div>
 
                 <!-- Error shown by chart.js -->
-                <p id="error"></p>
+                
 
                 <button type="submit" id="generateBtn" class="btn btn-primary" style="width:100%;" disabled>
                     Generate Plot
@@ -197,7 +247,7 @@
 {% endblock %}
 
 {% block page_scripts %}
-<!-- Chart type button → hidden select sync -->
+
 <script>
     document.querySelectorAll('.chart-type-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -207,12 +257,11 @@
         });
     });
 
-    // Hide placeholder once form is submitted
     document.getElementById('visual-form').addEventListener('submit', () => {
         document.getElementById('empty-chart').classList.add('hidden-placeholder');
     });
 </script>
 
-<!-- chart.js loaded as module AFTER the above inline script -->
+
 <script type="module" src="/static/js/chart.js"></script>
 {% endblock %}

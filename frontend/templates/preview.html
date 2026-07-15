@@ -74,7 +74,6 @@
 {% block page_scripts %}
 <script src="/static/js/engine.js"></script>
 <script>
-    // After engine.js loads data, hide loading & show preview-wrap
     const observer = new MutationObserver(() => {
         const hasContent = document.getElementById('previewTableContainer').innerHTML.trim();
         if (hasContent) {
@@ -85,7 +84,7 @@
     });
     observer.observe(document.getElementById('previewTableContainer'), { childList: true });
 
-    // Also handle if error shown (engine.js sets error element)
+    
     const errEl = document.getElementById('error');
     const errorObs = new MutationObserver(() => {
         if (errEl.style.display === 'block') {

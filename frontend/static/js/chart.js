@@ -141,7 +141,7 @@ async function generateVisualChart(data) {
             datasets: [{
                 label: `${xColumnName} vs ${yColumnName}`,
                 data: data.scatterData,
-                backgroundColor: '#007bff',
+                backgroundColor: '#00d2c6',
                 pointRadius: 5,
             }]
         };

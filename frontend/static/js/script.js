@@ -114,11 +114,13 @@ async function loadDatasets() {
           <span class="meta-value">${new Date(dataset.last_accessed_at).toLocaleDateString()}</span>
         </div>
         <div class="dataset-card-actions">
-          <button class="btn btn-primary btn-sm" style="flex:1;" onClick="selectbybutton('${dataset.id}','${escapeHtml(dataset.original_name)}')">
-            ✓ Select
-          </button>
-          <button class="btn btn-danger btn-sm" onClick="del('${dataset.id}')"><i data-lucide="Trash2" style="width:16px;"></i></button>
+        <button class="btn"id="downloadBtn" onClick="downloadLargeFile('${dataset.id}')"><i data-lucide="download" style="width:16px;"></i></button>
+        <button class="btn btn-danger btn-sm" onClick="del('${dataset.id}')"><i data-lucide="Trash2" style="width:16px;"></i></button>
         </div>
+        <button class="btn btn-primary btn-sm" style="flex:1;" onClick="selectbybutton('${dataset.id}','${escapeHtml(dataset.original_name)}')">
+          ✓ Select
+        </button>
+
       </div>
     `).join('');
     if (window.lucide) {
@@ -199,4 +201,43 @@ function selectbybutton(newId, newName) {
     if (info)  info.style.display = 'flex';
 
     console.log(`Active dataset set: ${newName} (id: ${newId})`);
+}
+async function downloadLargeFile(datasetId) {
+    const button = document.getElementById('downloadBtn');
+    button.disabled = true; 
+
+    try {
+        const response = await fetch(`/datasets/download?dataset_id=${datasetId}`);
+        
+        if (!response.ok) throw new Error('Download failed');
+
+      
+        const reader = response.body.getReader();
+        const chunks = [];
+        
+        while (true) {
+            const { done, value } = await reader.read();
+            if (done) break; 
+            
+            chunks.push(value);
+        }
+
+        
+        const blob = new Blob(chunks, { type: 'application/octet-stream' });
+        
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = downloadUrl;
+        a.download = "dataset.csv"; 
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(downloadUrl);
+
+    } catch (error) {
+        console.error('Download execution error:', error);
+    } finally {
+        button.disabled = false; 
+    }
 }

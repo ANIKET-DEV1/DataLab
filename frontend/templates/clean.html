@@ -7,419 +7,670 @@
 
 {% block page_styles %}
 <style>
-    /* ── Sidebar Layout ── */
-    .clean-layout {
-        display: grid;
-        grid-template-columns: 220px 1fr;
-        gap: 20px;
-        align-items: start;
-    }
-    @media (max-width: 720px) {
-        .clean-layout { grid-template-columns: 1fr; }
-        .clean-sidebar { display: flex; flex-wrap: wrap; gap: 6px; }
-        .clean-sidebar .sidebar-item { flex: 1; text-align: center; }
-    }
+    /* ============================================================
+       Clean Workspace — themed on the shared Ledger tokens
+       (--bg-card, --bg-surface, --border, --accent, --accent-glow,
+       --text-primary/secondary/muted, --radius-*, --transition-*,
+       --danger/--danger-glow, --success/--success-glow,
+       --warning/--warning-glow). No hard-coded teal/hex left over
+       from the old build — everything derives from the same
+       tokens the rest of the site uses, so it reflows with a
+       theme swap for free.
+       ============================================================ */
 
-    /* ── Sidebar ── */
-    .clean-sidebar {
-        position: sticky;
-        top: 90px;
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-    .sidebar-item {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        padding: 11px 14px;
-        border-radius: var(--radius-sm);
-        border: 1px solid transparent;
-        color: var(--text-secondary);
-        font-size: 0.875rem;
-        font-weight: 500;
-        cursor: pointer;
-        text-decoration: none;
-        transition: all var(--transition-base);
-        background: none;
-        width: 100%;
-        text-align: left;
-        font-family: inherit;
-    }
-    .sidebar-item:hover {
-        background: rgba(255,255,255,0.05);
-        color: var(--text-primary);
-        border-color: var(--border);
-    }
-    .sidebar-item.active {
-        background: rgba(99,137,255,0.12);
-        color: var(--accent);
-        border-color: rgba(99,137,255,0.3);
-    }
-    .sidebar-item .icon { font-size: 1.1rem; flex-shrink: 0; }
-    .sidebar-sep {
-        height: 1px;
-        background: var(--border);
-        margin: 6px 0;
-    }
-
-    /* ── Panel Header ── */
-    .panel-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 22px;
-        padding-bottom: 16px;
+    .tab-bar-wrap {
+        background: var(--bg-surface);
         border-bottom: 1px solid var(--border);
-    }
-    .panel-header h2 { margin: 0; font-size: 1.15rem; }
-
-    /* ── Field Group ── */
-    .field-stack { display: flex; flex-direction: column; gap: 20px; }
-    .field-row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
-
-    /* ── Null counter chip ── */
-    .null-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 3px 10px;
-        background: rgba(255, 91, 122, 0.1);
-        border: 1px solid rgba(255, 91, 122, 0.25);
-        border-radius: 99px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--danger);
-        font-family: 'JetBrains Mono', monospace;
-    }
-    .clean-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        padding: 3px 10px;
-        background: rgba(0, 214, 143, 0.1);
-        border: 1px solid rgba(0, 214, 143, 0.2);
-        border-radius: 99px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        color: var(--success);
+        position: sticky;
+        top: 0;
+        z-index: 5;
     }
 
-    /* ── Messages ── */
-    .msg-area { min-height: 0; }
-    .error-msg, .success-msg { display: none; }
-
-    /* ── Upcoming Feature ── */
-    .upcoming-orb {
-        position: relative;
-        width: 90px; height: 90px;
+    .tab-bar {
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+        padding: 0 12px;
+        gap: 0;
+        max-width: 900px;
         margin: 0 auto;
     }
-    .upcoming-orb::before {
-        content: '';
-        position: absolute;
-        inset: -8px;
-        border-radius: 50%;
-        background: conic-gradient(from 0deg, var(--warning), var(--accent-2), var(--warning));
-        animation: spin 4s linear infinite;
-        opacity: 0.3;
+
+    .tab-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 14px 16px;
+        background: none;
+        border: none;
+        border-bottom: 2px solid transparent;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        font-family: inherit;
+        color: var(--text-muted);
+        white-space: nowrap;
+        transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+        border-radius: var(--radius-sm) var(--radius-sm) 0 0;
     }
-    .upcoming-orb-inner {
+    .tab-btn i { font-size: 15px; }
+    .tab-btn:hover { color: var(--text-primary); background: rgba(31,93,70,0.05); }
+    .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+    .tag-soon {
+        font-size: 10px;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 99px;
+        background: var(--warning-glow);
+        color: var(--warning);
+        border: 1px solid rgba(217,142,43,0.4);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    .form-area {
+        padding: 28px 20px 64px;
+        max-width: 620px;
+        margin: 0 auto;
         position: relative;
-        width: 90px; height: 90px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, rgba(255,181,71,0.15), rgba(255,107,0,0.1));
-        border: 1px solid rgba(255,181,71,0.3);
+        z-index: 1;
+    }
+
+    .clean-panel {
+        display: none;
+        border-radius: var(--radius-lg);
+        padding: 12px;
+        border: 1px solid var(--border);
+        background: rgba(251,250,246,0.7);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        box-shadow: var(--shadow-card);
+        flex-direction: column;
+        gap: 20px;
+    }
+    .clean-panel.active {
+        display: flex;
+        animation: fadeInUp 0.4s ease both;
+    }
+
+    .panel-desc {
+        font-size: 13px;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin: 0;
+    }
+
+    /* ── Overview grid ── */
+    .overview-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 12px;
+    }
+    .overview-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 16px 14px;
+        cursor: pointer;
+        transition: border-color var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+        text-decoration: none;
+        opacity: 0;
+        animation: itemRise 0.45s ease forwards;
+    }
+    .overview-grid .overview-card:nth-child(1) { animation-delay: 0.04s; }
+    .overview-grid .overview-card:nth-child(2) { animation-delay: 0.09s; }
+    .overview-grid .overview-card:nth-child(3) { animation-delay: 0.14s; }
+    .overview-grid .overview-card:nth-child(4) { animation-delay: 0.19s; }
+    .overview-card:hover {
+        border-color: rgba(31,93,70,0.3);
+        box-shadow: 0 0 0 3px var(--accent-glow);
+        transform: translateY(-2px);
+    }
+    .overview-card.dim { opacity: 0.6; cursor: default; }
+    .overview-card.dim:hover { transform: none; box-shadow: none; border-color: var(--border); }
+    .overview-card-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: var(--radius-sm);
+        background: var(--accent-glow);
+        border: 1px solid rgba(31,93,70,0.25);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 2.4rem;
+        margin-bottom: 10px;
+        transition: transform var(--transition-fast);
+    }
+    .overview-card:hover .overview-card-icon { transform: scale(1.06); }
+    .overview-card-icon i { color: var(--accent); }
+    .overview-card-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 3px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    .overview-card-sub {
+        font-size: 11.5px;
+        color: var(--text-muted);
+        line-height: 1.4;
+    }
+
+    /* ── Warn box ── */
+    .warn-box {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        background: var(--danger-glow);
+        border: 1px solid rgba(193,68,59,0.3);
+        border-radius: var(--radius-sm);
+        padding: 11px 14px;
+        font-size: 13px;
+        color: var(--danger);
+    }
+    .warn-box i { font-size: 15px; flex-shrink: 0; margin-top: 1px; }
+    .warn-box strong { color: var(--text-primary); }
+
+    /* ── Form surface ── */
+    .form-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-md);
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .field-block { display: flex; flex-direction: column; gap: 6px; }
+    .field-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-family: 'IBM Plex Mono', monospace;
+    }
+
+    /* ── Pills ── */
+    .pills { display: flex; flex-wrap: wrap; gap: 7px; }
+    .pill {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 8px 14px;
+        border-radius: 99px;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+        background: var(--bg-input);
+        font-family: inherit;
+        transition: all var(--transition-fast);
+        user-select: none;
+    }
+    .pill input[type="radio"] { display: none; }
+    .pill i { font-size: 13px; }
+    .pill:hover { border-color: rgba(31,93,70,0.3); color: var(--text-primary); }
+    .pill.on { background: var(--accent-glow); color: var(--accent); border-color: rgba(31,93,70,0.4); }
+    .pill:active { transform: scale(0.96); }
+
+    /* ── Sub box ── */
+    .sub-box {
+        background: var(--bg-surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        animation: itemRise 0.3s ease both;
+    }
+
+    /* ── Hint ── */
+    .hint {
+        font-size: 11px;
+        color: var(--text-muted);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+    }
+
+    /* ── Apply button ── */
+    .apply-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 11px 22px;
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        border-radius: var(--radius-sm);
+        font-size: 14px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
+        width: 100%;
+        justify-content: center;
+    }
+    .apply-btn:hover { background: #17493A; box-shadow: 0 4px 16px var(--accent-glow); }
+    .apply-btn:active { transform: scale(0.97); }
+
+    @media (min-width: 480px) {
+        .apply-btn { width: auto; justify-content: flex-start; }
+    }
+
+    /* ── Messages ── */
+    .msg-area { display: flex; flex-direction: column; gap: 6px; }
+    .error-msg, .success-msg {
+        display: none;
+        font-size: 13px;
+        padding: 10px 13px;
+        border-radius: var(--radius-sm);
+        animation: itemRise 0.25s ease both;
+    }
+    .error-msg { background: var(--danger-glow); color: var(--danger); border: 1px solid rgba(193,68,59,0.3); }
+    .success-msg { background: var(--success-glow); color: var(--success); border: 1px solid rgba(31,93,70,0.3); }
+
+    /* ── Coming soon ── */
+    .coming-wrap {
+        text-align: center;
+        padding: 36px 16px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+    }
+    .coming-icon {
+        width: 68px; height: 68px;
+        border-radius: 50%;
+        background: var(--accent-glow);
+        border: 1px solid rgba(31,93,70,0.25);
+        display: flex; align-items: center; justify-content: center;
+        animation: float 3s ease-in-out infinite;
+    }
+    .coming-icon i { color: var(--accent); }
+    .coming-wrap h3 { font-size: 15px; font-weight: 600; color: var(--text-primary); }
+    .coming-wrap p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; max-width: 320px; }
+    .coming-chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+    .coming-chip {
+        font-size: 12px; padding: 4px 12px; border-radius: 99px;
+        background: var(--accent-glow); color: var(--accent); border: 1px solid rgba(31,93,70,0.25);
+        font-family: 'IBM Plex Mono', monospace;
+    }
+
+    select option[data-null] { color: var(--danger); }
+
+    /* ============================================================
+       Motion — reuses the shared keyframes (fadeInUp / itemRise /
+       float) already defined by the Ledger theme file. Declared
+       again here, scoped narrowly, only so this page still
+       animates correctly if it's ever loaded standalone.
+       ============================================================ */
+    @keyframes itemRise { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp {
+        0%   { opacity: 0; transform: translateY(18px) scale(0.98); filter: blur(4px); }
+        100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50%      { transform: translateY(-6px); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .clean-panel.active, .overview-card, .sub-box, .error-msg, .success-msg, .coming-icon {
+            animation: none !important;
+            opacity: 1 !important;
+            filter: none !important;
+            transform: none !important;
+        }
+    }
+
+    /* ============================================================
+       Responsive breakpoints
+       ============================================================ */
+    @media (max-width: 768px) {
+        .form-area { padding: 22px 16px 60px; }
+        .tab-btn { padding: 12px 13px; font-size: 12.5px; }
+        .overview-grid { grid-template-columns: repeat(2, 1fr); }
+        .form-card { padding: 18px; }
+    }
+
+    @media (max-width: 480px) {
+        .form-area { padding: 16px 12px 56px; }
+        .tab-bar { padding: 0 4px; }
+        .tab-btn { padding: 10px 10px; font-size: 12px; gap: 4px; }
+        .tab-btn span.tag-soon { display: block; margin-top: 2px; }
+        .overview-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .overview-card { padding: 13px 11px; }
+        .form-card { padding: 15px; gap: 15px; border-radius: var(--radius-sm); }
+        .clean-panel { padding: 8px; }
+        .pills { gap: 6px; }
+        .pill { padding: 7px 12px; font-size: 12.5px; }
+        .coming-wrap { padding: 26px 10px; }
+    }
+
+    @media (max-width: 340px) {
+        .overview-grid { grid-template-columns: 1fr; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<!-- ── Main ── -->
-<main class="page-wrap">
-    <div class="page-header animate-in">
-        <h1><i data-lucide="BrushCleaning" style="width:26px;color:#1F5D46;"></i>  Clean Workspace</h1>
-        <p>Handle missing values, rename columns and encode categorical data.</p>
-        <p id="global-error" class="error-msg" style="margin-top:10px;"></p>
+
+<!-- Tab bar — wraps naturally, never overflows -->
+<div class="tab-bar-wrap">
+    <div class="tab-bar">
+        <button class="tab-btn active" data-view="overview">
+            <i data-lucide="LayoutGrid" style="width:15px;height:15px;color:var(--accent)"></i>
+            Overview
+        </button>
+        <button class="tab-btn" data-view="col-clean">
+            <i data-lucide="Columns3" style="width:15px;height:15px;color:var(--accent)"></i>
+            Column clean
+        </button>
+        <button class="tab-btn" data-view="overall">
+            <i data-lucide="FilePenLine" style="width:15px;height:15px;color:var(--accent)"></i>
+            Overall clean
+        </button>
+        <button class="tab-btn" data-view="rename">
+            <i data-lucide="FilePen" style="width:15px;height:15px;color:var(--accent)"></i>
+            Rename
+        </button>
+        <button class="tab-btn" data-view="encoding">
+            <i data-lucide="SquareDashedKanban" style="width:15px;height:15px;color:var(--accent)"></i>
+            Encoding
+            <span class="tag-soon">Soon</span>
+        </button>
+    </div>
+</div>
+
+<!-- global error (no dataset selected) -->
+<p id="global-error" class="error-msg" style="margin:12px 20px;display:none"></p>
+
+<div class="form-area">
+
+    <!-- ── Overview ── -->
+    <div class="clean-panel active" id="panel-overview">
+
+        <p class="panel-desc">Choose a workflow below to begin cleaning your dataset. All operations update your file directly.</p>
+
+        <div class="warn-box">
+            <i data-lucide="TriangleAlert" style="width:15px;height:15px;flex-shrink:0;margin-top:1px"></i>
+            <span>All operations are <strong>irreversible</strong>. Back up your data before proceeding.</span>
+        </div>
+
+        <div class="overview-grid">
+            <div class="overview-card" onclick="showView('col-clean')">
+                <div class="overview-card-icon">
+                    <i data-lucide="Columns3" style="width:18px;height:18px"></i>
+                </div>
+                <div class="overview-card-title">Column clean</div>
+                <div class="overview-card-sub">Fill or drop NAs per column</div>
+            </div>
+            <div class="overview-card" onclick="showView('overall')">
+                <div class="overview-card-icon">
+                    <i data-lucide="FilePenLine" style="width:18px;height:18px"></i>
+                </div>
+                <div class="overview-card-title">Overall clean</div>
+                <div class="overview-card-sub">Global NA drop or fill</div>
+            </div>
+            <div class="overview-card" onclick="showView('rename')">
+                <div class="overview-card-icon">
+                    <i data-lucide="FilePen" style="width:18px;height:18px"></i>
+                </div>
+                <div class="overview-card-title">Rename</div>
+                <div class="overview-card-sub">Rename any column header</div>
+            </div>
+            <div class="overview-card dim">
+                <div class="overview-card-icon">
+                    <i data-lucide="SquareDashedKanban" style="width:18px;height:18px"></i>
+                </div>
+                <div class="overview-card-title">
+                    Encoding <span class="tag-soon">Soon</span>
+                </div>
+                <div class="overview-card-sub">One-hot and label encoding</div>
+            </div>
+        </div>
+
     </div>
 
-    <div class="clean-layout animate-in animate-in-delay-1">
+    <!-- ── Column clean ── -->
+    <div class="clean-panel" id="panel-col-clean">
 
-        <!-- ── Sidebar ── -->
-        <aside class="clean-sidebar">
-            <button class="sidebar-item active" data-view="home" id="nav-home">
-                <span class="icon"><i data-lucide="TableOfContents" style="width:16px;color:#1F5D46;"></i> </span> Overview
-            </button>
-            <div class="sidebar-sep"></div>
-            <button class="sidebar-item" data-view="column-clean" id="nav-column-clean">
-                <span class="icon"><i data-lucide="Columns3" style="width:16px;color:#1F5D46;"></i> </span> Column Clean
-            </button>
-            <button class="sidebar-item" data-view="overall-clean" id="nav-overall-clean">
-                <span class="icon"><i data-lucide="FilePenLine" style="width:16px;color:#1F5D46;"></i> </span> Overall Clean
-            </button>
-            <div class="sidebar-sep"></div>
-            <button class="sidebar-item" data-view="rename" id="nav-rename">
-                <span class="icon">
-                <i data-lucide="FilePen" style="width:16px;color:#1F5D46;"></i>
-             </span> Rename Column
-            </button>
-            <button class="sidebar-item" data-view="encoding" id="nav-encoding">
-                <span class="icon">
-                    <i data-lucide="SquareDashedKanban" style="width:16px;color:#1F5D46;"></i> 
-                </span> Encoding
-                <span class="tag tag-upcoming" style="margin-left:auto;font-size:0.6rem;">Soon</span>
-            </button>
-        </aside>
+        <p class="panel-desc">Fill or drop missing values in a specific column.</p>
 
-        <!-- ── Content Panels ── -->
-        <div id="panels">
+        <div class="form-card">
 
-            <!-- ─ Home ─ -->
-            <section id="home" class="panel animate-in">
-                <div class="panel-header">
-                    <h2>Welcome to Clean Workspace</h2>
+            <div class="field-block">
+                <label class="field-label" for="column-select">Column</label>
+                <select id="column-select" class="form-select"></select>
+                <p class="hint">
+                    <i data-lucide="ShieldAlert" style="width:13px;height:13px;color:var(--danger)"></i>
+                    Columns with missing values are marked in red
+                </p>
+            </div>
+
+            <div class="field-block">
+                <span class="field-label">Operation</span>
+                <div class="pills" id="rg-clean">
+                    <label class="pill on">
+                        <input type="radio" name="clean-op" value="fill-na" checked>
+                        <i data-lucide="PaintBucket" style="width:13px;height:13px"></i> Fill NA
+                    </label>
+                    <label class="pill">
+                        <input type="radio" name="clean-op" value="drop-na">
+                        <i data-lucide="ArrowDownToLine" style="width:13px;height:13px"></i> Drop NA (row)
+                    </label>
                 </div>
-                <p style="margin-bottom:20px;">Choose a workflow from the sidebar to begin cleaning your dataset. Operations are permanent and saved directly to your file.</p>
+            </div>
 
-                <div class="msg-warn" style="display:flex;">
-                    <span>
-                        <i data-lucide="TriangleAlert" style="width:16px;color:#eb2405;"></i> 
-                    </span>
-                    <span>All cleaning operations are <strong>irreversible</strong>. Make sure to back up your data before proceeding.</span>
+            <div class="field-block" id="fill-options">
+                <span class="field-label">Fill strategy</span>
+                <div class="pills" id="rg-fill">
+                    <label class="pill on">
+                        <input type="radio" name="fill-type" value="custom" checked>
+                        <i data-lucide="PencilLine" style="width:13px;height:13px"></i> Custom
+                    </label>
+                    <label class="pill">
+                        <input type="radio" name="fill-type" value="mean">
+                        <i data-lucide="Sigma" style="width:13px;height:13px"></i> Mean
+                    </label>
+                    <label class="pill">
+                        <input type="radio" name="fill-type" value="mode">
+                        <i data-lucide="BarChart2" style="width:13px;height:13px"></i> Mode
+                    </label>
                 </div>
-
-                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;margin-top:24px;">
-                    <div class="card" style="padding:18px;cursor:pointer;" onclick="showView('column-clean')">
-                        <div style="font-size:1.6rem;margin-bottom:8px;">
-                            <i data-lucide="Columns3" style="width:16px;color:#1F5D46;"></i> 
-                        </div>
-                        <div style="font-weight:600;font-size:0.9rem;color:var(--text-primary);">Column Clean</div>
-                        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Fill or drop NAs per column</div>
-                    </div>
-                    <div class="card" style="padding:18px;cursor:pointer;" onclick="showView('overall-clean')">
-                        <div style="font-size:1.6rem;margin-bottom:8px;">
-                            <i data-lucide="FilePenLine" style="width:16px;color:#1F5D46;"></i> 
-                        </div>
-                        <div style="font-weight:600;font-size:0.9rem;color:var(--text-primary);">Overall Clean</div>
-                        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Global NA drop or fill</div>
-                    </div>
-                    <div class="card" style="padding:18px;cursor:pointer;" onclick="showView('rename')">
-                        <div style="font-size:1.6rem;margin-bottom:8px;">
-                            <i data-lucide="FilePen" style="width:16px;color:#1F5D46;"></i> 
-                        </div>
-                        <div style="font-weight:600;font-size:0.9rem;color:var(--text-primary);">Rename Column</div>
-                        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">Rename any column header</div>
-                    </div>
-                    <div class="card" style="padding:18px;cursor:pointer;opacity:0.7;" onclick="showView('encoding')">
-                        <div style="font-size:1.6rem;margin-bottom:8px;">
-                            <i data-lucide="SquareDashedKanban" style="width:16px;color:#1F5D46;"></i> 
-                        </div>
-                        <div style="font-weight:600;font-size:0.9rem;color:var(--text-primary);">Encoding <span class="tag tag-upcoming" style="vertical-align:middle;">Soon</span></div>
-                        <div style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;">One-hot &amp; label encoding</div>
-                    </div>
+                <div class="sub-box" id="custom-box">
+                    <label class="field-label" for="replace-value">Replacement value</label>
+                    <input type="text" id="replace-value" class="form-input" placeholder="e.g. 0, unknown, N/A">
                 </div>
-            </section>
+            </div>
 
-            <!-- ─ Column-Wise Clean ─ -->
-            <section id="column-clean" class="panel hidden">
-                <div class="panel-header">
-                        <i data-lucide="Columns3" style="width:26px;color:#1F5D46;"></i><h2>  Column-Wise Clean</h2>
+            <div>
+                <button type="button" class="apply-btn" id="column-clean-btn">
+                    <i data-lucide="Check" style="width:16px;height:16px"></i> Apply
+                </button>
+            </div>
+
+        </div>
+
+        <div class="msg-area">
+            <p id="column-clean-error" class="error-msg"></p>
+            <p id="column-clean-success" class="success-msg"></p>
+        </div>
+
+    </div>
+
+    <!-- ── Overall clean ── -->
+    <div class="clean-panel" id="panel-overall">
+
+        <p class="panel-desc">Drop or fill all missing values across the entire dataset at once.</p>
+
+        <div class="form-card">
+
+            <div class="field-block">
+                <span class="field-label">Scope</span>
+                <div class="pills" id="rg-scope">
+                    <label class="pill on">
+                        <input type="radio" name="scope" value="drop-na" checked>
+                        <i data-lucide="ArrowDownToLine" style="width:13px;height:13px"></i> Drop nulls
+                    </label>
+                    <label class="pill">
+                        <input type="radio" name="scope" value="fill-na">
+                        <i data-lucide="PaintBucket" style="width:13px;height:13px"></i> Fill nulls
+                    </label>
                 </div>
-                <div class="field-stack">
+            </div>
 
-                    <!-- Column select -->
-                    <div class="form-group">
-                        <label for="column-select">Select Column</label>
-                        <select id="column-select"></select>
-                        <p style="font-size:0.78rem;color:var(--text-muted);margin-top:4px;display:flex;">
-                            <i data-lucide="ShieldAlert" style="width:16px;color:#ec2a08;"></i> columns highlighted red have missing values.
-                        </p>
-                    </div>
-
-                    <!-- Clean type -->
-                    <div class="form-group">
-                        <label>Clean Operation</label>
-                        <div class="radio-group">
-                            <div class="radio-option">
-                                <input type="radio" name="clean-type" id="fill-na" value="fill-na">
-                                <label for="fill-na"><i data-lucide="PaintBucket" style="width:16px;color:#1F5D46;"></i>  Fill NA</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" name="clean-type" id="drop-na-row-wise" value="drop-na">
-                                <label for="drop-na-row-wise"><i data-lucide="WavesArrowDown" style="width:16px;color:#1F5D46;"></i> Drop NA (Row)</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fill NA sub-options -->
-                    <div id="for-fill-na" class="field-stack hidden">
-                        <div class="form-group">
-                            <label>Fill Strategy</label>
-                            <div class="radio-group">
-                                <div class="radio-option">
-                                    <input type="radio" name="fill-type" value="custom" id="fill-custom" checked>
-                                    <label for="fill-custom"><i data-lucide="PencilLine" style="width:16px;color:#1F5D46;"></i>  Custom</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" name="fill-type" value="mean" id="fill-mean">
-                                    <label for="fill-mean"><i data-lucide="Dot" style="width:16px;color:#1F5D46;"></i>  Mean</label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" name="fill-type" value="mode" id="fill-mode">
-                                    <label for="fill-mode"><i data-lucide="ChevronsLeftRightEllipsis" style="width:16px;color:#1F5D46;"></i>  Mode</label>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="form-group" id="custom-value-field">
-                            <label for="replace-value">Replacement Value</label>
-                            <input type="text" id="replace-value" placeholder="Enter replacement value…">
-                        </div>
-                    </div>
-
-                    <div>
-                        <button type="button" class="btn btn-primary" id="column-clean-btn">Apply Changes</button>
-                    </div>
-                    <div class="msg-area">
-                        <p id="column-clean-error" class="error-msg msg-error"></p>
-                        <p id="column-clean-success" class="success-msg msg-success"></p>
-                    </div>
+            <div class="field-block" id="drop-axis-wrap">
+                <span class="field-label">Drop axis</span>
+                <div class="pills" id="rg-axis">
+                    <label class="pill on">
+                        <input type="radio" name="axis" value="row" checked>
+                        <i data-lucide="ArrowRight" style="width:13px;height:13px"></i> Row-wise
+                    </label>
+                    <label class="pill">
+                        <input type="radio" name="axis" value="column">
+                        <i data-lucide="ArrowDown" style="width:13px;height:13px"></i> Column-wise
+                    </label>
                 </div>
-            </section>
+            </div>
 
-            <!-- ─ Overall Clean ─ -->
-            <section id="overall-clean" class="panel hidden">
-                <div class="panel-header">
-                    <h2><i data-lucide="FilePenLine" style="width:16px;color:#1F5D46;"></i>  Overall Clean</h2>
+            <div class="field-block" id="fill-val-wrap" style="display:none">
+                <label class="field-label" for="global-fill-na">Fill value</label>
+                <input type="text" id="global-fill-na" class="form-input"
+                       placeholder="Value to fill all missing cells">
+            </div>
+
+            <div>
+                <button type="button" class="apply-btn" id="overall-clean-btn">
+                    <i data-lucide="Check" style="width:16px;height:16px"></i> Apply
+                </button>
+            </div>
+
+        </div>
+
+        <div class="msg-area">
+            <p id="overall-clean-error" class="error-msg"></p>
+            <p id="overall-clean-success" class="success-msg"></p>
+        </div>
+
+    </div>
+
+    <!-- ── Rename ── -->
+    <div class="clean-panel" id="panel-rename">
+
+        <p class="panel-desc">Rename any column header in your dataset.</p>
+
+        <div class="form-card">
+
+            <div class="field-block">
+                <label class="field-label" for="rename-column-select">Current column</label>
+                <select id="rename-column-select" class="form-select"></select>
+            </div>
+
+            <div class="field-block">
+                <label class="field-label" for="new-column-name">New name</label>
+                <input type="text" id="new-column-name" class="form-input"
+                       placeholder="Enter the new column name">
+            </div>
+
+            <div>
+                <button type="button" class="apply-btn" id="rename-btn">
+                    <i data-lucide="Check" style="width:16px;height:16px"></i> Rename
+                </button>
+            </div>
+
+        </div>
+
+        <div class="msg-area">
+            <p id="rename-error" class="error-msg"></p>
+            <p id="rename-success" class="success-msg"></p>
+        </div>
+
+    </div>
+
+    <!-- ── Encoding — coming soon ── -->
+    <div class="clean-panel" id="panel-encoding">
+        <div class="form-card">
+            <div class="coming-wrap">
+                <div class="coming-icon">
+                    <i data-lucide="SquareDashedKanban" style="width:28px;height:28px"></i>
                 </div>
-                <div class="field-stack">
-
-                    <div class="form-group">
-                        <label>Scope</label>
-                        <div class="radio-group">
-                            <div class="radio-option">
-                                <input type="radio" name="scope" value="drop-na" id="scope-drop">
-                                <label for="scope-drop"><i data-lucide="WavesArrowDown" style="width:16px;color:#1F5D46;"></i>  Drop Null Rows/Cols</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" name="scope" value="fill-na" id="scope-fill">
-                                <label for="scope-fill"><i data-lucide="PencilLine" style="width:16px;color:#1F5D46;"></i>  Global Fill Null</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Drop NA sub-options -->
-                    <div class="form-group hidden" id="drop-na-overall">
-                        <label>Drop Axis</label>
-                        <div class="radio-group">
-                            <div class="radio-option">
-                                <input type="radio" name="drop-na-scope" value="row" id="drop-row" checked>
-                                <label for="drop-row"><i data-lucide="ArrowRightFromLine" style="width:16px;color:#1F5D46;"></i> Row-Wise</label>
-                            </div>
-                            <div class="radio-option">
-                                <input type="radio" name="drop-na-scope" value="column" id="drop-col">
-                                <label for="drop-col"><i data-lucide="ArrowDownFromLine" style="width:16px;color:#1F5D46;"></i> Column-Wise</label>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Fill NA sub-options -->
-                    <div class="form-group hidden" id="fill-na-overall">
-                        <label for="global-fill-na">Fill Value (for all missing cells)</label>
-                        <input type="text" id="global-fill-na" placeholder="Enter a value to fill all NAs…">
-                    </div>
-
-                    <div>
-                        <button type="button" class="btn btn-primary" id="overall-clean-btn">Apply Changes</button>
-                    </div>
-                    <div class="msg-area">
-                        <p id="overall-clean-error" class="error-msg msg-error"></p>
-                        <p id="overall-clean-success" class="success-msg msg-success"></p>
-                    </div>
+                <h3>Under active development</h3>
+                <p>One-hot and label encoding for categorical columns is coming soon. It will let you prepare text columns for machine learning automatically.</p>
+                <div class="coming-chips">
+                    <span class="coming-chip">One-hot encoding</span>
+                    <span class="coming-chip">Label encoding</span>
+                    <span class="coming-chip">Ordinal encoding</span>
                 </div>
-            </section>
+            </div>
+        </div>
+    </div>
 
-            <!-- ─ Encoding — Upcoming Feature ─ -->
-            <section id="encoding" class="panel hidden">
-                <div class="panel-header">
-                    <i data-lucide="SquareDashedKanban" style="width:26px;color:#1F5D46;">Encoding</i> 
-                    <span class="tag tag-upcoming"><i data-lucide="Hourglass" style="width:16px;color:#1F5D46;"></i> Coming Soon</span>
-                </div>
+</div>
 
-                <div class="upcoming-feature">
-                    <div class="upcoming-orb">
-                        <div class="upcoming-orb-inner">
-                            <i data-lucide="SquareDashedKanban" style="width:36px;color:#12d8ee;"></i>
-                        </div>
-                    </div>
-                    <h3>Encoding — Upcoming Feature</h3>
-                    <p>One-Hot Encoding and Label Encoding support is currently under active development. This feature will let you automatically transform categorical columns for machine learning pipelines.</p>
+<!-- keep for clean.js compatibility -->
+<div id="show_null" style="display:none"></div>
 
-                    <div class="upcoming-timeline">
-                        <span>🚧</span>
-                        <span>Under active development — stay tuned!</span>
-                    </div>
-
-                    <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:8px;">
-                        <div class="info-chip">🔢 One-Hot Encoding</div>
-                        <div class="info-chip">🏷️ Label Encoding</div>
-                        <div class="info-chip">🔄 Ordinal Encoding</div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- ─ Rename ─ -->
-            <section id="rename" class="panel hidden">
-                <div class="panel-header">
-<i data-lucide="FilePen" style="width:26px;color:#1F5D46;"></i>                    <h2> Rename Column</h2>
-                </div>
-                <div class="field-stack">
-                    <div class="form-group">
-                        <label for="rename-column-select">Current Column Name</label>
-                        <select id="rename-column-select"></select>
-                    </div>
-                    <div class="form-group">
-                        <label for="new-column-name">New Column Name</label>
-                        <input type="text" id="new-column-name" placeholder="Enter the new name…">
-                    </div>
-                    <div>
-                        <button type="button" class="btn btn-primary" id="rename-btn">Rename Column</button>
-                    </div>
-                    <div class="msg-area">
-                        <p id="rename-error" class="error-msg msg-error"></p>
-                        <p id="rename-success" class="success-msg msg-success"></p>
-                    </div>
-                </div>
-            </section>
-
-        </div><!-- /panels -->
-    </div><!-- /clean-layout -->
-
-    <!-- Null info (kept for clean.js compatibility) -->
-    <div id="show_null" style="display:none;"></div>
-</main>
 {% endblock %}
 
 {% block page_scripts %}
 <script>
-    // ── View switcher (mirrors clean.js showView but usable from sidebar buttons too) ──
-    function showView(viewId) {
-        document.querySelectorAll('#panels section').forEach(s => s.classList.toggle('hidden', s.id !== viewId));
-        document.querySelectorAll('.sidebar-item').forEach(b => b.classList.toggle('active', b.dataset.view === viewId));
+    function showView(view) {
+        document.querySelectorAll('.clean-panel').forEach(p => p.classList.remove('active'));
+        const target = document.getElementById('panel-' + view);
+        if (target) target.classList.add('active');
+        document.querySelectorAll('.tab-btn').forEach(b =>
+            b.classList.toggle('active', b.dataset.view === view)
+        );
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // Sidebar click
-    document.querySelectorAll('.sidebar-item[data-view]').forEach(btn => {
-        btn.addEventListener('click', e => { e.preventDefault(); showView(btn.dataset.view); });
+    document.querySelectorAll('.tab-btn[data-view]').forEach(btn =>
+        btn.addEventListener('click', () => showView(btn.dataset.view))
+    );
+
+    function wireGroup(groupId, onChange) {
+        const grp = document.getElementById(groupId);
+        if (!grp) return;
+        grp.querySelectorAll('.pill').forEach(pill => {
+            pill.addEventListener('click', () => {
+                grp.querySelectorAll('.pill').forEach(p => p.classList.remove('on'));
+                pill.classList.add('on');
+                pill.querySelector('input').checked = true;
+                if (onChange) onChange(pill.querySelector('input').value);
+            });
+        });
+    }
+
+    wireGroup('rg-clean', val => {
+        document.getElementById('fill-options').style.display =
+            val === 'fill-na' ? 'flex' : 'none';
     });
 
-    // Make nav-link clicks inside clean.js still work (it reads .nav-link[data-view])
-    // We alias sidebar-item as nav-link for clean.js compatibility
-    document.querySelectorAll('.sidebar-item').forEach(el => el.classList.add('nav-link'));
-    document.querySelectorAll('#panels section').forEach(el => el.classList.add('panel'));
+    wireGroup('rg-fill', val => {
+        document.getElementById('custom-box').style.display =
+            val === 'custom' ? '' : 'none';
+    });
+
+    wireGroup('rg-scope', val => {
+        document.getElementById('drop-axis-wrap').style.display =
+            val === 'drop-na' ? '' : 'none';
+        document.getElementById('fill-val-wrap').style.display =
+            val === 'fill-na' ? '' : 'none';
+    });
+
+    wireGroup('rg-axis');
+
+    window.showView = showView;
 </script>
 <script type="module" src="/static/js/clean.js"></script>
 {% endblock %}

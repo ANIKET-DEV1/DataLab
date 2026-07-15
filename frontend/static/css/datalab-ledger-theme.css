@@ -1,5 +1,5 @@
 /* =============================================
-   DataLab — Ledger Theme  (v2, fixed + optimized)
+   DataLab — Ledger Theme  (v3, responsive + animated)
    Loads AFTER /static/css/style.css. style.css itself
    is untouched — every component in it (buttons, cards,
    panels, forms, tags, tables, tooltips, auth-card…) is
@@ -10,21 +10,20 @@
    short list of spots in style.css that use a hard-coded
    rgba() instead of a variable, patched one by one.
 
-   Fixed vs. the previous version:
-   - token names now exactly match style.css's real ones
-     (--danger/--warning/--bg-input/--accent-glow/etc. —
-     the old file used a made-up --error and never set
-     --bg-input, --warning or the *-glow tokens, so those
-     components silently kept the old dark-theme colors)
-   - .btn-primary:hover had a leftover blue box-shadow
-     that wasn't covered before — fixed
-   - message boxes (.msg-error/.msg-success/.msg-warn) are
-     now patched once, generically, so it covers every
-     page's error/success element (#error, .error-msg,
-     #upload-message, #notify-msg, #column-clean-error…),
-     not just the login/register #message id
-   - dropped ~40 lines of rules that are now redundant
-     because the token fix already handles them
+   New in v3 (this version):
+   - full responsive pass: navbar collapses into the same
+     hamburger + fullscreen mobile-overlay pattern style.css
+     ships for the dark theme, re-themed here in Ledger
+     colors (light glass instead of dark glass)
+   - fluid type/spacing at 1024 / 768 / 480px breakpoints
+     for page-wrap, dataset-grid, grid-2/grid-3, stats-row,
+     auth-card, data-table
+   - extra motion: staggered card/row entrances, button
+     press feedback, tag pulse, tooltip/dropzone easing —
+     all reusing style.css's existing keyframes so nothing
+     new has to be wired into templates
+   - prefers-reduced-motion still fully respected (merged
+     with the extra rules added below)
    ============================================= */
 
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
@@ -69,6 +68,7 @@
     --transition-slow: 0.4s ease;
 }
 
+html { scroll-behavior: smooth; }
 html, body { height: 100%; }
 body {
     background-color: var(--bg-base) !important;
@@ -101,30 +101,39 @@ h1, h2, h3, .brand-name, .greeting span { font-family: 'Space Grotesk', sans-ser
    reach them). Grouped in the same order they appear in
    style.css.
    ============================================================ */
-.navbar { background: rgba(238,240,234,0.92); box-shadow: none; }
+.navbar {
+    background: rgba(238,240,234,0.92);
+    box-shadow: none;
+    transition: box-shadow var(--transition-base), border-color var(--transition-base), width var(--transition-base), top var(--transition-base);
+}
+.navbar:hover { box-shadow: 0 8px 28px rgba(24,28,26,0.08); }
 .nav-link:hover { background: rgba(31,93,70,0.07); }
 .nav-link.active { background: rgba(31,93,70,0.10); }
 
 .btn:hover::before { background: rgba(24,28,26,0.04); }
 .btn-primary:hover { box-shadow: 0 6px 20px rgba(31,93,70,0.30); }
+.btn:active { transform: scale(0.96); }
 .btn-danger { background: rgba(193,68,59,0.08); border-color: rgba(193,68,59,0.25); }
 .btn-danger:hover { background: rgba(193,68,59,0.15); }
 .btn-ghost { background: #FFFFFF; }
 .btn-ghost:hover { background: rgba(24,28,26,0.04); border-color: rgba(24,28,26,0.15); }
 
+.card { transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base); }
 .card:hover { border-color: rgba(31,93,70,0.25); }
 
 input:focus, select:focus, textarea:focus { background: rgba(31,93,70,0.04); }
-.radio-option label, .checkbox-option label { background: #FFFFFF; }
+.radio-option label, .checkbox-option label { background: #FFFFFF; transition: all var(--transition-base); }
 .radio-option input:checked + label, .checkbox-option input:checked + label {
     background: rgba(31,93,70,0.10);
     border-color: rgba(31,93,70,0.4);
 }
 .radio-option label:hover, .checkbox-option label:hover { border-color: rgba(31,93,70,0.3); }
 
-.dataset-card:hover { border-color: rgba(31,93,70,0.3); }
+.dataset-card { transition: all var(--transition-base); }
+.dataset-card:hover { border-color: rgba(31,93,70,0.3); transform: translateY(-3px); }
 .data-table th { background: rgba(31,93,70,0.08); }
 .data-table td { border-bottom-color: rgba(24,28,26,0.06); font-family: 'IBM Plex Mono', monospace; }
+.data-table tbody tr { transition: background var(--transition-fast); }
 .data-table tbody tr:hover { background: rgba(31,93,70,0.04); }
 
 .loader { border-color: rgba(31,93,70,0.2); }
@@ -137,10 +146,10 @@ input:focus, select:focus, textarea:focus { background: rgba(31,93,70,0.04); }
 }
 
 .canvas-wrap { background: #FFFFFF; }
-.tooltip-wrap .tooltip { background: rgba(24,28,26,0.94); } /* dark chip on light page — intentional */
+.tooltip-wrap .tooltip { background: rgba(24,28,26,0.94); transition: opacity var(--transition-fast), transform var(--transition-fast); } /* dark chip on light page — intentional */
 
-.dropzone { border-color: rgba(31,93,70,0.3); background: rgba(31,93,70,0.03); }
-.dropzone:hover, .dropzone.drag-over { background: rgba(31,93,70,0.07); }
+.dropzone { border-color: rgba(31,93,70,0.3); background: rgba(31,93,70,0.03); transition: all var(--transition-base); }
+.dropzone:hover, .dropzone.drag-over { background: rgba(31,93,70,0.07); box-shadow: 0 0 30px var(--accent-glow); }
 
 .progress-bar { background: var(--border); }
 .info-chip { background: #FFFFFF; }
@@ -158,6 +167,9 @@ input:focus, select:focus, textarea:focus { background: rgba(31,93,70,0.04); }
 .msg-warn { background: rgba(217,142,43,0.08); border-color: rgba(217,142,43,0.25); }
 #message { display: none; min-height: 0; }
 
+/* Reuse style.css's tag-upcoming pulse-glow, retinted to accent-3 */
+.tag-upcoming { animation: pulse-glow 2.5s ease-in-out infinite; }
+
 /* ============================================================
    Dashboard-specific
    ============================================================ */
@@ -170,6 +182,25 @@ input:focus, select:focus, textarea:focus { background: rgba(31,93,70,0.04); }
 .header-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .stats-row { display: flex; gap: 12px; flex-wrap: wrap; margin: 20px 0 6px; }
 #loading { display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 60px 20px; }
+
+/* Stagger dataset cards / table rows on entry, reusing style.css's
+   .animate-in + fadeInUp — just add the nth-child delays here so
+   templates don't need per-card delay classes. */
+.dataset-grid .dataset-card,
+.data-table tbody tr {
+    opacity: 0;
+    animation: fadeInUp 0.45s ease forwards;
+}
+.dataset-grid .dataset-card:nth-child(1) { animation-delay: 0.04s; }
+.dataset-grid .dataset-card:nth-child(2) { animation-delay: 0.08s; }
+.dataset-grid .dataset-card:nth-child(3) { animation-delay: 0.12s; }
+.dataset-grid .dataset-card:nth-child(4) { animation-delay: 0.16s; }
+.dataset-grid .dataset-card:nth-child(5) { animation-delay: 0.20s; }
+.dataset-grid .dataset-card:nth-child(n+6) { animation-delay: 0.24s; }
+.data-table tbody tr:nth-child(1) { animation-delay: 0.02s; }
+.data-table tbody tr:nth-child(2) { animation-delay: 0.05s; }
+.data-table tbody tr:nth-child(3) { animation-delay: 0.08s; }
+.data-table tbody tr:nth-child(n+4) { animation-delay: 0.11s; }
 
 /* ============================================================
    Auth pages (login + register)
@@ -195,7 +226,7 @@ body.register .auth-glow-2 { background: rgba(217,142,43,0.12); }
 .auth-header p { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }
 .form-group label { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
 .input-icon-wrap .icon svg { width: 17px; height: 17px; color: var(--text-muted); }
-.password-toggle { display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); }
+.password-toggle { display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); transition: color var(--transition-fast); }
 .password-toggle svg { width: 18px; height: 18px; display: block; }
 .password-toggle:hover { color: var(--accent); }
 .strength-bar { background: var(--border); }
@@ -207,13 +238,104 @@ body.register .auth-glow-2 { background: rgba(217,142,43,0.12); }
    own inline <style> block — see the per-file edits)
    ============================================================ */
 .ml-orb-inner { background: linear-gradient(135deg, rgba(31,93,70,0.2), rgba(44,93,166,0.2)); border-color: rgba(31,93,70,0.3); }
-.feature-card:hover { border-color: rgba(31,93,70,0.25); box-shadow: 0 8px 32px rgba(31,93,70,0.12); }
+.feature-card { transition: all var(--transition-base); }
+.feature-card:hover { border-color: rgba(31,93,70,0.25); box-shadow: 0 8px 32px rgba(31,93,70,0.12); transform: translateY(-2px); }
 .sidebar-item:hover { background: rgba(31,93,70,0.06); }
 .sidebar-item.active { background: rgba(31,93,70,0.10); color: var(--accent); border-color: rgba(31,93,70,0.3); }
 .file-info { background: rgba(31,93,70,0.08); border-color: rgba(31,93,70,0.25); }
-.chart-type-btn { background: #FFFFFF; }
+.chart-type-btn { background: #FFFFFF; transition: all var(--transition-base); }
 .chart-type-btn:hover { border-color: rgba(31,93,70,0.3); }
 .chart-type-btn.active { border-color: rgba(31,93,70,0.5); background: rgba(31,93,70,0.10); color: var(--accent); }
+
+/* ============================================================
+   Responsive navbar — hamburger + fullscreen mobile overlay,
+   re-themed in Ledger's light glass instead of style.css's
+   dark glass. Markup contract matches style.css exactly:
+   .nav-hamburger > 3x .hamburger-bar, .mobile-overlay,
+   .mobile-overlay-close, .mob-brand, .mobile-overlay-nav,
+   .mobile-nav-link, .mob-divider, .mob-logout-btn.
+   ============================================================ */
+.nav-hamburger { background: rgba(24,28,26,0.05); border: 1px solid var(--border); }
+.nav-hamburger:hover { background: rgba(24,28,26,0.09); border-color: rgba(24,28,26,0.18); }
+.hamburger-bar { background: var(--text-primary); }
+
+.mobile-overlay {
+    background: rgba(238,240,234,0.97);
+    backdrop-filter: blur(28px) saturate(1.3);
+    -webkit-backdrop-filter: blur(28px) saturate(1.3);
+}
+.mob-glow-1 { background: radial-gradient(circle, var(--accent), transparent 70%); }
+.mob-glow-2 { background: radial-gradient(circle, var(--accent-2), transparent 70%); }
+
+.mobile-overlay-close {
+    background: rgba(24,28,26,0.05);
+    border: 1px solid rgba(24,28,26,0.12);
+}
+.mobile-overlay-close:hover {
+    background: rgba(24,28,26,0.09);
+    border-color: rgba(24,28,26,0.2);
+}
+
+.mobile-nav-link { color: var(--text-secondary); }
+.mobile-nav-link i { color: var(--text-muted); }
+.mobile-nav-link:hover {
+    color: var(--text-primary);
+    background: rgba(24,28,26,0.05);
+    border-color: rgba(24,28,26,0.10);
+}
+.mobile-nav-link:hover i { color: var(--accent); }
+.mobile-nav-link.active {
+    color: var(--accent);
+    background: rgba(31,93,70,0.10);
+    border-color: rgba(31,93,70,0.25);
+}
+.mobile-nav-link.active i { color: var(--accent); }
+
+.mob-divider { background: linear-gradient(90deg, transparent, var(--border), transparent); }
+
+.mob-logout-btn {
+    background: rgba(193,68,59,0.08);
+    color: var(--danger);
+    border: 1px solid rgba(193,68,59,0.22);
+}
+.mob-logout-btn:hover {
+    background: rgba(193,68,59,0.15);
+    border-color: rgba(193,68,59,0.4);
+    box-shadow: 0 4px 20px rgba(193,68,59,0.18);
+}
+
+/* ============================================================
+   Breakpoints — layout only; style.css already supplies the
+   .nav-hamburger/.mobile-overlay display toggles at 768px and
+   the .grid-2/.grid-3 single-column collapse at 640px, so this
+   section only adds the Ledger-specific spacing/type tweaks
+   that don't come from style.css.
+   ============================================================ */
+@media (max-width: 1024px) {
+    .page-wrap { padding: 28px 20px 64px; }
+    .dataset-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
+}
+
+@media (max-width: 768px) {
+    .page-wrap { padding: 24px 16px 56px; }
+    .header-row { align-items: flex-start; }
+    .stats-row { gap: 8px; }
+    .auth-card { padding: 30px 24px; }
+    .auth-glow { width: 360px; height: 360px; filter: blur(90px); }
+    .data-table { font-size: 0.76rem; }
+    .data-table th, .data-table td { padding: 8px 10px; }
+    .dataset-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+    .page-wrap { padding: 20px 14px 48px; }
+    .auth-card { padding: 24px 18px; border-radius: var(--radius-lg); }
+    .auth-header .brand-icon { width: 44px; height: 44px; }
+    .stats-row { flex-direction: column; align-items: stretch; }
+    .header-row { flex-direction: column; align-items: stretch; gap: 10px; }
+    .dataset-card { padding: 18px; }
+    .dropzone { padding: 40px 18px; }
+}
 
 /* ============================================================
    Animation — shared "cool open" treatment
@@ -247,8 +369,12 @@ body.register .auth-glow-2 { background: rgba(217,142,43,0.12); }
 @media (prefers-reduced-motion: reduce) {
     .animate-in, .animate-in-delay-1, .animate-in-delay-2, .animate-in-delay-3, .animate-in-delay-4,
     .auth-glow, .auth-card, .auth-header, .auth-form .form-group,
-    .auth-form button[type="submit"], .auth-divider, .auth-footer {
+    .auth-form button[type="submit"], .auth-divider, .auth-footer,
+    .dataset-grid .dataset-card, .data-table tbody tr,
+    .mobile-overlay, .mobile-overlay-close, .mobile-nav-link,
+    .card, .dataset-card, .feature-card, .chart-type-btn, .btn, .dropzone {
         animation: none !important;
+        transition: none !important;
         opacity: 1 !important;
         filter: none !important;
         transform: none !important;

@@ -1,5 +1,7 @@
+import os
 from uuid import UUID
 from fastapi import APIRouter, Depends, Request, UploadFile, File, status,HTTPException
+from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
 from ..database.session import AsyncSession, get_db
 from ..models.models import User,Dataset
@@ -186,3 +188,27 @@ async def rename_col(
     except Exception as e:
                 raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
    
+def iterate_file_chunks(file_path: str, chunk_size: int = 4096):
+    with open(file_path, mode="rb") as file_like:
+        while (chunk := file_like.read(chunk_size)):
+            yield chunk
+
+@router.get("/download")
+async def download_dataset(
+    request:Request,
+    dataset: Dataset = Depends(get_verified_user_dataset)
+    ):
+    
+    if not dataset:
+        raise HTTPException(status_code=404, detail="Dataset not found")
+        
+    if not os.path.exists(dataset.file_path):
+        raise HTTPException(status_code=404, detail="Physical file missing on server")
+
+    return StreamingResponse(
+        iterate_file_chunks(dataset.file_path),
+        media_type="application/octet-stream",
+        headers={
+            "Content-Disposition": f"attachment; filename={dataset.original_name}"
+        }
+    )

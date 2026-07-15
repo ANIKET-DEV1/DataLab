@@ -12,7 +12,6 @@ from ..database.session import get_db
 from sqlalchemy.ext.asyncio import AsyncSession
 from ..repository.user import update_verify_email,update_password
 from ..service.authRepo import for_Auth
-from ..database.redis import add_jti_to_blacklist
 from ..models import models
 from ..utils.email_verification import email_verification
 from ..utils.password_reset import password_mail_verification

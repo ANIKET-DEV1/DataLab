@@ -15,18 +15,6 @@ _redis_client = Redis.from_url(
     socket_connect_timeout=0.2,  
     retry_on_timeout=False
 )
-#logout
-async def add_jti_to_blacklist(jti: str):
-    return await _redis_client.set(f"blacklist:{jti}", "blacklisted")
-
-async def is_jti_in_blacklist(jti: str) -> bool:
-    if not jti:
-        return False  
-    try:
-        return await _redis_client.exists(f"blacklist:{jti}")   
-    except (redis.exceptions.ConnectionError, redis.exceptions.TimeoutError, redis.exceptions.RedisError) as e:
-        logger.error(f"UPSTASH OUTAGE DETECTED: Returning fallback False for JTI check. Details: {e}")
-        return False
 
 #Mail handler
 async def mail_send(email) -> bool:
