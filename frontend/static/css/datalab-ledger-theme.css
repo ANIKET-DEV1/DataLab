@@ -1,5 +1,5 @@
 /* =============================================
-   DataLab — Ledger Theme  (v3, responsive + animated)
+   DataLab — Ledger Theme  (v4, responsive + animated)
    Loads AFTER /static/css/style.css. style.css itself
    is untouched — every component in it (buttons, cards,
    panels, forms, tags, tables, tooltips, auth-card…) is
@@ -10,7 +10,15 @@
    short list of spots in style.css that use a hard-coded
    rgba() instead of a variable, patched one by one.
 
-   New in v3 (this version):
+   New in v4 (this version):
+   - the login/register auth-card layout, sizing and
+     validation-hint styling that used to live in inline
+     <style> blocks on login.html / register.html now
+     lives here instead, so both pages can be plain
+     markup + script. See "Auth pages" section below.
+   - auth-card is now viewport-height aware: it caps at
+     the available height and scrolls internally rather
+     than pushing the page past the fold on short screens.
    - full responsive pass: navbar collapses into the same
      hamburger + fullscreen mobile-overlay pattern style.css
      ships for the dark theme, re-themed here in Ledger
@@ -129,7 +137,25 @@ input:focus, select:focus, textarea:focus { background: rgba(31,93,70,0.04); }
 }
 .radio-option label:hover, .checkbox-option label:hover { border-color: rgba(31,93,70,0.3); }
 
-.dataset-card { transition: all var(--transition-base); }
+.dataset-card { transition: all var(--transition-base); }.dataset-card-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+}
+.dataset-card-actions .btn-danger.btn-sm {
+    flex: 0 0 auto;
+    width: 36px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.dataset-card .btn-select {
+    margin-top: 8px;
+    width: 100%;
+}
+
 .dataset-card:hover { border-color: rgba(31,93,70,0.3); transform: translateY(-3px); }
 .data-table th { background: rgba(31,93,70,0.08); }
 .data-table td { border-bottom-color: rgba(24,28,26,0.06); font-family: 'IBM Plex Mono', monospace; }
@@ -165,7 +191,6 @@ input:focus, select:focus, textarea:focus { background: rgba(31,93,70,0.04); }
 .msg-error, .error-msg { background: rgba(193,68,59,0.08); border-color: rgba(193,68,59,0.25); }
 .msg-success, .success-msg { background: rgba(31,93,70,0.08); border-color: rgba(31,93,70,0.25); }
 .msg-warn { background: rgba(217,142,43,0.08); border-color: rgba(217,142,43,0.25); }
-#message { display: none; min-height: 0; }
 
 /* Reuse style.css's tag-upcoming pulse-glow, retinted to accent-3 */
 .tag-upcoming { animation: pulse-glow 2.5s ease-in-out infinite; }
@@ -204,6 +229,10 @@ input:focus, select:focus, textarea:focus { background: rgba(31,93,70,0.04); }
 
 /* ============================================================
    Auth pages (login + register)
+   Everything the pages need — layout, sizing, validation-hint
+   styling — lives here now. login.html / register.html should
+   contain no inline <style> at all; they just use these classes
+   and IDs (#message, .field-hint, #username-hint, etc.).
    ============================================================ */
 .auth-glow {
     position: fixed; width: 520px; height: 520px; border-radius: 50%;
@@ -213,30 +242,99 @@ input:focus, select:focus, textarea:focus { background: rgba(31,93,70,0.04); }
 .auth-glow-1 { background: rgba(31,93,70,0.16); top: -160px; left: -140px; }
 .auth-glow-2 { background: rgba(44,93,166,0.12); bottom: -160px; right: -140px; }
 body.register .auth-glow-2 { background: rgba(217,142,43,0.12); }
-.auth-page { position: relative; z-index: 1; }
 
+html:has(.auth-page), body:has(.auth-page) { overflow-x: hidden; }
+
+.auth-page {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    box-sizing: border-box;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 380px;
+    max-height: 100%;
+    overflow-y: auto;
+    box-sizing: border-box;
+    padding: 26px 26px 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.auth-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+}
 .auth-header .brand-icon {
     display: inline-flex; align-items: center; justify-content: center;
-    width: 52px; height: 52px; border-radius: var(--radius-md);
+    width: 38px; height: 38px; border-radius: var(--radius-md);
     background: rgba(31,93,70,0.08); border: 1px solid rgba(31,93,70,0.2);
-    margin: 0 auto 14px;
+    margin: 0 0 2px;
+    flex-shrink: 0;
 }
-.auth-header .brand-icon svg { width: 26px; height: 26px; color: var(--accent); }
-.auth-header h1 { background: none; -webkit-text-fill-color: var(--text-primary); }
-.auth-header p { font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem; }
-.form-group label { font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.auth-header .brand-icon svg { width: 20px; height: 20px; color: var(--accent); }
+.auth-header h1 {
+    font-size: 19px; line-height: 1.2; margin: 0; word-break: break-word;
+    background: none; -webkit-text-fill-color: var(--text-primary);
+}
+.auth-header p { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; margin: 0; }
+
+.auth-form { display: flex; flex-direction: column; gap: 12px; }
+
+.form-group { width: 100%; display: flex; flex-direction: column; gap: 5px; }
+.form-group label {
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    text-transform: uppercase; letter-spacing: 0.06em;
+}
+.form-group > span { display: block; text-align: right; font-size: 12px; margin-top: 2px; }
+
+.input-icon-wrap { width: 100%; box-sizing: border-box; }
+.input-icon-wrap input { width: 100%; box-sizing: border-box; font-size: 13.5px; padding-top: 9px; padding-bottom: 9px; }
 .input-icon-wrap .icon svg { width: 17px; height: 17px; color: var(--text-muted); }
-.password-toggle { display: inline-flex; align-items: center; justify-content: center; color: var(--text-muted); transition: color var(--transition-fast); }
+
+/* Validation hints — hidden at rest, shown only when a field is
+   actually invalid, so the resting form stays short. */
+.field-hint {
+    font-size: 11px;
+    line-height: 1.35;
+    color: var(--danger);
+    display: none;
+    margin: 0;
+}
+.field-hint.field-error { display: block; }
+
+.strength-bar { background: var(--border); margin-top: 2px; }
+
+.password-toggle {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: var(--text-muted); transition: color var(--transition-fast);
+}
 .password-toggle svg { width: 18px; height: 18px; display: block; }
 .password-toggle:hover { color: var(--accent); }
-.strength-bar { background: var(--border); }
-.auth-divider span, .auth-footer { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; }
 
-/* ============================================================
-   Utility pages: upload / preview / visualize / clean / ml
-   (page-specific hard-coded blues are patched in each page's
-   own inline <style> block — see the per-file edits)
-   ============================================================ */
+#message { display: none; min-height: 0; margin: 0; word-break: break-word; }
+#message:not(:empty) { display: flex; }
+.msg-error, .msg-success { font-size: 12.5px; }
+
+.auth-form .btn-lg { width: 100%; padding: 10px 16px; font-size: 14px; }
+
+.auth-divider { margin-top: 4px; }
+.auth-divider span, .auth-footer { font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+.auth-footer { margin-top: 4px; }
+
+
 .ml-orb-inner { background: linear-gradient(135deg, rgba(31,93,70,0.2), rgba(44,93,166,0.2)); border-color: rgba(31,93,70,0.3); }
 .feature-card { transition: all var(--transition-base); }
 .feature-card:hover { border-color: rgba(31,93,70,0.25); box-shadow: 0 8px 32px rgba(31,93,70,0.12); transform: translateY(-2px); }
@@ -247,14 +345,7 @@ body.register .auth-glow-2 { background: rgba(217,142,43,0.12); }
 .chart-type-btn:hover { border-color: rgba(31,93,70,0.3); }
 .chart-type-btn.active { border-color: rgba(31,93,70,0.5); background: rgba(31,93,70,0.10); color: var(--accent); }
 
-/* ============================================================
-   Responsive navbar — hamburger + fullscreen mobile overlay,
-   re-themed in Ledger's light glass instead of style.css's
-   dark glass. Markup contract matches style.css exactly:
-   .nav-hamburger > 3x .hamburger-bar, .mobile-overlay,
-   .mobile-overlay-close, .mob-brand, .mobile-overlay-nav,
-   .mobile-nav-link, .mob-divider, .mob-logout-btn.
-   ============================================================ */
+
 .nav-hamburger { background: rgba(24,28,26,0.05); border: 1px solid var(--border); }
 .nav-hamburger:hover { background: rgba(24,28,26,0.09); border-color: rgba(24,28,26,0.18); }
 .hamburger-bar { background: var(--text-primary); }
@@ -304,13 +395,7 @@ body.register .auth-glow-2 { background: rgba(217,142,43,0.12); }
     box-shadow: 0 4px 20px rgba(193,68,59,0.18);
 }
 
-/* ============================================================
-   Breakpoints — layout only; style.css already supplies the
-   .nav-hamburger/.mobile-overlay display toggles at 768px and
-   the .grid-2/.grid-3 single-column collapse at 640px, so this
-   section only adds the Ledger-specific spacing/type tweaks
-   that don't come from style.css.
-   ============================================================ */
+
 @media (max-width: 1024px) {
     .page-wrap { padding: 28px 20px 64px; }
     .dataset-grid { grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); }
@@ -320,7 +405,6 @@ body.register .auth-glow-2 { background: rgba(217,142,43,0.12); }
     .page-wrap { padding: 24px 16px 56px; }
     .header-row { align-items: flex-start; }
     .stats-row { gap: 8px; }
-    .auth-card { padding: 30px 24px; }
     .auth-glow { width: 360px; height: 360px; filter: blur(90px); }
     .data-table { font-size: 0.76rem; }
     .data-table th, .data-table td { padding: 8px 10px; }
@@ -329,12 +413,34 @@ body.register .auth-glow-2 { background: rgba(217,142,43,0.12); }
 
 @media (max-width: 480px) {
     .page-wrap { padding: 20px 14px 48px; }
-    .auth-card { padding: 24px 18px; border-radius: var(--radius-lg); }
-    .auth-header .brand-icon { width: 44px; height: 44px; }
     .stats-row { flex-direction: column; align-items: stretch; }
     .header-row { flex-direction: column; align-items: stretch; gap: 10px; }
     .dataset-card { padding: 18px; }
     .dropzone { padding: 40px 18px; }
+}
+
+/* ── Auth card — mobile ── */
+@media (max-width: 420px) {
+    .auth-page { padding: 10px; }
+    .auth-card { padding: 20px 18px 16px; border-radius: var(--radius-lg); gap: 12px; }
+    .auth-header h1 { font-size: 17px; }
+    .auth-header .brand-icon { width: 34px; height: 34px; }
+}
+
+/* ── Auth card — short viewports (landscape phones, small
+   laptop windows with browser chrome). Independent of width,
+   so it also kicks in on a normal-width but short window. ── */
+@media (max-height: 700px) {
+    .auth-card { gap: 10px; padding-top: 18px; padding-bottom: 14px; }
+    .auth-header { gap: 2px; }
+    .auth-header .brand-icon { width: 30px; height: 30px; margin-bottom: 0; }
+    .auth-header h1 { font-size: 16px; }
+    .auth-header p { font-size: 11.5px; }
+    .auth-form { gap: 9px; }
+    .form-group { gap: 3px; }
+    .input-icon-wrap input { padding-top: 7px; padding-bottom: 7px; }
+    .auth-divider { margin-top: 0; }
+    .auth-footer { margin-top: 2px; }
 }
 
 /* ============================================================

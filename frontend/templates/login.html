@@ -7,6 +7,7 @@
     <meta name="description" content="Sign in to DataLab — your no-code data science platform.">
     <link rel="stylesheet" href="/static/css/style.css">
     <link rel="stylesheet" href="/static/css/datalab-ledger-theme.css">
+
 </head>
 <body>
 
@@ -27,7 +28,7 @@
             <p>Sign in to continue to DataLab</p>
         </div>
 
-        <form id="loginForm" class="auth-form" autocomplete="on">
+        <form id="loginForm" class="auth-form" autocomplete="on" novalidate>
             <div class="form-group">
                 <label for="username">Username</label>
                 <div class="input-icon-wrap">
@@ -37,8 +38,9 @@
                             <path d="M4 20c0-3.9 3.6-7 8-7s8 3.1 8 7"/>
                         </svg>
                     </span>
-                    <input type="text" id="username" placeholder="Enter your username" required autocomplete="username">
+                    <input type="text" id="username" placeholder="Enter your username" required autocomplete="username" maxlength="15">
                 </div>
+                <p id="username-hint" class="field-hint">4–15 characters: letters, numbers and underscores only, no spaces.</p>
             </div>
 
             <div class="form-group">
@@ -52,7 +54,7 @@
                             <path d="M17 6 19 8"/>
                         </svg>
                     </span>
-                    <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
+                    <input type="password" id="password" placeholder="Enter your password" required autocomplete="current-password" maxlength="16">
                     <button type="button" class="password-toggle" id="togglePwd" title="Show/hide password">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/>
@@ -60,18 +62,19 @@
                         </svg>
                     </button>
                 </div>
-                <span><a href="/email-verify">forget Password</a></span>
+                <p id="password-hint" class="field-hint">8–16 characters, with at least one letter, one number and one symbol.</p>
+                <span><a href="/email-verify">Forgot password?</a></span>
             </div>
 
             <p id="message" class="msg-error"></p>
 
-            <button type="submit" id="loginBtn" class="btn btn-primary btn-lg" style="width:100%;margin-top:4px;">
+            <button type="submit" id="loginBtn" class="btn btn-primary btn-lg" style="width:100%;">
                 <span id="loginBtnText">Sign In</span>
                 <span id="loginBtnLoader" class="loader hidden"></span>
             </button>
         </form>
 
-        <div class="auth-divider" style="margin-top:24px;">
+        <div class="auth-divider">
             <span>Don't have an account?</span>
         </div>
 
@@ -83,6 +86,44 @@
 
 <script>
     const nextUrl = new URLSearchParams(window.location.search).get('next') || '/';
+
+    
+    const USERNAME_REGEX = /^[A-Za-z0-9_]{4,15}$/;
+
+    const PASSWORD_REGEX = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,16}$/;
+
+    const usernameInputEl = document.getElementById('username');
+    const passwordInputEl = document.getElementById('password');
+    const usernameHint = document.getElementById('username-hint');
+    const passwordHint = document.getElementById('password-hint');
+
+    function validateUsername(showState = true) {
+        const trimmed = usernameInputEl.value.trim();
+        const valid = USERNAME_REGEX.test(trimmed);
+        if (showState) usernameHint.classList.toggle('field-error', !valid);
+        return valid;
+    }
+
+    function validatePassword(showState = true) {
+        const valid = PASSWORD_REGEX.test(passwordInputEl.value);
+        if (showState) passwordHint.classList.toggle('field-error', !valid);
+        return valid;
+    }
+
+    usernameInputEl.addEventListener('input', () => {
+        if (/\s/.test(usernameInputEl.value)) {
+            usernameInputEl.value = usernameInputEl.value.replace(/\s/g, '');
+        }
+        if (usernameHint.classList.contains('field-error')) validateUsername();
+    });
+    usernameInputEl.addEventListener('blur', () => {
+        usernameInputEl.value = usernameInputEl.value.trim();
+        validateUsername();
+    });
+    passwordInputEl.addEventListener('input', () => {
+        if (passwordHint.classList.contains('field-error')) validatePassword();
+    });
+    passwordInputEl.addEventListener('blur', () => validatePassword());
 
     // Password toggle
     const eyeIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>';
@@ -103,14 +144,30 @@
     document.getElementById('loginForm').addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        const usernameInput = document.getElementById('username').value;
-        const passwordInput = document.getElementById('password').value;
         const messageElement = document.getElementById('message');
         const loginBtn = document.getElementById('loginBtn');
         const loginBtnText = document.getElementById('loginBtnText');
         const loginBtnLoader = document.getElementById('loginBtnLoader');
 
         messageElement.style.display = 'none';
+        messageElement.textContent = '';
+
+        // Trim username before validating/sending
+        usernameInputEl.value = usernameInputEl.value.trim();
+
+        const usernameValid = validateUsername();
+        const passwordValid = validatePassword();
+
+        if (!usernameValid || !passwordValid) {
+            messageElement.className = 'msg-error';
+            messageElement.textContent = '✗ Please fix the highlighted fields before continuing.';
+            messageElement.style.display = 'flex';
+            return;
+        }
+
+        const usernameInput = usernameInputEl.value;
+        const passwordInput = passwordInputEl.value;
+
         loginBtn.disabled = true;
         loginBtnText.textContent = 'Signing in…';
         loginBtnLoader.classList.remove('hidden');

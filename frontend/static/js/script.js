@@ -96,7 +96,7 @@ async function loadDatasets() {
     
     datasetsContainer.innerHTML = data.datasets.map(dataset => `
       <div class="dataset-card animate-in" id="card-${escapeHtml(dataset.id)}">
-        <h3> <i data-lucide="file-chart-column" style="width:16px;"></i> ${escapeHtml(dataset.original_name)}</h3>
+        <h3><i data-lucide="file-chart-column" style="width:16px;"></i> ${escapeHtml(dataset.original_name)}</h3>
         <div class="meta-row">
           <span class="meta-label">File Type</span>
           <span class="meta-value">${escapeHtml(dataset.file_type)}</span>
@@ -113,14 +113,19 @@ async function loadDatasets() {
           <span class="meta-label">Last Accessed</span>
           <span class="meta-value">${new Date(dataset.last_accessed_at).toLocaleDateString()}</span>
         </div>
+
         <div class="dataset-card-actions">
-        <button class="btn"id="downloadBtn" onClick="downloadLargeFile('${dataset.id}')"><i data-lucide="download" style="width:16px;"></i></button>
-        <button class="btn btn-danger btn-sm" onClick="del('${dataset.id}')"><i data-lucide="Trash2" style="width:16px;"></i></button>
+          <button class="btn btn-primary btn-sm" style="flex:1;" id="downloadBtn-${escapeHtml(dataset.id)}" onClick="downloadLargeFile('${dataset.id}')">
+            <i data-lucide="download" style="width:16px;"></i>
+          </button>
+          <button class="btn btn-danger btn-sm" onClick="del('${dataset.id}')">
+            <i data-lucide="Trash2" style="width:16px;"></i>
+          </button>
         </div>
-        <button class="btn btn-primary btn-sm" style="flex:1;" onClick="selectbybutton('${dataset.id}','${escapeHtml(dataset.original_name)}')">
+
+        <button class="btn btn-primary btn-sm btn-select" onClick="selectbybutton('${dataset.id}','${escapeHtml(dataset.original_name)}')">
           ✓ Select
         </button>
-
       </div>
     `).join('');
     if (window.lucide) {
