@@ -1,0 +1,17 @@
+APP_NAME="DATALAB"
+ENV="DEVELOPMENT"
+SECRET_KEY="YOUR SECRET KEY"
+base_url="http://localhost:8000"  
+#Database & Caching----
+DATABASE_URL="postgresql+asyncpg://postgres:Password@localhost:5432/DataLab"
+REDIS_URL="redis://localhost:6379"
+REDIS_PORT=6379
+ACCESS_TOKEN_EXPIRE_MINUTE=60
+ALGORITHMS="HS256"
+#EmailSetup---
+MAIL_USERNAME="EMAIL HERE"
+MAIL_PASSWORD="MAIL APP PASS WORD"
+MAIL_FROM="EMAIL HERE"
+MAIL_FROM_NAME="DataLab"
+MAIL_SERVER="smtp.gmail.com"
+MAIL_PORT=587
