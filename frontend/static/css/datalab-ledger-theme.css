@@ -1,39 +1,3 @@
-/* =============================================
-   DataLab — Ledger Theme  (v4, responsive + animated)
-   Loads AFTER /static/css/style.css. style.css itself
-   is untouched — every component in it (buttons, cards,
-   panels, forms, tags, tables, tooltips, auth-card…) is
-   already built on CSS custom properties, so redeclaring
-   those properties HERE with style.css's own names is
-   enough to re-theme almost everything through the
-   cascade. What follows this token block is only the
-   short list of spots in style.css that use a hard-coded
-   rgba() instead of a variable, patched one by one.
-
-   New in v4 (this version):
-   - the login/register auth-card layout, sizing and
-     validation-hint styling that used to live in inline
-     <style> blocks on login.html / register.html now
-     lives here instead, so both pages can be plain
-     markup + script. See "Auth pages" section below.
-   - auth-card is now viewport-height aware: it caps at
-     the available height and scrolls internally rather
-     than pushing the page past the fold on short screens.
-   - full responsive pass: navbar collapses into the same
-     hamburger + fullscreen mobile-overlay pattern style.css
-     ships for the dark theme, re-themed here in Ledger
-     colors (light glass instead of dark glass)
-   - fluid type/spacing at 1024 / 768 / 480px breakpoints
-     for page-wrap, dataset-grid, grid-2/grid-3, stats-row,
-     auth-card, data-table
-   - extra motion: staggered card/row entrances, button
-     press feedback, tag pulse, tooltip/dropzone easing —
-     all reusing style.css's existing keyframes so nothing
-     new has to be wired into templates
-   - prefers-reduced-motion still fully respected (merged
-     with the extra rules added below)
-   ============================================= */
-
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
 
 /* ---- Tokens — exact names style.css defines/reads ---- */
@@ -103,12 +67,6 @@ body::before {
 h1, h2, h3, .brand-name, .greeting span { font-family: 'Space Grotesk', sans-serif !important; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
-/* ============================================================
-   Patches for style.css rules that use a literal rgba() color
-   instead of a custom property (so the token fix above can't
-   reach them). Grouped in the same order they appear in
-   style.css.
-   ============================================================ */
 .navbar {
     background: rgba(238,240,234,0.92);
     box-shadow: none;
