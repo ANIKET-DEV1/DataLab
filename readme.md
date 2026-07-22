@@ -1,34 +1,66 @@
-# DataLab
+<div align="center">
 
-DataLab is a browser-based, no-code data workspace. Upload a CSV / XLSX / JSON dataset, clean it column-by-column or all at once, explore it through interactive charts, and (soon) run lightweight ML workflows — all without leaving the browser. The backend is **FastAPI** + **SQLAlchemy 2** (async) on **PostgreSQL**, with **Redis** caching, a **pandas** data engine, **Jinja2** server-rendered templates, **PyJWT** + **bcrypt** auth, **fastapi-mail** for transactional email, **boto3** for S3-compatible storage, **Alembic** migrations, **Docker** + **Docker Compose** for containerisation, and **Tailwind CSS** on the frontend.
+#<img width="675" height="207" alt="image" src="https://github.com/user-attachments/assets/bca93fcd-38d8-4e46-86d1-81da865386cc" />
 
-![DataLab Dashboard](frontend/static/dashboard_preview.png)
 
----
+**A browser-based, no-code data workspace**
 
-## Tech Stack
+Upload a CSV / XLSX / JSON dataset, clean it column-by-column or all at once, explore it through interactive charts, and (soon) run lightweight ML workflows — all without leaving the browser.
 
-| Layer | Technology |
-|---|---|
-| Web framework | FastAPI 0.138 + Uvicorn 0.30 |
-| Templates | Jinja2 3.1 (server-rendered HTML) |
-| ORM | SQLAlchemy 2.0 (async) |
-| DB driver | asyncpg (PostgreSQL) |
-| Migrations | Alembic |
-| Caching | Redis 8 (`redis-py`) |
-| Data engine | pandas 3, NumPy 2, openpyxl |
-| Auth | PyJWT + passlib (bcrypt) |
-| Email | fastapi-mail + aiosmtplib |
-| S3 support | boto3 |
-| Validation | Pydantic v2 + pydantic-settings |
-| Rate limiting | slowapi *(hooks present, disabled by default)* |
-| Testing | pytest |
-| Containerisation | Docker + Docker Compose (Postgres 18 + Redis 7 + web) |
-| Frontend | Tailwind CSS (CDN) · Space Grotesk / Inter / IBM Plex Mono · custom CSS themes |
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.138-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Redis](https://img.shields.io/badge/Redis-8-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![Tailwind](https://img.shields.io/badge/Tailwind-CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+
+</div>
 
 ---
 
-## Project Structure
+## 🖼️ Preview
+
+<div align="center">
+
+**Landing Page**
+
+<img width="900" alt="DataLab landing page" src="https://github.com/user-attachments/assets/bc261359-60cc-4372-b5fa-dcc33e31e676" />
+
+<br/><br/>
+
+**Dashboard**
+
+<img width="900" alt="DataLab dashboard" src="https://github.com/user-attachments/assets/0ba09c1b-7199-412b-8429-5ddc596ce0fe" />
+
+</div>
+
+---
+
+## 🧰 Tech Stack
+
+<div align="center">
+
+| Layer | Technology | Badge |
+|---|---|---|
+| 🌐 Web framework | FastAPI 0.138 + Uvicorn 0.30 | ![FastAPI](https://img.shields.io/badge/-FastAPI-009688?style=flat-square&logo=fastapi&logoColor=white) ![Uvicorn](https://img.shields.io/badge/-Uvicorn-2A2A2A?style=flat-square&logo=gunicorn&logoColor=white) |
+| 📄 Templates | Jinja2 3.1 (server-rendered HTML) | ![Jinja](https://img.shields.io/badge/-Jinja2-B41717?style=flat-square&logo=jinja&logoColor=white) |
+| 🗄️ ORM | SQLAlchemy 2.0 (async) | ![SQLAlchemy](https://img.shields.io/badge/-SQLAlchemy-D71F00?style=flat-square&logo=sqlalchemy&logoColor=white) |
+| 🔌 DB driver | asyncpg (PostgreSQL) | ![Postgres](https://img.shields.io/badge/-asyncpg-4169E1?style=flat-square&logo=postgresql&logoColor=white) |
+| 🔁 Migrations | Alembic | ![Alembic](https://img.shields.io/badge/-Alembic-6BA81E?style=flat-square&logo=alembic&logoColor=white) |
+| ⚡ Caching | Redis 8 (`redis-py`) | ![Redis](https://img.shields.io/badge/-Redis-DC382D?style=flat-square&logo=redis&logoColor=white) |
+| 🧮 Data engine | pandas 3, NumPy 2, openpyxl | ![Pandas](https://img.shields.io/badge/-pandas-150458?style=flat-square&logo=pandas&logoColor=white) ![NumPy](https://img.shields.io/badge/-NumPy-013243?style=flat-square&logo=numpy&logoColor=white) |
+| 🔐 Auth | PyJWT + passlib (bcrypt) | ![JWT](https://img.shields.io/badge/-JWT-000000?style=flat-square&logo=jsonwebtokens&logoColor=white) |
+| 📧 Email | fastapi-mail + aiosmtplib | ![Email](https://img.shields.io/badge/-fastapi--mail-EA4335?style=flat-square&logo=gmail&logoColor=white) |
+| ☁️ S3 support(pending) | boto3 | ![AWS](https://img.shields.io/badge/-boto3%20S3-232F3E?style=flat-square&logo=amazons3&logoColor=white) |
+| ✅ Validation | Pydantic v2 + pydantic-settings | ![Pydantic](https://img.shields.io/badge/-Pydantic-E92063?style=flat-square&logo=pydantic&logoColor=white) |
+| 🐳 Containerisation | Docker + Docker Compose (Postgres 18 + Redis 7 + web) | ![Docker](https://img.shields.io/badge/-Docker-2496ED?style=flat-square&logo=docker&logoColor=white) |
+| 🎨 Frontend | Tailwind CSS (CDN) · Space Grotesk / Inter / IBM Plex Mono · custom themes | ![Tailwind](https://img.shields.io/badge/-Tailwind%20CSS-06B6D4?style=flat-square&logo=tailwindcss&logoColor=white) |
+
+</div>
+
+---
+
+## 📁 Project Structure
 
 ```
 DataLab/
@@ -84,21 +116,21 @@ DataLab/
 
 ---
 
-## API Endpoints
+## 🔌 API Endpoints
 
-### Authentication — `/auth`
+### 🔐 Authentication — `/auth`
 
 | Method | Path | Auth required | Description |
-|---|---|---|---|
+|---|---|:---:|---|
 | `POST` | `/auth/login` | — | Credential login; sets `access_token` HTTP-only cookie |
 | `POST` | `/auth/register` | — | Create account; triggers verification email |
-| `GET` | `/auth/me` | ✓ | Returns current user's username + email |
-| `POST` | `/auth/logout` | ✓ | Records `logged_out_at`, clears cookie |
+| `GET` | `/auth/me` | ✅ | Returns current user's username + email |
+| `POST` | `/auth/logout` | ✅ | Records `logged_out_at`, clears cookie |
 | `GET` | `/auth/verify-email?token=` | — | Marks account verified via signed token |
 | `POST` | `/auth/password-reset` | — | Sends password-reset magic link to email |
 | `POST` | `/auth/password-reset-verify?token=` | — | Sets new password via signed token |
 
-### Datasets — `/datasets`
+### 📦 Datasets — `/datasets`
 
 | Method | Path | Description |
 |---|---|---|
@@ -114,9 +146,9 @@ DataLab/
 | `POST` | `/datasets/rename-column?dataset_id=` | Rename a column |
 | `GET` | `/datasets/download?dataset_id=` | Streaming file download |
 
-All dataset endpoints require a valid `access_token` cookie. The `dataset_id` query parameter is a UUID that identifies the dataset and must belong to the requesting user.
+> ℹ️ All dataset endpoints require a valid `access_token` cookie. The `dataset_id` query parameter is a UUID that identifies the dataset and must belong to the requesting user.
 
-### Page Routes (HTML)
+### 🗺️ Page Routes (HTML)
 
 | Path | Page |
 |---|---|
@@ -135,15 +167,15 @@ All dataset endpoints require a valid `access_token` cookie. The `dataset_id` qu
 
 ---
 
-## Quick Start (Local Development)
+## 🚀 Quick Start (Local Development)
 
-### Prerequisites
+### ✅ Prerequisites
 
-- Python 3.11+
-- PostgreSQL (running locally or via Docker)
-- Redis (running locally or via Docker)
+- 🐍 Python 3.11+
+- 🐘 PostgreSQL (running locally or via Docker)
+- ⚡ Redis (running locally or via Docker)
 
-### 1. Clone and Create a Virtual Environment
+### 1️⃣ Clone and Create a Virtual Environment
 
 ```bash
 git clone <repo-url>
@@ -157,13 +189,13 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### 2. Install Dependencies
+### 2️⃣ Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Configure Environment Variables
+### 3️⃣ Configure Environment Variables
 
 ```bash
 # Windows
@@ -172,15 +204,15 @@ copy ".env example" .env
 cp ".env example" .env
 ```
 
-Edit `.env` with your values — see [Environment Variables](#environment-variables) below.
+Edit `.env` with your values — see [Environment Variables](#-environment-variables) below.
 
-### 4. Apply Database Migrations
+### 4️⃣ Apply Database Migrations
 
 ```bash
 alembic upgrade head
 ```
 
-### 5. Start the Dev Server
+### 5️⃣ Start the Dev Server
 
 ```bash
 python main.py
@@ -188,11 +220,11 @@ python main.py
 
 Open **`http://127.0.0.1:8000`** in your browser. The server runs with `--reload` enabled.
 
-> FastAPI's auto-generated API docs are available at `http://127.0.0.1:8000/docs`.
+> 📚 FastAPI's auto-generated API docs are available at `http://127.0.0.1:8000/docs`.
 
 ---
 
-## Docker (All-in-One)
+## 🐳 Docker (All-in-One)
 
 Docker Compose starts **PostgreSQL 18**, **Redis 7**, and the **DataLab web** container together.
 
@@ -201,9 +233,9 @@ docker-compose up --build
 ```
 
 The compose file automatically:
-1. Waits for Postgres to pass its health check
-2. Runs `alembic upgrade head`
-3. Starts Uvicorn on port `8000`
+1. ⏳ Waits for Postgres to pass its health check
+2. 🔁 Runs `alembic upgrade head`
+3. 🚀 Starts Uvicorn on port `8000`
 
 PostgreSQL data is persisted in the `postgres_data` named volume between restarts.
 
@@ -214,11 +246,11 @@ docker-compose down
 
 ---
 
-## Environment Variables
+## ⚙️ Environment Variables
 
 Validated at startup via **pydantic-settings** (`backend/app/core/config.py`). Copy `.env example` to `.env` and fill in all values.
 
-### Application
+### 🏷️ Application
 
 | Variable | Example | Description |
 |---|---|---|
@@ -229,20 +261,20 @@ Validated at startup via **pydantic-settings** (`backend/app/core/config.py`). C
 | `ALGORITHMS` | `HS256` | JWT signing algorithm |
 | `ACCESS_TOKEN_EXPIRE_MINUTE` | `60` | Access token lifetime in minutes |
 
-### Database
+### 🗄️ Database
 
 | Variable | Example | Description |
 |---|---|---|
 | `DATABASE_URL` | `postgresql+asyncpg://postgres:pass@localhost:5432/DataLab` | Async PostgreSQL DSN |
 
-### Caching
+### ⚡ Caching
 
 | Variable | Example | Description |
 |---|---|---|
 | `REDIS_URL` | `redis://localhost:6379` | Redis connection URL |
 | `REDIS_PORT` | `6379` | Redis port |
 
-### Email (SMTP / Gmail)
+### 📧 Email (SMTP / Gmail)
 
 | Variable | Example | Description |
 |---|---|---|
@@ -255,9 +287,9 @@ Validated at startup via **pydantic-settings** (`backend/app/core/config.py`). C
 
 ---
 
-## Database Models
+## 🗃️ Database Models
 
-### `User` — table `users`
+### 👤 `User` — table `users`
 
 | Column | Type | Notes |
 |---|---|---|
@@ -272,7 +304,7 @@ Validated at startup via **pydantic-settings** (`backend/app/core/config.py`). C
 | `logged_out_at` | DateTime (nullable) | Used to invalidate tokens issued before logout |
 | `created_at` | DateTime | Server default (`now()`) |
 
-### `Dataset` — table `datasets`
+### 📊 `Dataset` — table `datasets`
 
 | Column | Type | Notes |
 |---|---|---|
@@ -287,7 +319,7 @@ Validated at startup via **pydantic-settings** (`backend/app/core/config.py`). C
 
 ---
 
-## Data Engine
+## 🧠 Data Engine
 
 The pandas engine (`backend/app/service/data_engine.py`) is executed via `run_in_threadpool` so it never blocks the async event loop.
 
@@ -300,11 +332,11 @@ The pandas engine (`backend/app/service/data_engine.py`) is executed via `run_in
 | `overall_clean` | Applies `drop-na` (axis=0 rows or axis=1 columns) or `fill-na` with a custom value across all columns |
 | `rename_column` | Renames one column and writes back atomically |
 
-**Supported file types:** CSV · XLSX · JSON
+**📁 Supported file types:** CSV · XLSX · JSON
 
 ---
 
-## Authentication Flow
+## 🔐 Authentication Flow
 
 ```
 Register → verification email (signed token link)
@@ -323,25 +355,25 @@ Password reset follows the same signed-token pattern via `/auth/password-reset` 
 
 ---
 
-## Development Notes
+## 📝 Development Notes
 
-- **Local storage** is created automatically at `backend/app/storage/` when `ENV=DEVELOPMENT`.
-- **Production storage** — set `ENV=PRODUCTION`; boto3 is included for S3-compatible storage.
-- **Rate limiting** — `slowapi` is installed and import hooks exist in the routers. Uncomment `@limiter.limit(...)` decorators to activate.
-- **Alembic** — generate a new migration after changing any SQLAlchemy model:
+- 💾 **Local storage** is created automatically at `backend/app/storage/` when `ENV=DEVELOPMENT`.
+- ☁️ **Production storage** — set `ENV=PRODUCTION`; boto3 is included for S3-compatible storage.
+- 🚦 **Rate limiting** — `slowapi` is installed and import hooks exist in the routers. Uncomment `@limiter.limit(...)` decorators to activate.
+- 🔁 **Alembic** — generate a new migration after changing any SQLAlchemy model:
 
   ```bash
   alembic revision --autogenerate -m "describe your change"
   alembic upgrade head
   ```
 
-- **API docs** — available at `/docs` (Swagger UI) and `/redoc` when the server is running.
+- 📚 **API docs** — available at `/docs` (Swagger UI) and `/redoc` when the server is running.
 
 ---
 
-## Roadmap
+## 🗺️ Roadmap
 
-### task
+### ✅ Completed
 - [x] User registration, email verification, login / logout
 - [x] Cookie-based JWT auth with `logged_out_at` token invalidation
 - [x] Password reset via signed magic link email
@@ -355,15 +387,17 @@ Password reset follows the same signed-token pattern via `/auth/password-reset` 
 - [x] Transactional email (verification + password reset) via fastapi-mail
 - [x] Docker Compose setup (Postgres 18 + Redis 7 + web)
 - [x] Alembic migrations
-- [ ] **ML features** — train and evaluate models (classification / regression) directly on uploaded datasets
-- [ ] **Column encoding** — one-hot, label encoding, ordinal mapping for categorical columns
-- [ ] **Rate limiting** — activate slowapi decorators on auth and upload endpoints
-- [ ] **Cloud storage** — wire up S3-compatible file storage for production (`ENV=PRODUCTION`)
-- [ ] **Managed database** — provision and connect a production PostgreSQL instance
-- [ ] **Full deployment** — CI/CD pipeline, production Docker image, hosting (Railway / Render / EC2)
+
+### 🔜 Upcoming
+- [ ] 🤖 **ML features** — train and evaluate models (classification / regression) directly on uploaded datasets
+- [ ] 🔢 **Column encoding** — one-hot, label encoding, ordinal mapping for categorical columns
+- [ ] 🚦 **Rate limiting** — activate slowapi decorators on auth and upload endpoints
+- [ ] ☁️ **Cloud storage** — wire up S3-compatible file storage for production (`ENV=PRODUCTION`)
+- [ ] 🗄️ **Managed database** — provision and connect a production PostgreSQL instance
+- [ ] 🚀 **Full deployment** — CI/CD pipeline, production Docker image, hosting (Railway / Render / EC2)
 
 ---
 
-## License
+## 📄 License
 
 See the [`LICENSE`](LICENSE) file in the repository root for terms.
