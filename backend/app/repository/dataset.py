@@ -15,7 +15,7 @@ from ..core.config import get_storage_config
 from ..database.session import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import query
-from ..router.deps import get_current_user
+from ..dependencies.deps import get_current_user
 
 
 

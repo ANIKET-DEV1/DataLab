@@ -5,7 +5,7 @@ from typing import Annotated
 from fastapi.responses import JSONResponse
 from pydantic import EmailStr
 from ..schemas import auth as user
-from .deps import get_current_user
+from ..dependencies.deps import get_current_user
 from ..security import jwt_handler as jwthandler
 from ..schemas.token import TokenData
 from ..database.session import get_db

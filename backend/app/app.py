@@ -1,8 +1,9 @@
 from uuid import UUID
 from fastapi import FastAPI,Request,Depends,HTTPException,status
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
+from .dependencies import deps
 from backend.app.schemas.dataset import Dataset
-from .router import auth,dataset,deps
+from .router import auth,dataset
 from .models import models
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -26,7 +27,7 @@ async def start(request: Request):
     try:
         # Attempt to resolve the current user
         from .database.session import get_db as _get_db
-        from .router.deps import get_current_user as _get_user
+        from .dependencies.deps import get_current_user as _get_user
         async for db in _get_db():
             user = await _get_user(request, db)
             # Logged-in: go to dashboard

@@ -7,7 +7,7 @@ from ..database.session import AsyncSession, get_db
 from ..models.models import User,Dataset
 from ..repository.dataset import DatasetRepository
 from starlette.concurrency import run_in_threadpool
-from .deps import get_current_user ,get_verified_user_dataset,APP_DIR
+from ..dependencies.deps import get_current_user ,get_verified_user_dataset,APP_DIR
 from ..schemas.dataset import ColumnWiseClean, DatasetVisualized ,overallclean, renameColumn
 from ..service import data_engine
 
