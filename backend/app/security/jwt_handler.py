@@ -29,7 +29,7 @@ def create_access_token(data: dict, expires_delta: timedelta = timedelta(days=7)
     return encoded_jwt
 
 async def verify_token(token: str) -> TokenData:
-    try:  
+    try: 
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str | None = payload.get("sub")
         verified:bool | None =payload.get("verified")
@@ -45,7 +45,8 @@ async def verify_token(token: str) -> TokenData:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Please verify Email. Check Your Mail"
             )
-
+        
+        
         return TokenData(user_id=user_id,
                          time=iat)
 
