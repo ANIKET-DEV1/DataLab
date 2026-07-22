@@ -38,6 +38,7 @@ async def get_current_user(request: Request, db: AsyncSession = Depends(get_db))
         
         if token_data.time < db_logout_time:
             raise HTTPException(status_code=401, detail="This session was manually ended.")
+        
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

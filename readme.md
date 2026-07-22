@@ -391,6 +391,9 @@ Password reset follows the same signed-token pattern via `/auth/password-reset` 
 ### 🔜 Upcoming
 - [ ] 🤖 **ML features** — train and evaluate models (classification / regression) directly on uploaded datasets
 - [ ] 🔢 **Column encoding** — one-hot, label encoding, ordinal mapping for categorical columns
+- [ ]  # **Exception Handling** — Handling Exception Cleanly.
+- [ ]  # **Exception Handling UI** — Handling Exception Cleanly with UI/UX , templates.
+- [ ]  # **Add logger** — To see the acivity with status
 - [ ] 🚦 **Rate limiting** — activate slowapi decorators on auth and upload endpoints
 - [ ] ☁️ **Cloud storage** — wire up S3-compatible file storage for production (`ENV=PRODUCTION`)
 - [ ] 🗄️ **Managed database** — provision and connect a production PostgreSQL instance

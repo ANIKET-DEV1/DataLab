@@ -9,31 +9,42 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pathlib import Path
 from urllib.parse import quote
-
+from .middleware.rate_limiting import limiter
+from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 app=FastAPI()
+app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
 
+@app.exception_handler(RateLimitExceeded)
+async def rate_limit_handler(request:Request,exc:RateLimitExceeded):
+    response = JSONResponse(
+        status_code=429,
+        content={"detail":"Too many Request!"}
+    )
+    if hasattr(request.state, "view_rate_limit"):
+        limiter._inject_headers(
+            response,
+            request.state.view_rate_limit
+        )
+    return response
 
 templates = Jinja2Templates(directory=deps.APP_DIR/"frontend/templates")
-
-#
 app.mount("/static", StaticFiles(directory=deps.APP_DIR/"frontend/static"), name="static")
 app.include_router(auth.auth)
 app.include_router(dataset.router)
 
-
 @app.get('/')
 async def start(request: Request):
-    """Show landing page for guests, redirect to dashboard for logged-in users."""
     try:
-        # Attempt to resolve the current user
         from .database.session import get_db as _get_db
         from .dependencies.deps import get_current_user as _get_user
         async for db in _get_db():
             user = await _get_user(request, db)
-            # Logged-in: go to dashboard
+
             return RedirectResponse(url='/datasets/view', status_code=303)
     except HTTPException:
-        # Not authenticated: show landing page
+
         return templates.TemplateResponse(name="landing.html", request=request)
 
 @app.get('/landing', response_class=HTMLResponse)
