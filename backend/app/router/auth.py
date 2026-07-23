@@ -16,20 +16,20 @@ from ..models import models
 from ..utils.email_verification import email_verification
 from ..utils.password_reset import password_mail_verification
 from ..database.redis import mail_work_done
-#from ..rate_limiter import limiter
+from ..middleware.rate_limiting import limiter
 
 
 auth = APIRouter(prefix="/auth", tags=["Authentication"])
 
 @auth.post("/login")
-#@limiter.limit("5/minute")
+@limiter.limit("5/minute")
 async def login(request: Request, cred: user.UserLogin, response: Response, auth_repo: for_Auth = Depends()):
     data = await auth_repo.login_user(cred)
     jwthandler.set_auth_cookies(response,data.get("token"))
     return {"message":data.get("message")}
 
 @auth.post("/register")
-#@limiter.limit("5/minute")
+@limiter.limit("5/minute")
 async def register(request: Request, cred: user.UserCreate, response: Response, auth_repo: for_Auth = Depends()):
     maybe = await auth_repo.create_user(cred)
     if not maybe:
@@ -37,7 +37,7 @@ async def register(request: Request, cred: user.UserCreate, response: Response, 
     return {"message": "Register Sucessful please verify then proceed to login"}
 
 @auth.get("/me")
-#@limiter.limit("60/minute")
+@limiter.limit("60/minute")
 def getuser(request: Request,response: Response, current_user:models.User=Depends(get_current_user)):
     return {
         "authenticated": True,
@@ -47,9 +47,8 @@ def getuser(request: Request,response: Response, current_user:models.User=Depend
         }
     }
 
-
 @auth.post("/logout")
-#@limiter.limit("60/minute")
+@limiter.limit("60/minute")
 async def logout(request: Request,
     response: Response,
     current_user:models.User = Depends(get_current_user),
@@ -88,7 +87,7 @@ async def verify_email(request: Request,
     return {"message": "Succesfully verified"}
     
 @auth.post("/password-reset")
-#@limiter.limit("3/hour")
+@limiter.limit("3/hour")
 async def reset_password(request: Request,
                          response:Response,
     email: user.ResetPasswordRequest,
@@ -102,7 +101,7 @@ async def reset_password(request: Request,
 
 
 @auth.post("/password-reset-verify")
-#@limiter.limit("3/hour")
+@limiter.limit("3/hour")
 async def verified_reset_password(request: Request,
                                   response:Response,
     cred:user.UserPasswordReset,
