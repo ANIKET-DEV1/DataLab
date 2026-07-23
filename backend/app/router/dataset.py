@@ -10,6 +10,7 @@ from starlette.concurrency import run_in_threadpool
 from ..dependencies.deps import get_current_user ,get_verified_user_dataset,APP_DIR
 from ..schemas.dataset import ColumnWiseClean, DatasetVisualized ,overallclean, renameColumn
 from ..service import data_engine
+from ..middleware.rate_limiting import limiter
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
 templates = Jinja2Templates(directory=APP_DIR/"frontend/templates")
@@ -21,7 +22,9 @@ def get_repo(db: AsyncSession = Depends(get_db)) -> DatasetRepository:
 # ── Upload ────────────────────────────────────────────────────────────────────
 
 @router.post("/upload", status_code=status.HTTP_201_CREATED)
+@limiter.limit("10/minute")
 async def upload_dataset(
+    request: Request,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     repo: DatasetRepository = Depends(get_repo),
@@ -33,7 +36,9 @@ async def upload_dataset(
 # ── List ──────────────────────────────────────────────────────────────────────
 
 @router.get("/list", status_code=status.HTTP_200_OK)
+@limiter.limit("60/minute")
 async def get_datasets_json(
+    request: Request,
     current_user: User = Depends(get_current_user),
     repo: DatasetRepository = Depends(get_repo),
 ):
@@ -70,7 +75,9 @@ async def list_datasets(
 
 
 @router.delete("/delete", status_code=status.HTTP_200_OK)
+@limiter.limit("10/minute")
 async def delete_dataset(
+    request: Request,
     dataset_id: UUID,
     current_user: User = Depends(get_current_user),
     repo: DatasetRepository = Depends(get_repo),
@@ -132,6 +139,7 @@ async def columns(
                 raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
      
 @router.post("/column-clean")
+@limiter.limit("20/minute")
 async def column_clean(
     request:Request,
     ColumnWiseClean: ColumnWiseClean,
@@ -151,6 +159,7 @@ async def column_clean(
                 raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
    
 @router.post("/overall-clean")
+@limiter.limit("20/minute")
 async def apply_on_all(
     request:Request,
     overall_clean_data: overallclean,
@@ -170,6 +179,7 @@ async def apply_on_all(
                 raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
    
 @router.post("/rename-column")
+@limiter.limit("20/minute")
 async def rename_col(
     request:Request,
     rename_columns: renameColumn,
