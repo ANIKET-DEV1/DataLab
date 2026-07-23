@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request,Response,status
+from fastapi import APIRouter, Depends, Query, Request,Response,status
 from typing import Annotated
 from fastapi.responses import JSONResponse
 from pydantic import EmailStr
@@ -17,6 +17,7 @@ from ..utils.email_verification import email_verification
 from ..utils.password_reset import password_mail_verification
 from ..database.redis import mail_work_done
 from ..middleware.rate_limiting import limiter
+from ..exceptions_handler.handle_expection import ValidationError, TokenInvalid, DataProcessingError
 
 
 auth = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -33,8 +34,8 @@ async def login(request: Request, cred: user.UserLogin, response: Response, auth
 async def register(request: Request, cred: user.UserCreate, response: Response, auth_repo: for_Auth = Depends()):
     maybe = await auth_repo.create_user(cred)
     if not maybe:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
-    return {"message": "Register Sucessful please verify then proceed to login"}
+        raise ValidationError("Registration failed. Please check your details and try again.")
+    return {"message": "Registration successful. Please check your email to verify your account."}
 
 @auth.get("/me")
 @limiter.limit("60/minute")
@@ -70,21 +71,18 @@ async def logout(request: Request,
 
 @auth.get("/verify-email")
 async def verify_email(request: Request,
-                       reponse:Response,
+                       response:Response,
     token: str = Query(..., description="The cryptographic token sent via email"),
     db: AsyncSession = Depends(get_db)
 ):
     user_id=email_verification.verify_email_token(token)
     if not user_id:
-        raise HTTPException(
-            status_code=400, 
-            detail="The verification link is invalid or has expired. Please request a new one."
-        )
+        raise TokenInvalid("The verification link is invalid or has expired. Please request a new one.")
     result = await update_verify_email(db,user_id) 
     if not result:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST)
+        raise ValidationError("Failed to verify email address. Account may already be verified or user does not exist.")
     await mail_work_done(email=result.email)
-    return {"message": "Succesfully verified"}
+    return {"message": "Successfully verified email address."}
     
 @auth.post("/password-reset")
 @limiter.limit("3/hour")
@@ -95,9 +93,8 @@ async def reset_password(request: Request,
 ):
     data = await auth_repo.password_reset(email)
     if not data:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                            detail="failed to send mail")
-    return {"message":"Check you mail"}
+        raise DataProcessingError("Failed to send password reset email. Please try again later.")
+    return {"message":"Password reset link sent. Please check your email."}
 
 
 @auth.post("/password-reset-verify")
@@ -111,13 +108,9 @@ async def verified_reset_password(request: Request,
     user_id=password_mail_verification.verify_password_reset_token(token)
     print(user_id)
     if not user_id:
-        raise HTTPException(
-            status_code=400, 
-            detail="The verification link is invalid or has expired. Please request a new one."
-        )
+        raise TokenInvalid("The verification link is invalid or has expired. Please request a new one.")
     result = await update_password(db,user_id,cred=cred)
     if not result:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Error Occured")
+        raise ValidationError("Failed to reset password. Please verify details and try again.")
     await mail_work_done(email=result.email)
-    return {"message":"Succesful"}
+    return {"message":"Password reset successfully."}

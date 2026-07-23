@@ -1,6 +1,6 @@
 import os
 from uuid import UUID
-from fastapi import APIRouter, Depends, Request, UploadFile, File, status,HTTPException
+from fastapi import APIRouter, Depends, Request, UploadFile, File, status, Response
 from fastapi.responses import StreamingResponse
 from fastapi.templating import Jinja2Templates
 from ..database.session import AsyncSession, get_db
@@ -11,6 +11,7 @@ from ..dependencies.deps import get_current_user ,get_verified_user_dataset,APP_
 from ..schemas.dataset import ColumnWiseClean, DatasetVisualized ,overallclean, renameColumn
 from ..service import data_engine
 from ..middleware.rate_limiting import limiter
+from ..exceptions_handler.handle_expection import DatasetNotFound, ValidationError, DataProcessingError, DataLabExceptionHandler
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
 templates = Jinja2Templates(directory=APP_DIR/"frontend/templates")
@@ -25,6 +26,7 @@ def get_repo(db: AsyncSession = Depends(get_db)) -> DatasetRepository:
 @limiter.limit("10/minute")
 async def upload_dataset(
     request: Request,
+    response: Response,
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
     repo: DatasetRepository = Depends(get_repo),
@@ -39,6 +41,7 @@ async def upload_dataset(
 @limiter.limit("60/minute")
 async def get_datasets_json(
     request: Request,
+    response: Response,
     current_user: User = Depends(get_current_user),
     repo: DatasetRepository = Depends(get_repo),
 ):
@@ -78,6 +81,7 @@ async def list_datasets(
 @limiter.limit("10/minute")
 async def delete_dataset(
     request: Request,
+    response: Response,
     dataset_id: UUID,
     current_user: User = Depends(get_current_user),
     repo: DatasetRepository = Depends(get_repo),
@@ -97,10 +101,12 @@ async def preview(
             dataset=dataset
         )
         if not data:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+            raise DatasetNotFound("Dataset preview is unavailable.")
         return data
+    except DataLabExceptionHandler:
+        raise
     except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+        raise DataProcessingError(f"Failed to parse dataset preview: {str(e)}")
             
    
 
@@ -117,10 +123,12 @@ async def visualizer(
             payload=data_visualizer
         )
         if not graph_data:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+            raise DatasetNotFound("Dataset visualization data is unavailable.")
         return graph_data
+    except DataLabExceptionHandler:
+        raise
     except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+        raise DataProcessingError(f"Failed to generate dataset visualization: {str(e)}")
      
 @router.get("/columns")
 async def columns(
@@ -133,15 +141,18 @@ async def columns(
             dataset=dataset,
         )
         if not data:
-            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+            raise DatasetNotFound("Dataset column metadata is unavailable.")
         return data
+    except DataLabExceptionHandler:
+        raise
     except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+        raise DataProcessingError(f"Failed to fetch dataset column details: {str(e)}")
      
 @router.post("/column-clean")
 @limiter.limit("20/minute")
 async def column_clean(
     request:Request,
+    response: Response,
     ColumnWiseClean: ColumnWiseClean,
     dataset: Dataset = Depends(get_verified_user_dataset),
     ):
@@ -152,16 +163,18 @@ async def column_clean(
             payload=ColumnWiseClean
         )
         if not data:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="No data return")
+            raise ValidationError("No data returned from column cleaning operation.")
         return data
+    except DataLabExceptionHandler:
+        raise
     except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+        raise DataProcessingError(f"Failed to clean dataset column: {str(e)}")
    
 @router.post("/overall-clean")
 @limiter.limit("20/minute")
 async def apply_on_all(
     request:Request,
+    response: Response,
     overall_clean_data: overallclean,
     dataset: Dataset = Depends(get_verified_user_dataset),
 ):
@@ -172,16 +185,18 @@ async def apply_on_all(
             payload=overall_clean_data
         )
         if not data:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="No data return")
+            raise ValidationError("No data returned from overall cleaning operation.")
         return data
+    except DataLabExceptionHandler:
+        raise
     except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+        raise DataProcessingError(f"Failed to apply overall dataset cleaning: {str(e)}")
    
 @router.post("/rename-column")
 @limiter.limit("20/minute")
 async def rename_col(
     request:Request,
+    response: Response,
     rename_columns: renameColumn,
     dataset: Dataset = Depends(get_verified_user_dataset),
 ):
@@ -192,11 +207,12 @@ async def rename_col(
             payload=rename_columns
         )
         if not data:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="No data return")
+            raise ValidationError("No data returned from rename column operation.")
         return data
+    except DataLabExceptionHandler:
+        raise
     except Exception as e:
-                raise HTTPException(status_code=500, detail=f"Failed to parse dataset preview: {str(e)}")
+        raise DataProcessingError(f"Failed to rename dataset column: {str(e)}")
    
 def iterate_file_chunks(file_path: str, chunk_size: int = 4096):
     with open(file_path, mode="rb") as file_like:
@@ -210,10 +226,10 @@ async def download_dataset(
     ):
     
     if not dataset:
-        raise HTTPException(status_code=404, detail="Dataset not found")
+        raise DatasetNotFound("Dataset not found")
         
     if not os.path.exists(dataset.file_path):
-        raise HTTPException(status_code=404, detail="Physical file missing on server")
+        raise DatasetNotFound("Physical file missing on server")
 
     return StreamingResponse(
         iterate_file_chunks(dataset.file_path),

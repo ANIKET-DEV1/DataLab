@@ -1,7 +1,6 @@
 from pydantic import BaseModel, Field, SecretStr, model_validator
 import uuid
 from uuid import UUID
-from fastapi import HTTPException,status
 from datetime import datetime
 
 from enum import Enum

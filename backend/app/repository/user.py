@@ -4,11 +4,18 @@ from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from ..security.auth_handler import PasswordHasher
-from fastapi import HTTPException, status
+from fastapi import status
 
 from sqlalchemy.exc import DataError, IntegrityError, SQLAlchemyError
 from ..models import models
 from ..schemas import auth as user_schema
+from ..exceptions_handler.handle_expection import (
+    ValidationError,
+    UserNotFound,
+    InvalidCredentials,
+    DataProcessingError,
+    DataLabExceptionHandler
+)
 
 async def register_user(db: AsyncSession, user_data: user_schema.UserCreate)->models.User:
     try:
@@ -20,10 +27,7 @@ async def register_user(db: AsyncSession, user_data: user_schema.UserCreate)->mo
         )
 
         if duplicate_check.scalar():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Username or Email already registered"
-            )
+            raise ValidationError("Username or email address is already registered.")
 
         hashed_password = PasswordHasher.hash(user_data.password.get_secret_value())
         db_user = models.User(
@@ -37,24 +41,18 @@ async def register_user(db: AsyncSession, user_data: user_schema.UserCreate)->mo
         
         return  db_user
 
+    except DataLabExceptionHandler:
+        await db.rollback()
+        raise
     except IntegrityError:
         await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Database integrity constraint failure: User already exists"
-        )
+        raise ValidationError("User with given credentials already exists.")
     except DataError:
         await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Input data format error: Field length boundaries exceeded"
-        )
+        raise ValidationError("Input data exceeds maximum allowed character limits.")
     except SQLAlchemyError as e:
         await db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"An internal database transactional error occurred: \n {e}"
-        )
+        raise DataProcessingError("A database error occurred during user registration.")
     
 async def login(db:AsyncSession,user_data:user_schema.UserLogin):
     try:
@@ -64,24 +62,18 @@ async def login(db:AsyncSession,user_data:user_schema.UserLogin):
             ))
         user=result.scalar()
         if not user:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="Username Doesn't Exist")
+            raise UserNotFound("Username does not exist.")
         hashed_password=user.password
         passw =  PasswordHasher.verify(user_data.password.get_secret_value(),hashed_password)
         if passw:
             return user
         
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid password credential"
-        ) 
+        raise InvalidCredentials("Incorrect password. Please try again.") 
     
+    except DataLabExceptionHandler:
+        raise
     except SQLAlchemyError as e:
-       
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            
-            detail="Database error occurred during authentication"
-        )
+        raise DataProcessingError("Database error occurred during user authentication.")
 
 
 async def update_verify_email(db:AsyncSession,user_id:uuid.UUID):
@@ -89,25 +81,26 @@ async def update_verify_email(db:AsyncSession,user_id:uuid.UUID):
         result = await db.execute(select(models.User).where(models.User.id == user_id))
         user = result.scalar_one_or_none()
         if not user:
-            raise HTTPException(status_code=404, detail="User account not found.")
+            raise UserNotFound("User account not found.")
         if user.is_verified:
-           raise HTTPException(status_code=status.HTTP_201_CREATED, detail="Already Verified!")
+            raise ValidationError("This account has already been verified.")
         user.is_verified = True
         await db.commit()
         return user
     
+    except DataLabExceptionHandler:
+        await db.rollback()
+        raise
     except SQLAlchemyError:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database error occurred during authentication"
-        )
+        await db.rollback()
+        raise DataProcessingError("Database error occurred while updating email verification status.")
     
 async def update_password(db:AsyncSession,user_id:uuid.UUID,cred=user_schema.UserPasswordReset):
     try:
         result = await db.execute(select(models.User).where(models.User.id == user_id))
         user = result.scalar_one_or_none()
         if not user:
-            raise HTTPException(status_code=404, detail="User account not found.")
+            raise UserNotFound("User account not found.")
         
         if PasswordHasher.verify(cred.new_password.get_secret_value(),user.password):
             return user
@@ -117,25 +110,25 @@ async def update_password(db:AsyncSession,user_id:uuid.UUID,cred=user_schema.Use
         await db.commit()
         return user
     
+    except DataLabExceptionHandler:
+        await db.rollback()
+        raise
     except SQLAlchemyError:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database error occurred during authentication"
-        )
+        await db.rollback()
+        raise DataProcessingError("Database error occurred while resetting user password.")
 
 async def get_user(db:AsyncSession,email:user_schema.ResetPasswordRequest):
     try :
         result = await db.execute(select(models.User).where(models.User.email == email.email))
         user = result.scalar_one_or_none()
         if not user:
-            raise HTTPException(status_code=404, detail="User account not found.")
+            raise UserNotFound("No account found with the provided email address.")
         
         return  user
+    except DataLabExceptionHandler:
+        raise
     except SQLAlchemyError:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Database error occurred during authentication"
-        )
+        raise DataProcessingError("Database error occurred while fetching user details.")
     
 
 

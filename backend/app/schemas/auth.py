@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field, EmailStr, SecretStr, model_validator
 import uuid
-from fastapi import HTTPException,status
 from datetime import datetime
+from ..exceptions_handler.handle_expection import ValidationError
 
 class BaseSchema(BaseModel):
     model_config = {"from_attributes": True}
@@ -18,7 +18,7 @@ class UserCreate(User):
         pw = self.password.get_secret_value()
         confirm_pw = self.confirm_password.get_secret_value()
         if pw != confirm_pw:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="passwords do not match")
+            raise ValidationError("Passwords do not match.")
         return self
     
 class UserPasswordReset(BaseModel):
@@ -29,7 +29,7 @@ class UserPasswordReset(BaseModel):
         pw = self.new_password.get_secret_value()
         confirm_pw = self.confirm_password.get_secret_value()
         if pw != confirm_pw:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,detail="passwords do not match")
+            raise ValidationError("Passwords do not match.")
         return self
     
 class UserLogin(BaseModel):

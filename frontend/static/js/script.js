@@ -1,35 +1,3 @@
-/* ── Shared logout utility — call this from anywhere ── */
-function doLogout() {
-  localStorage.removeItem('active_id');
-  localStorage.removeItem('active_name');
-  localStorage.removeItem('active_ts');
-  window.location.href = '/';
-}
-
-document.addEventListener('DOMContentLoaded', async () => {
-  await loadDatasets();
-
-  const logoutBtn = document.getElementById('logoutBtn');
-  if (logoutBtn) {
-    logoutBtn.addEventListener('click', async () => {
-      try {
-        const res = await fetch('/auth/logout', {
-          method: 'POST',
-          credentials: 'same-origin'
-        });
-        if (res.ok) {
-          doLogout();
-        } else {
-          alert('Unable to logout right now.');
-        }
-      } catch (err) {
-        console.error(err);
-        alert('Unable to logout right now.');
-      }
-    });
-  }
-});
-
 async function loadDatasets() {
   try {
     const datasetsContainer = document.getElementById('datasets');

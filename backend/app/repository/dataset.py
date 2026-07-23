@@ -4,7 +4,7 @@ import shutil
 import aiofiles
 from pathlib import Path
 from uuid import UUID
-from fastapi import UploadFile, HTTPException, status,Depends
+from fastapi import UploadFile, status, Depends
 from starlette.concurrency import run_in_threadpool
 from backend.app.schemas.dataset import DatasetResponse
 from backend.app.service.data_engine import data_engine_preview
@@ -18,6 +18,8 @@ from sqlalchemy.orm import query
 from ..dependencies.deps import get_current_user
 
 
+
+from ..exceptions_handler.handle_expection import ValidationError, StorageLimitExceeded, DataProcessingError, DatasetNotFound
 
 ALLOWED_EXTENSIONS = {FileType.csv.value, FileType.xlsx.value, FileType.json.value}
 MAX_CHUNK = 1024 * 1024  
@@ -33,10 +35,7 @@ class DatasetRepository:
 
         parts = (file.filename or "").rsplit(".", 1)
         if len(parts) < 2 or parts[-1].lower() not in ALLOWED_EXTENSIONS:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Unsupported file type. Allowed: {', '.join(ALLOWED_EXTENSIONS)}"
-            )
+            raise ValidationError(f"Unsupported file type. Allowed: {', '.join(ALLOWED_EXTENSIONS)}")
         ext = parts[-1].lower()
 
         content = await file.read()
@@ -44,10 +43,7 @@ class DatasetRepository:
 
         if current_user.storage_used_bytes + file_size_bytes > current_user.storage_limit_bytes:
             remaining = current_user.storage_limit_bytes - current_user.storage_used_bytes
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Storage full. You have {remaining / 1_048_576:.1f} MB remaining. Delete a dataset first."
-            )
+            raise StorageLimitExceeded(f"Storage full. You have {remaining / 1_048_576:.1f} MB remaining. Delete a dataset first.")
 
         unique_filename = f"{uuid.uuid4()}.{ext}"
         env = self.config["ENV"]
@@ -74,7 +70,7 @@ class DatasetRepository:
         except Exception as e:
             await self._cleanup_on_failure(file_path, env)
             await self.db.rollback()
-            raise HTTPException(status_code=500, detail="Failed to save dataset record.")
+            raise DataProcessingError("Failed to save dataset record.")
 
         return {
             "message": f"'{file.filename}' uploaded successfully.",
@@ -110,7 +106,7 @@ class DatasetRepository:
         # try:
         #     s3.upload_fileobj(io.BytesIO(content), self.config["SUPABASE_BUCKET"], key)
         # except Exception:
-        #     raise HTTPException(status_code=500, detail="Cloud upload failed.")
+        #     raise DataProcessingError("Cloud upload failed.")
         # return key
 
     async def _cleanup_on_failure(self, file_path: str, env: str) -> None:
@@ -138,7 +134,7 @@ class DatasetRepository:
         dataset = result.scalar_one_or_none()
 
         if not dataset:
-            raise HTTPException(status_code=404, detail="Dataset not found.")
+            raise DatasetNotFound("Dataset not found.")
 
         env = self.config["ENV"]
         await self._cleanup_on_failure(dataset.file_path, env)

@@ -1,5 +1,5 @@
 from .base import BaseRepository
-from fastapi import HTTPException,status,Response
+from fastapi import status,Response
 from ..schemas import auth as user
 from ..security import jwt_handler as jwthandler
 from ..repository import user as crud_auth 
@@ -9,12 +9,13 @@ from ..core.mail import NotificationService
 from ..utils.email_verification import email_verification
 from ..utils.password_reset import password_mail_verification
 from ..database.redis import mail_send,is_mail_send
+from ..exceptions_handler.handle_expection import InvalidCredentials, AccessDenied, ValidationError
 
 class for_Auth(BaseRepository,NotificationService):
     async def login_user(self, credential: user.UserLogin):
         user= await crud_auth.login(self.db,user_data=credential)
         if not user:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST ,detail="Invalid Credential")
+                raise InvalidCredentials("Invalid username or password.")
         token_payload = {
             "sub": str(user.id),
             "verified":user.is_verified,
@@ -28,22 +29,16 @@ class for_Auth(BaseRepository,NotificationService):
             
                 await NotificationService(self.tasks).send_mail(
                     recipients=[user.email],
-                    subject="Hello! Please Verify Your Email Account",
+                    subject="Please Verify Your DataLab Account Email",
                     context_data={
                         "username":user.username,
                         "url":magic_url
                     },
                     template_name="mail_register.html"
                 )
-                raise HTTPException(
-                        status_code=status.HTTP_403_FORBIDDEN, 
-                        detail="Please verify your email address before logging in."
-                    )
+                raise AccessDenied("Please verify your email address before logging in.")
             else:
-                raise HTTPException(
-                        status_code=status.HTTP_403_FORBIDDEN, 
-                        detail="Please verify your email address before logging in."
-                    )
+                raise AccessDenied("Please verify your email address before logging in.")
         
 
         return {"token":access_token,"message":"Login Successful"}
@@ -51,7 +46,7 @@ class for_Auth(BaseRepository,NotificationService):
     async def create_user(self,cred: user.UserCreate):
         data = await crud_auth.register_user(self.db,user_data=cred)
         if not data:
-                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN,detail="Error hai thik kardo")
+                raise ValidationError("Failed to register user. Please check your credentials and try again.")
         
         email_verify_token = email_verification.generate_token(data)
 
@@ -59,7 +54,7 @@ class for_Auth(BaseRepository,NotificationService):
         
         await NotificationService(self.tasks).send_mail(
             recipients=[cred.email],
-            subject="Welcome! Please Verify Your Expense Tracker Account",
+            subject="Welcome to DataLab! Please Verify Your Account",
             context_data={
                 "username":cred.username,
                 "url":magic_url
@@ -70,7 +65,6 @@ class for_Auth(BaseRepository,NotificationService):
         
         return data
 
-    #fix check user is verified first then only reset 
     async def password_reset(self,email:user.ResetPasswordRequest): 
         user=await crud_auth.get_user(db=self.db,email=email)
         if not await is_mail_send(user.email):
@@ -80,7 +74,7 @@ class for_Auth(BaseRepository,NotificationService):
             
                 await NotificationService(self.tasks).send_mail(
                     recipients=[user.email],
-                    subject="Hello! Change Your Email Account passowrd?",
+                    subject="DataLab - Reset Your Password",
                     context_data={
                         "username":user.username,
                         "url":magic_url
@@ -88,8 +82,8 @@ class for_Auth(BaseRepository,NotificationService):
                     template_name="mail_password_reset.html"
                 )
         else:
-            return {"message":"Email Already Sended Please verify. "}
+            return {"message":"Password reset email already sent. Please check your inbox."}
         
-        return{"message":"Email Sended"}
+        return {"message":"Password reset email sent successfully."}
 
         

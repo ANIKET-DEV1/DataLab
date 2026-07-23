@@ -1,10 +1,9 @@
 import os
 import math
-from fastapi import status
-from fastapi import HTTPException
 import pandas as pd
 from ..models.models import Dataset
 from ..schemas import dataset as ds
+from ..exceptions_handler.handle_expection import ValidationError, DataProcessingError, DataLabExceptionHandler
 
 def sanitize_dict_list(raw_records: list[dict]) -> list[dict]:
     clean_records = []
@@ -33,9 +32,11 @@ def data_engine_preview(dataset: Dataset):
             df = pd.read_json(file_path)
             df = df.head(20)
         else:
-            raise HTTPException(status_code=400, detail="Preview not supported for this file type.")
+            raise ValidationError("Preview not supported for this file type.")
+    except DataLabExceptionHandler:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed reading dataset file asset: {str(e)}")
+        raise DataProcessingError(f"Failed reading dataset file asset: {str(e)}")
 
     raw_preview = df.head(10).to_dict(orient="records")
 
@@ -67,11 +68,11 @@ def _read_dataframe(dataset: Dataset, nrows:int | None = None) -> pd.DataFrame:
         elif ext == "json":
             return pd.read_json(file_path).head(nrows)
         else:
-            raise HTTPException(status_code=400, detail="Preview not supported for this file type.")
-    except HTTPException:
+            raise ValidationError("Preview not supported for this file type.")
+    except DataLabExceptionHandler:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to read dataset: {str(e)}")
+        raise DataProcessingError(f"Failed to read dataset: {str(e)}")
 
 def _safe_float(v):
     if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
@@ -103,16 +104,16 @@ def data_engine_visual(dataset: Dataset, payload: ds.DatasetVisualized) -> dict:
 
     # Validate columns exist
     if x_col not in df.columns:
-        raise HTTPException(status_code=400, detail=f"Column '{x_col}' not found in dataset.")
+        raise ValidationError(f"Column '{x_col}' not found in dataset.")
     if y_col and y_col not in df.columns:
-        raise HTTPException(status_code=400, detail=f"Column '{y_col}' not found in dataset.")
+        raise ValidationError(f"Column '{y_col}' not found in dataset.")
 
     # ── Scatter ──────────────────────────────────────────────────
     if chart_type == "scatter":
         if not y_col:
-            raise HTTPException(status_code=400, detail="Scatter chart requires a Y column.")
+            raise ValidationError("Scatter chart requires a Y column.")
         if not pd.api.types.is_numeric_dtype(df[x_col]) or not pd.api.types.is_numeric_dtype(df[y_col]):
-            raise HTTPException(status_code=400, detail="Scatter chart requires both columns to be numeric.")
+            raise ValidationError("Scatter chart requires both columns to be numeric.")
 
         scatter_data = [
             {"x": _safe_float(row[x_col]), "y": _safe_float(row[y_col])}
@@ -154,7 +155,7 @@ def data_engine_visual(dataset: Dataset, payload: ds.DatasetVisualized) -> dict:
             ],
         }
 
-    raise HTTPException(status_code=400, detail=f"Unknown chart type: '{chart_type}'.")
+    raise ValidationError(f"Unknown chart type: '{chart_type}'.")
 
 def column_wise_clean(dataset: Dataset, payload: ds.ColumnWiseClean):
     try:
@@ -162,7 +163,7 @@ def column_wise_clean(dataset: Dataset, payload: ds.ColumnWiseClean):
         column = payload.column_name
         
         if column not in df.columns:
-            raise HTTPException(status_code=400, detail=f"Column '{column}' not found.")
+            raise ValidationError(f"Column '{column}' not found.")
 
         clean_type = payload.clean_type
         if clean_type == 'drop-na':
@@ -210,11 +211,11 @@ def column_wise_clean(dataset: Dataset, payload: ds.ColumnWiseClean):
             "columns-null": {str(col): int(count) for col, count in null_counts.items()}
         }
 
-    except HTTPException:
+    except DataLabExceptionHandler:
         raise  
     except Exception as e:
         print(f"CRITICAL ENGINE FAULT: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal Cleaning Engine Server Error")
+        raise DataProcessingError("Internal Cleaning Engine Server Error")
     
 def overall_clean(dataset :Dataset, payload: ds.overallclean):
     try:
@@ -227,8 +228,7 @@ def overall_clean(dataset :Dataset, payload: ds.overallclean):
             elif payload.axis == 1:
                 df.dropna(axis=1,inplace=True)
             else:
-                raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                    detail="Please Select Axis")
+                raise ValidationError("Please select a valid axis (0 for rows, 1 for columns).")
         elif clean_type == 'fill-na':
             raw_val = str(payload.custom_fill_value).strip()
 
@@ -252,8 +252,7 @@ def overall_clean(dataset :Dataset, payload: ds.overallclean):
             
 
         else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Please Select option amoung them")
+            raise ValidationError("Please select a valid cleaning strategy ('fill-na' or 'drop-na').")
         temp_file_path = f"{dataset.file_path}.tmp"
         
 
@@ -268,14 +267,14 @@ def overall_clean(dataset :Dataset, payload: ds.overallclean):
     
 
         return {
-            'message':'Successfully overall clean'
+            'message':'Successfully cleaned dataset.'
         }
 
-    except HTTPException:
+    except DataLabExceptionHandler:
         raise  
     except Exception as e:
         print(f"CRITICAL ENGINE FAULT: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal Cleaning Engine Server Error")
+        raise DataProcessingError("Failed to apply overall dataset cleaning operation.")
     
 def rename_column(dataset: Dataset, payload: ds.renameColumn):
     try:
@@ -283,15 +282,14 @@ def rename_column(dataset: Dataset, payload: ds.renameColumn):
         
         old_column = payload.old_column
         if old_column not in df.columns:
-            raise HTTPException(status_code=400, detail=f"Column' not found in dataset.")
+            raise ValidationError(f"Column '{old_column}' not found in dataset.")
         
 
         newColName = str(payload.new_name_columns)
         if newColName and newColName.strip()!='':
             df.rename(columns={old_column:newColName}, inplace=True)
         else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
-                                detail="Please Provide Valid Details")
+            raise ValidationError("Please provide a non-empty new column name.")
         temp_file_path = f"{dataset.file_path}.tmp"
         
         if dataset.file_type == "csv":
@@ -305,12 +303,12 @@ def rename_column(dataset: Dataset, payload: ds.renameColumn):
     
 
         return {
-            'message':'Successfully rename'
+            'message':'Successfully renamed column.'
         }
 
-    except HTTPException:
+    except DataLabExceptionHandler:
         raise  
     except Exception as e:
         print(f"CRITICAL ENGINE FAULT: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal Cleaning Engine Server Error")
+        raise DataProcessingError("Failed to rename column.")
 

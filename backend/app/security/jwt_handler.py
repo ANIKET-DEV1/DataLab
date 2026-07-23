@@ -1,6 +1,6 @@
 # JWT 
 from jose import jwt, JWTError
-from fastapi import Depends, HTTPException, Request, logger, status, Response
+from fastapi import Depends, Request, status, Response
 import logging
 import redis
 from redis.exceptions import ConnectionError, TimeoutError, RedisError
@@ -8,6 +8,8 @@ from ..models.models import User
 from datetime import datetime, timedelta, timezone
 from ..schemas.token import TokenData
 from ..core.config import get_config
+
+from ..exceptions_handler.handle_expection import TokenInvalid, AccessDenied
 
 logger = logging.getLogger("auth_engine")
 system = get_config()
@@ -36,25 +38,16 @@ async def verify_token(token: str) -> TokenData:
         iat: int | None = payload.get("iat")
 
         if user_id is None:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Invalid token or expired session"
-            )
+            raise TokenInvalid("Invalid token or expired session")
         if not verified:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Please verify Email. Check Your Mail"
-            )
+            raise AccessDenied("Please verify Email. Check Your Mail")
         
         
         return TokenData(user_id=user_id,
                          time=iat)
 
     except JWTError:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token or expired session"
-        )
+        raise TokenInvalid("Invalid token or expired session")
 
 def set_auth_cookies(response: Response, token: str) -> None:
     response.set_cookie(

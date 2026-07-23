@@ -102,7 +102,7 @@
         <!-- Divider -->
         <div class="mob-divider"></div>
 
-        <button id="logoutBtnMobile" class="mob-logout-btn">
+        <button id="logoutBtn" class="mob-logout-btn">
             <i data-lucide="log-out" style="width:18px;"></i> Logout
         </button>
     </nav>
@@ -161,14 +161,6 @@
     link.addEventListener('click', closeMenu);
   });
 
-  const logoutMobile  = document.getElementById('logoutBtnMobile');
-  const logoutDesktop = document.getElementById('logoutBtn');
-  if (logoutMobile && logoutDesktop) {
-    logoutMobile.addEventListener('click', function () {
-      closeMenu();
-      logoutDesktop.click();
-    });
-  }
 })();
 </script>
 

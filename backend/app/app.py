@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import FastAPI,Request,Depends,HTTPException,status
+from fastapi import FastAPI,Request,Depends,status
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
 from .dependencies import deps
 from backend.app.schemas.dataset import Dataset
@@ -12,24 +12,97 @@ from urllib.parse import quote
 from .middleware.rate_limiting import limiter
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from .exceptions_handler.handle_expection import DataLabExceptionHandler
+
 app=FastAPI()
 app.state.limiter = limiter
 app.add_middleware(SlowAPIMiddleware)
 
+templates = Jinja2Templates(directory=deps.APP_DIR/"frontend/templates")
+error_templates = Jinja2Templates(directory=Path(__file__).parent / "exceptions_handler" / "errors")
+
+def _wants_html(request: Request) -> bool:
+    accept = request.headers.get("accept", "")
+    return "text/html" in accept or "application/xhtml+xml" in accept
+
 @app.exception_handler(RateLimitExceeded)
-async def rate_limit_handler(request:Request,exc:RateLimitExceeded):
-    response = JSONResponse(
-        status_code=429,
-        content={"detail":"Too many Request!"}
-    )
-    if hasattr(request.state, "view_rate_limit"):
-        limiter._inject_headers(
-            response,
-            request.state.view_rate_limit
+async def rate_limit_handler(request:Request, exc:RateLimitExceeded):
+    if _wants_html(request):
+        response = error_templates.TemplateResponse(
+            name="429.html",
+            request=request,
+            context={"detail": "You have made too many requests in a short period. Please wait a minute before trying again."},
+            status_code=429
         )
+    else:
+        response = JSONResponse(
+            status_code=429,
+            content={"detail": "Too many requests!"}
+        )
+    # Only inject headers when response is a Starlette/ASGI Response instance
+    if hasattr(request.state, "view_rate_limit") and isinstance(response, StarletteResponse):
+        try:
+            limiter._inject_headers(
+                response,
+                request.state.view_rate_limit
+            )
+        except Exception:
+            # If injection fails, return response without limiter headers
+            pass
     return response
 
-templates = Jinja2Templates(directory=deps.APP_DIR/"frontend/templates")
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 404:
+        if _wants_html(request):
+            return error_templates.TemplateResponse(
+                name="404.html",
+                request=request,
+                context={"detail": exc.detail or "The endpoint or page you requested does not exist."},
+                status_code=404
+            )
+        return JSONResponse(status_code=404, content={"detail": exc.detail or "Not Found"})
+    elif exc.status_code == 500:
+        if _wants_html(request):
+            return error_templates.TemplateResponse(
+                name="500.html",
+                request=request,
+                context={"detail": exc.detail or "An internal server error occurred."},
+                status_code=500
+            )
+        return JSONResponse(status_code=500, content={"detail": exc.detail or "Internal Server Error"})
+    
+    return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
+
+@app.exception_handler(DataLabExceptionHandler)
+async def datalab_exception_handler(request: Request, exc: DataLabExceptionHandler):
+    if exc.status_code == 500 and _wants_html(request):
+        return error_templates.TemplateResponse(
+            name="500.html",
+            request=request,
+            context={"detail": exc.detail},
+            status_code=500
+        )
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail}
+    )
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    import traceback
+    traceback.print_exc()
+    if _wants_html(request):
+        return error_templates.TemplateResponse(
+            name="500.html",
+            request=request,
+            context={"detail": "An internal server error occurred on our servers."},
+            status_code=500
+        )
+    return JSONResponse(status_code=500, content={"detail": "An internal server error occurred."})
+
+
 app.mount("/static", StaticFiles(directory=deps.APP_DIR/"frontend/static"), name="static")
 app.include_router(auth.auth)
 app.include_router(dataset.router)
@@ -43,7 +116,7 @@ async def start(request: Request):
             user = await _get_user(request, db)
 
             return RedirectResponse(url='/datasets/view', status_code=303)
-    except HTTPException:
+    except (StarletteHTTPException, DataLabExceptionHandler):
 
         return templates.TemplateResponse(name="landing.html", request=request)
 
