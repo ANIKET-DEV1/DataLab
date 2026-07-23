@@ -1,3 +1,4 @@
+const DL_KEYS=['active_id','active_name','active_ts']
 function doLogout() {
   localStorage.removeItem('active_id');
   localStorage.removeItem('active_name');
@@ -5,13 +6,10 @@ function doLogout() {
   window.location.href = '/';
 }
 
-document.addEventListener('DOMContentLoaded', async () => {
-  await loadDatasets();
 
-  // Attach logout handler to all logout controls (desktop + mobile)
-  const logoutControls = [];
-  const desktopLogout = document.getElementById('logoutBtn');
-  if (desktopLogout) logoutControls.push(desktopLogout);
+const logoutControls = [];
+const desktopLogout = document.getElementById('logoutBtn');
+if (desktopLogout) logoutControls.push(desktopLogout);
   document.querySelectorAll('.mob-logout-btn').forEach(el => logoutControls.push(el));
 
   logoutControls.forEach(btn => {
@@ -32,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       }
     });
   });
-});
+
 
 (function patchFetch() {
     const originalFetch = window.fetch;
