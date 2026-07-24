@@ -3,6 +3,8 @@ from datetime import timezone
 from pathlib import Path
 from fastapi import Depends, Request, status
 
+from backend.app.repository.dataset import DatasetRepository
+
 from ..security.jwt_handler import verify_token
 import uuid
 
@@ -59,5 +61,6 @@ async def get_verified_user_dataset(
             
         return dataset
 
-  
+def get_repo(db: AsyncSession = Depends(get_db)) -> DatasetRepository:
+    return DatasetRepository(db)  
 APP_DIR = Path(__file__).resolve().parent.parent.parent.parent

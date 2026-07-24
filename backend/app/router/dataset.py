@@ -7,7 +7,7 @@ from ..database.session import AsyncSession, get_db
 from ..models.models import User,Dataset
 from ..repository.dataset import DatasetRepository
 from starlette.concurrency import run_in_threadpool
-from ..dependencies.deps import get_current_user ,get_verified_user_dataset,APP_DIR
+from ..dependencies.deps import get_current_user ,get_verified_user_dataset,APP_DIR,get_repo
 from ..schemas.dataset import ColumnWiseClean, DatasetVisualized ,overallclean, renameColumn
 from ..service import data_engine
 from ..middleware.rate_limiting import limiter
@@ -16,8 +16,7 @@ from ..exceptions_handler.handle_expection import DatasetNotFound, ValidationErr
 router = APIRouter(prefix="/datasets", tags=["datasets"])
 templates = Jinja2Templates(directory=APP_DIR/"frontend/templates")
 
-def get_repo(db: AsyncSession = Depends(get_db)) -> DatasetRepository:
-    return DatasetRepository(db)
+
 
 
 # ── Upload ────────────────────────────────────────────────────────────────────
@@ -145,13 +144,10 @@ async def column_clean(
     response: Response,
     ColumnWiseClean: ColumnWiseClean,
     dataset: Dataset = Depends(get_verified_user_dataset),
+    db: AsyncSession = Depends(get_db),
     ):
     try:
-        data = await run_in_threadpool(
-            data_engine.column_wise_clean,
-            dataset=dataset,
-            payload=ColumnWiseClean
-        )
+        data = await data_engine.column_wise_clean(dataset=dataset, payload=ColumnWiseClean, db=db)
         if not data:
             raise ValidationError("No data returned from column cleaning operation.")
         return data
@@ -167,12 +163,13 @@ async def apply_on_all(
     response: Response,
     overall_clean_data: overallclean,
     dataset: Dataset = Depends(get_verified_user_dataset),
+    db: AsyncSession = Depends(get_db),
 ):
     try:
-        data = await run_in_threadpool(
-            data_engine.overall_clean,
+        data = await data_engine.overall_clean(
             dataset=dataset,
-            payload=overall_clean_data
+            payload=overall_clean_data,
+            db=db,
         )
         if not data:
             raise ValidationError("No data returned from overall cleaning operation.")
@@ -189,12 +186,13 @@ async def rename_col(
     response: Response,
     rename_columns: renameColumn,
     dataset: Dataset = Depends(get_verified_user_dataset),
+    db: AsyncSession = Depends(get_db),
 ):
     try:
-        data= await run_in_threadpool(
-            data_engine.rename_column,
-            dataset= dataset,
-            payload=rename_columns
+        data = await data_engine.rename_column(
+            dataset=dataset,
+            payload=rename_columns,
+            db=db,
         )
         if not data:
             raise ValidationError("No data returned from rename column operation.")

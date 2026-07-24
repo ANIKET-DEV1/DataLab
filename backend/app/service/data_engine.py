@@ -1,20 +1,20 @@
 import os
 import math
 from pathlib import Path
+from fastapi.concurrency import run_in_threadpool
 import pandas as pd
 
 from backend.app.cache.cache import DatasetCacheService
+from backend.app.core.config import get_config
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from backend.app.database.session import get_db
 from ..models.models import Dataset
 
 from ..schemas import dataset as ds
 from ..exceptions_handler.handle_expection import ValidationError, DataProcessingError, DataLabExceptionHandler
 import io
-import pandas as pd
 from ..core.supabase import get_supabase_client
-
-
-#func which handle Developement and Production State
-
 
 #func that make preview data to pass              
 def sanitize_dict_list(raw_records: list[dict]) -> list[dict]:
@@ -153,10 +153,35 @@ async def data_engine_visual(dataset: Dataset, payload: ds.DatasetVisualized) ->
 
     raise ValidationError(f"Unknown chart type: '{chart_type}'.")
 
+async def update_dataset(dataset: Dataset, new_df: pd.DataFrame, db: AsyncSession):
+        buffer = io.BytesIO()
+        config = get_config()
+        new_df.to_csv(buffer, index=False)
+        buffer.seek(0)
+
+        if config.ENV.upper() == "DEVELOPMENT":
+            with open(dataset.file_path, "wb") as f:
+                f.write(buffer.getvalue())
+        else:
+            supabase = get_supabase_client()
+            def sync_update():
+                return supabase.storage.from_(config.SUPABASE_BUCKET).update(
+                    path=dataset.file_path,
+                    file=buffer.getvalue(),
+                    file_options={"upsert": "true", "content-type": "text/csv"}
+                )
+            await run_in_threadpool(sync_update)
+
+        DatasetCacheService.update_cache(dataset.file_path, new_df)
+
+        file_size_bytes = len(buffer.getvalue())
+        dataset.file_size_bytes = file_size_bytes
+        await db.commit()
+        
 #Clean-Column Wise
-def column_wise_clean(dataset: Dataset, payload: ds.ColumnWiseClean):
+async def column_wise_clean(dataset: Dataset, payload: ds.ColumnWiseClean, db: AsyncSession):
     try:
-        df = _read_dataframe(dataset)
+        df = await _read_dataframe(dataset)
         column = payload.column_name
         
         if column not in df.columns:
@@ -185,19 +210,8 @@ def column_wise_clean(dataset: Dataset, payload: ds.ColumnWiseClean):
                         df[column] = df[column].fillna(value)
                 else:
                     df[column] = df[column].fillna(value)
-
-
-        temp_file_path = f"{dataset.file_path}.tmp"
         
-
-        if dataset.file_type == "csv":
-            df.to_csv(temp_file_path, index=False)
-        elif dataset.file_type == "xlsx":
-            df.to_excel(temp_file_path, index=False)
-        elif dataset.file_type == "json":
-            df.to_json(temp_file_path, index=False)
-        import os
-        os.replace(temp_file_path, dataset.file_path)
+        await update_dataset(dataset, new_df=df, db=db)
         raw_preview = df.head(10).to_dict(orient="records")
         null_counts = df.isnull().sum()
 
@@ -215,16 +229,16 @@ def column_wise_clean(dataset: Dataset, payload: ds.ColumnWiseClean):
         raise DataProcessingError("Internal Cleaning Engine Server Error")
 
 #Overall Clean Func
-def overall_clean(dataset :Dataset, payload: ds.overallclean):
+async def overall_clean(dataset: Dataset, payload: ds.overallclean, db: AsyncSession):
     try:
-        df = _read_dataframe(dataset)
+        df = await _read_dataframe(dataset)
         
         clean_type = payload.clean_type
         if clean_type == 'drop-na':
             if payload.axis == 0:
-                df.dropna(axis=0,inplace=True)
+                df.dropna(axis=0, inplace=True)
             elif payload.axis == 1:
-                df.dropna(axis=1,inplace=True)
+                df.dropna(axis=1, inplace=True)
             else:
                 raise ValidationError("Please select a valid axis (0 for rows, 1 for columns).")
         elif clean_type == 'fill-na':
@@ -244,28 +258,16 @@ def overall_clean(dataset :Dataset, payload: ds.overallclean):
                         df[col] = df[col].fillna(datetime_val)
                     except (ValueError, TypeError):
                         continue
-
                 else:
                     df[col] = df[col].fillna(raw_val)
-            
 
         else:
             raise ValidationError("Please select a valid cleaning strategy ('fill-na' or 'drop-na').")
-        temp_file_path = f"{dataset.file_path}.tmp"
-        
 
-        if dataset.file_type == "csv":
-            df.to_csv(temp_file_path, index=False)
-        elif dataset.file_type == "xlsx":
-            df.to_excel(temp_file_path, index=False)
-        elif dataset.file_type == "json":
-            df.to_json(temp_file_path, index=False)
-        import os
-        os.replace(temp_file_path, dataset.file_path)
-    
+        await update_dataset(dataset, new_df=df, db=db)
 
         return {
-            'message':'Successfully cleaned dataset.'
+            'message': 'Successfully cleaned dataset.'
         }
 
     except DataLabExceptionHandler:
@@ -275,34 +277,24 @@ def overall_clean(dataset :Dataset, payload: ds.overallclean):
         raise DataProcessingError("Failed to apply overall dataset cleaning operation.")
 
 #rename COlumn
-def rename_column(dataset: Dataset, payload: ds.renameColumn):
+async def rename_column(dataset: Dataset, payload: ds.renameColumn, db: AsyncSession):
     try:
-        df = _read_dataframe(dataset)
+        df = await _read_dataframe(dataset)
         
         old_column = payload.old_column
         if old_column not in df.columns:
             raise ValidationError(f"Column '{old_column}' not found in dataset.")
-        
 
         newColName = str(payload.new_name_columns)
-        if newColName and newColName.strip()!='':
-            df.rename(columns={old_column:newColName}, inplace=True)
+        if newColName and newColName.strip() != '':
+            df.rename(columns={old_column: newColName}, inplace=True)
         else:
             raise ValidationError("Please provide a non-empty new column name.")
-        temp_file_path = f"{dataset.file_path}.tmp"
         
-        if dataset.file_type == "csv":
-            df.to_csv(temp_file_path, index=False)
-        elif dataset.file_type == "xlsx":
-            df.to_excel(temp_file_path, index=False)
-        elif dataset.file_type == "json":
-            df.to_json(temp_file_path, index=False)
-        import os
-        os.replace(temp_file_path, dataset.file_path)
-    
+        await update_dataset(dataset, new_df=df, db=db)
 
         return {
-            'message':'Successfully renamed column.'
+            'message': 'Successfully renamed column.'
         }
 
     except DataLabExceptionHandler:

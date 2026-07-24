@@ -5,8 +5,7 @@ from uuid import UUID
 import aiofiles
 from fastapi import UploadFile
 from starlette.concurrency import run_in_threadpool
-from supabase import create_client, Client
-
+from supabase import Client
 from backend.app.cache.cache import DatasetCacheService
 from backend.app.schemas.dataset import DatasetResponse
 from ..models.models import Dataset, User, FileType
@@ -81,8 +80,6 @@ class DatasetRepository:
             "storage_limit_mb": round(current_user.storage_limit_bytes / 1_048_576, 2),
         }
 
-    # ── private helpers ──────────────────────────────────────────
-
     async def _save_local(self, content: bytes, filename: str, user_id: UUID) -> str:
         user_folder = Path(self.config["LOCAL_STORAGE_DIR"]) / str(user_id)
         user_folder.mkdir(parents=True, exist_ok=True)
@@ -126,7 +123,6 @@ class DatasetRepository:
             except Exception:
                 pass  
 
-
     async def get_user_datasets(self, user_id: UUID) -> list[DatasetResponse]:
         result = await self.db.execute(
             select(Dataset).where(Dataset.owner_id == user_id)
@@ -135,7 +131,6 @@ class DatasetRepository:
         if not datasets:
             return []
         return [DatasetResponse.model_validate(d) for d in datasets]
-
 
     async def delete_dataset(self, dataset_id: UUID, current_user: User) -> dict:
         result = await self.db.execute(
@@ -155,3 +150,6 @@ class DatasetRepository:
         await self.db.commit()
 
         return {"message": f"'{dataset.original_name}' deleted. Storage freed."}
+
+
+

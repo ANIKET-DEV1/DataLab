@@ -8,6 +8,7 @@ from starlette.concurrency import run_in_threadpool
 
 from ..core.config import get_config, APP_DIR
 from ..core.supabase import get_supabase_client
+from backend.app.core import config
 
 
 df_ram_cache = TTLCache(maxsize=20, ttl=900)
@@ -36,11 +37,17 @@ class DatasetCacheService:
                 return supabase.storage.from_(config.SUPABASE_BUCKET).download(file_path)
 
             file_bytes = await run_in_threadpool(sync_download)
+            # Persist to local disk cache for future requests
+            async with aiofiles.open(local_cached_path, "wb") as f:
+                await f.write(file_bytes)
+            buffer = io.BytesIO(file_bytes)
+        else:
+            async with aiofiles.open(local_cached_path, "rb") as f:
+                file_bytes = await f.read()
+            buffer = io.BytesIO(file_bytes)
 
-        buffer = io.BytesIO(file_bytes)
         df = await run_in_threadpool(DatasetCacheService._parse_buffer, buffer, file_type)
 
-        
         df_ram_cache[file_path] = df
         return df
     
@@ -74,4 +81,13 @@ class DatasetCacheService:
 
     @staticmethod
     def update_cache(file_path: str, new_df: pd.DataFrame) -> None:
+        """Update RAM cache and invalidate stale disk cache after a clean/rename operation."""
         df_ram_cache[file_path] = new_df
+        # Remove stale disk cache so the next cold read fetches the fresh file from Supabase
+        safe_filename = file_path.replace("/", "_")
+        local_cached_path = DISK_CACHE_DIR / safe_filename
+        if local_cached_path.exists():
+            try:
+                local_cached_path.unlink()
+            except OSError:
+                pass
