@@ -390,12 +390,12 @@ Password reset follows the same signed-token pattern via `/auth/password-reset` 
 - [x] Rate limiting — activate slowapi decorators on auth and upload endpoints
 - [x] Exception Handling — Handling Exception Cleanly.
 - [x] Exception Handling UI — Handling Exception Cleanly with UI/UX , templates.
+- [x] Cloud storage and DB SupaBase:  file storage for production (`ENV=PRODUCTION`)
 
 ### 🔜 Upcoming
 - [ ] 🤖 **ML features** — train and evaluate models (classification / regression) directly on uploaded datasets
 - [ ] 🔢 **Column encoding** — one-hot, label encoding, ordinal mapping for categorical columns
 - [ ]  # **Add logger** — To see the acivity with status
-- [ ] ☁️ **Cloud storage** — wire up S3-compatible file storage for production (`ENV=PRODUCTION`)
 - [ ] 🗄️ **Managed database** — provision and connect a production PostgreSQL instance
 - [ ] 🚀 **Full deployment** — CI/CD pipeline, production Docker image, hosting (Railway / Render / EC2)
 
