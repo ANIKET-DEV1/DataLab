@@ -1,16 +1,27 @@
 import os
 import math
+from pathlib import Path
 import pandas as pd
+
+from backend.app.cache.cache import DatasetCacheService
 from ..models.models import Dataset
+
 from ..schemas import dataset as ds
 from ..exceptions_handler.handle_expection import ValidationError, DataProcessingError, DataLabExceptionHandler
+import io
+import pandas as pd
+from ..core.supabase import get_supabase_client
 
+
+#func which handle Developement and Production State
+
+
+#func that make preview data to pass              
 def sanitize_dict_list(raw_records: list[dict]) -> list[dict]:
     clean_records = []
     for row in raw_records:
         clean_row = {}
         for key, value in row.items():
-            # If it's a NaN/Infinity float or missing Pandas type, switch to None
             if isinstance(value, float) and (math.isnan(value) or math.isinf(value)):
                 clean_row[key] = None
             elif pd.isna(value):
@@ -19,53 +30,11 @@ def sanitize_dict_list(raw_records: list[dict]) -> list[dict]:
                 clean_row[key] = value
         clean_records.append(clean_row)
     return clean_records
-import io
-import pandas as pd
-from supabase import create_client
-from starlette.concurrency import run_in_threadpool
-from backend.app.core.config import get_storage_config
 
-async def load_dataset_as_dataframe(file_path: str, file_type: str) -> pd.DataFrame:
-    config = get_storage_config()
-    env = config["ENV"]
-    if env == "DEVELOPMENT":
-        if file_type == "csv":
-            return pd.read_csv(file_path)
-        elif file_type == "xlsx":
-            return pd.read_excel(file_path)
-        elif file_type == "json":
-            return pd.read_json(file_path)
-    else:
-        supabase = create_client(config["SUPABASE_URL"], config["SUPABASE_KEY"])
-        bucket_name = config["SUPABASE_BUCKET"]
-        def download_bytes():
-            return supabase.storage.from_(bucket_name).download(file_path)
-
-        file_bytes = await run_in_threadpool(download_bytes)
-        buffer = io.BytesIO(file_bytes)
-
-        if file_type == "csv":
-            return pd.read_csv(buffer)
-        elif file_type == "xlsx":
-            return pd.read_excel(buffer)
-        elif file_type == "json":
-            return pd.read_json(buffer)
-
-    raise ValueError(f"Unsupported file type: {file_type}")
-
-def data_engine_preview(dataset: Dataset):
-    file_path = dataset.file_path
-    ext = dataset.file_type.value
+# Preview 
+async def data_engine_preview(dataset: Dataset):
     try:
-        if ext == "csv":
-            df = pd.read_csv(file_path, nrows=20)
-        elif ext == "xlsx":
-            df = pd.read_excel(file_path, nrows=20)
-        elif ext == "json":
-            df = pd.read_json(file_path)
-            df = df.head(20)
-        else:
-            raise ValidationError("Preview not supported for this file type.")
+        df=await _read_dataframe(dataset=dataset)
     except DataLabExceptionHandler:
         raise
     except Exception as e:
@@ -90,31 +59,24 @@ def data_engine_preview(dataset: Dataset):
         "info": null_info  
     }
 
-def _read_dataframe(dataset: Dataset, nrows:int | None = None) -> pd.DataFrame:
-    file_path = dataset.file_path
-    ext = dataset.file_type.value
+#Base 
+async def _read_dataframe(dataset: Dataset, nrows:int | None = None) -> pd.DataFrame:
     try:
-        if ext == "csv":
-            return pd.read_csv(file_path, nrows=nrows)
-        elif ext == "xlsx":
-            return pd.read_excel(file_path, nrows=nrows)
-        elif ext == "json":
-            return pd.read_json(file_path).head(nrows)
-        else:
-            raise ValidationError("Preview not supported for this file type.")
+        df = await DatasetCacheService.get_dataframe(dataset.file_path, dataset.file_type.value)
     except DataLabExceptionHandler:
         raise
     except Exception as e:
         raise DataProcessingError(f"Failed to read dataset: {str(e)}")
+    return df
 
 def _safe_float(v):
     if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
         return None
     return float(v)
 
-
-def data_engine_columns(dataset: Dataset) -> dict:
-    df = _read_dataframe(dataset) 
+#Return Columns 
+async def data_engine_columns(dataset: Dataset) -> dict:
+    df =await  _read_dataframe(dataset) 
     null_counts = df.isnull().sum()
     return {
         "columns": list(df.columns),
@@ -128,8 +90,9 @@ def data_engine_columns(dataset: Dataset) -> dict:
 
 
 CHART_SINGLE_SERIES = {"bar", "line", "pie", "hist"}
-def data_engine_visual(dataset: Dataset, payload: ds.DatasetVisualized) -> dict:
-    df = _read_dataframe(dataset, nrows=500)
+#Visulizer
+async def data_engine_visual(dataset: Dataset, payload: ds.DatasetVisualized) -> dict:
+    df = await _read_dataframe(dataset, nrows=500)
 
     x_col = payload.x_column
     y_col = payload.y_column
@@ -190,6 +153,7 @@ def data_engine_visual(dataset: Dataset, payload: ds.DatasetVisualized) -> dict:
 
     raise ValidationError(f"Unknown chart type: '{chart_type}'.")
 
+#Clean-Column Wise
 def column_wise_clean(dataset: Dataset, payload: ds.ColumnWiseClean):
     try:
         df = _read_dataframe(dataset)
@@ -249,7 +213,8 @@ def column_wise_clean(dataset: Dataset, payload: ds.ColumnWiseClean):
     except Exception as e:
         print(f"CRITICAL ENGINE FAULT: {str(e)}")
         raise DataProcessingError("Internal Cleaning Engine Server Error")
-    
+
+#Overall Clean Func
 def overall_clean(dataset :Dataset, payload: ds.overallclean):
     try:
         df = _read_dataframe(dataset)
@@ -308,7 +273,8 @@ def overall_clean(dataset :Dataset, payload: ds.overallclean):
     except Exception as e:
         print(f"CRITICAL ENGINE FAULT: {str(e)}")
         raise DataProcessingError("Failed to apply overall dataset cleaning operation.")
-    
+
+#rename COlumn
 def rename_column(dataset: Dataset, payload: ds.renameColumn):
     try:
         df = _read_dataframe(dataset)

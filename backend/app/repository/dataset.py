@@ -7,9 +7,11 @@ from fastapi import UploadFile
 from starlette.concurrency import run_in_threadpool
 from supabase import create_client, Client
 
+from backend.app.cache.cache import DatasetCacheService
 from backend.app.schemas.dataset import DatasetResponse
 from ..models.models import Dataset, User, FileType
 from ..core.config import get_storage_config
+from ..core.supabase import get_supabase_client
 from ..database.session import AsyncSession
 from sqlalchemy import select
 
@@ -26,12 +28,8 @@ class DatasetRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.config = get_storage_config()
-        
         if self.config.get("ENV") != "DEVELOPMENT":
-            self.supabase: Client = create_client(
-                self.config["SUPABASE_URL"],
-                self.config["SUPABASE_KEY"]
-            )
+            self.supabase: Client = get_supabase_client()
 
     async def add_dataset(self, file: UploadFile, current_user: User) -> dict:
         parts = (file.filename or "").rsplit(".", 1)
@@ -110,21 +108,24 @@ class DatasetRepository:
             await run_in_threadpool(sync_upload)
         except Exception as e:
             raise DataProcessingError(f"Cloud upload failed: {str(e)}")
-            
         return key
 
     async def _cleanup_on_failure(self, file_path: str, env: str) -> None:
         if env == "DEVELOPMENT":
             if os.path.exists(file_path):
                 os.remove(file_path)
+                await DatasetCacheService.invalidate(file_path)
         else:
             bucket_name = self.config["SUPABASE_BUCKET"]
             def sync_remove():
                 return self.supabase.storage.from_(bucket_name).remove([file_path])
+            
             try:
                 await run_in_threadpool(sync_remove)
+                await DatasetCacheService.invalidate(file_path)
             except Exception:
                 pass  
+
 
     async def get_user_datasets(self, user_id: UUID) -> list[DatasetResponse]:
         result = await self.db.execute(
@@ -134,6 +135,7 @@ class DatasetRepository:
         if not datasets:
             return []
         return [DatasetResponse.model_validate(d) for d in datasets]
+
 
     async def delete_dataset(self, dataset_id: UUID, current_user: User) -> dict:
         result = await self.db.execute(

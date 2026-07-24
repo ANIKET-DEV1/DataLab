@@ -96,10 +96,7 @@ async def preview(
 
 ):
     try:
-        data=await run_in_threadpool(
-            data_engine.data_engine_preview,
-            dataset=dataset
-        )
+        data = await data_engine.data_engine_preview(dataset)
         if not data:
             raise DatasetNotFound("Dataset preview is unavailable.")
         return data
@@ -117,11 +114,7 @@ async def visualizer(
     dataset: Dataset = Depends(get_verified_user_dataset)
 ):
     try:
-        graph_data = await run_in_threadpool(
-            data_engine.data_engine_visual,
-            dataset=dataset,
-            payload=data_visualizer
-        )
+        graph_data = await data_engine.data_engine_visual(dataset, data_visualizer)
         if not graph_data:
             raise DatasetNotFound("Dataset visualization data is unavailable.")
         return graph_data
@@ -136,10 +129,7 @@ async def columns(
     dataset: Dataset = Depends(get_verified_user_dataset)
 ):
     try:
-        data = await run_in_threadpool(
-            data_engine.data_engine_columns,
-            dataset=dataset,
-        )
+        data = await data_engine.data_engine_columns(dataset)
         if not data:
             raise DatasetNotFound("Dataset column metadata is unavailable.")
         return data
