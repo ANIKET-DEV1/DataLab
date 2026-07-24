@@ -19,6 +19,39 @@ def sanitize_dict_list(raw_records: list[dict]) -> list[dict]:
                 clean_row[key] = value
         clean_records.append(clean_row)
     return clean_records
+import io
+import pandas as pd
+from supabase import create_client
+from starlette.concurrency import run_in_threadpool
+from backend.app.core.config import get_storage_config
+
+async def load_dataset_as_dataframe(file_path: str, file_type: str) -> pd.DataFrame:
+    config = get_storage_config()
+    env = config["ENV"]
+    if env == "DEVELOPMENT":
+        if file_type == "csv":
+            return pd.read_csv(file_path)
+        elif file_type == "xlsx":
+            return pd.read_excel(file_path)
+        elif file_type == "json":
+            return pd.read_json(file_path)
+    else:
+        supabase = create_client(config["SUPABASE_URL"], config["SUPABASE_KEY"])
+        bucket_name = config["SUPABASE_BUCKET"]
+        def download_bytes():
+            return supabase.storage.from_(bucket_name).download(file_path)
+
+        file_bytes = await run_in_threadpool(download_bytes)
+        buffer = io.BytesIO(file_bytes)
+
+        if file_type == "csv":
+            return pd.read_csv(buffer)
+        elif file_type == "xlsx":
+            return pd.read_excel(buffer)
+        elif file_type == "json":
+            return pd.read_json(buffer)
+
+    raise ValueError(f"Unsupported file type: {file_type}")
 
 def data_engine_preview(dataset: Dataset):
     file_path = dataset.file_path

@@ -1,38 +1,39 @@
 import os
 import uuid
-import shutil
-import aiofiles
 from pathlib import Path
 from uuid import UUID
-from fastapi import UploadFile, status, Depends
+import aiofiles
+from fastapi import UploadFile
 from starlette.concurrency import run_in_threadpool
+from supabase import create_client, Client
+
 from backend.app.schemas.dataset import DatasetResponse
-from backend.app.service.data_engine import data_engine_preview
-from ..models.models import Dataset
-from ..models.models import User
-from ..models.models import FileType
+from ..models.models import Dataset, User, FileType
 from ..core.config import get_storage_config
 from ..database.session import AsyncSession
 from sqlalchemy import select
-from sqlalchemy.orm import query
-from ..dependencies.deps import get_current_user
 
-
-
-from ..exceptions_handler.handle_expection import ValidationError, StorageLimitExceeded, DataProcessingError, DatasetNotFound
+from ..exceptions_handler.handle_expection import (
+    ValidationError, 
+    StorageLimitExceeded, 
+    DataProcessingError, 
+    DatasetNotFound
+)
 
 ALLOWED_EXTENSIONS = {FileType.csv.value, FileType.xlsx.value, FileType.json.value}
-MAX_CHUNK = 1024 * 1024  
-
 
 class DatasetRepository:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.config = get_storage_config()
+        
+        if self.config.get("ENV") != "DEVELOPMENT":
+            self.supabase: Client = create_client(
+                self.config["SUPABASE_URL"],
+                self.config["SUPABASE_KEY"]
+            )
 
-    
     async def add_dataset(self, file: UploadFile, current_user: User) -> dict:
-
         parts = (file.filename or "").rsplit(".", 1)
         if len(parts) < 2 or parts[-1].lower() not in ALLOWED_EXTENSIONS:
             raise ValidationError(f"Unsupported file type. Allowed: {', '.join(ALLOWED_EXTENSIONS)}")
@@ -51,7 +52,7 @@ class DatasetRepository:
         if env == "DEVELOPMENT":
             file_path = await self._save_local(content, unique_filename, current_user.id)
         else:
-            file_path = await self._save_cloud(content, unique_filename, current_user.id)
+            file_path = await self._save_cloud(content, unique_filename, current_user.id, file.content_type)
 
         try:
             new_dataset = Dataset(
@@ -67,7 +68,7 @@ class DatasetRepository:
             await self.db.commit()
             await self.db.refresh(new_dataset)
 
-        except Exception as e:
+        except Exception:
             await self._cleanup_on_failure(file_path, env)
             await self.db.rollback()
             raise DataProcessingError("Failed to save dataset record.")
@@ -94,30 +95,38 @@ class DatasetRepository:
 
         return str(target)
 
-    # async def _save_cloud(self, content: bytes, filename: str, user_id: UUID) -> str:
-        # import boto3, io
-        # s3 = boto3.client(
-        #     "s3",
-        #     endpoint_url=self.config["SUPABASE_URL"],
-        #     aws_access_key_id=self.config["SUPABASE_KEY"],
-        #     aws_secret_access_key=self.config["SUPABASE_SECRET"],
-        # )
-        # key = f"{user_id}/{filename}"
-        # try:
-        #     s3.upload_fileobj(io.BytesIO(content), self.config["SUPABASE_BUCKET"], key)
-        # except Exception:
-        #     raise DataProcessingError("Cloud upload failed.")
-        # return key
+    async def _save_cloud(self, content: bytes, filename: str, user_id: UUID, content_type: str | None) -> str:
+        key = f"{user_id}/{filename}"
+        bucket_name = self.config["SUPABASE_BUCKET"]
+
+        def sync_upload():
+            return self.supabase.storage.from_(bucket_name).upload(
+                path=key,
+                file=content,
+                file_options={"content-type": content_type or "text/csv"}
+            )
+
+        try:   
+            await run_in_threadpool(sync_upload)
+        except Exception as e:
+            raise DataProcessingError(f"Cloud upload failed: {str(e)}")
+            
+        return key
 
     async def _cleanup_on_failure(self, file_path: str, env: str) -> None:
         if env == "DEVELOPMENT":
             if os.path.exists(file_path):
                 os.remove(file_path)
         else:
-            pass  # add S3 delete here if needed
+            bucket_name = self.config["SUPABASE_BUCKET"]
+            def sync_remove():
+                return self.supabase.storage.from_(bucket_name).remove([file_path])
+            try:
+                await run_in_threadpool(sync_remove)
+            except Exception:
+                pass  
 
     async def get_user_datasets(self, user_id: UUID) -> list[DatasetResponse]:
-        from sqlalchemy import select
         result = await self.db.execute(
             select(Dataset).where(Dataset.owner_id == user_id)
         )
@@ -125,7 +134,6 @@ class DatasetRepository:
         if not datasets:
             return []
         return [DatasetResponse.model_validate(d) for d in datasets]
-    
 
     async def delete_dataset(self, dataset_id: UUID, current_user: User) -> dict:
         result = await self.db.execute(
@@ -137,6 +145,7 @@ class DatasetRepository:
             raise DatasetNotFound("Dataset not found.")
 
         env = self.config["ENV"]
+        
         await self._cleanup_on_failure(dataset.file_path, env)
 
         current_user.storage_used_bytes -= dataset.file_size_bytes
@@ -144,6 +153,3 @@ class DatasetRepository:
         await self.db.commit()
 
         return {"message": f"'{dataset.original_name}' deleted. Storage freed."}
-
-
-    

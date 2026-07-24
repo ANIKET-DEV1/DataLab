@@ -387,9 +387,9 @@ Password reset follows the same signed-token pattern via `/auth/password-reset` 
 - [x] Transactional email (verification + password reset) via fastapi-mail
 - [x] Docker Compose setup (Postgres 18 + Redis 7 + web)
 - [x] Alembic migrations
-- [x] 🚦 **Rate limiting** — activate slowapi decorators on auth and upload endpoints
-- [x]  # **Exception Handling** — Handling Exception Cleanly.
-- [x]  # **Exception Handling UI** — Handling Exception Cleanly with UI/UX , templates.
+- [x] Rate limiting — activate slowapi decorators on auth and upload endpoints
+- [x] Exception Handling — Handling Exception Cleanly.
+- [x] Exception Handling UI — Handling Exception Cleanly with UI/UX , templates.
 
 ### 🔜 Upcoming
 - [ ] 🤖 **ML features** — train and evaluate models (classification / regression) directly on uploaded datasets

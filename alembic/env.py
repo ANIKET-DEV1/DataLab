@@ -57,7 +57,7 @@ async def run_migrations_online() -> None:
     if "localhost" in current_url or "127.0.0.1" in current_url or "@db" in current_url or "db" in current_url:
         connect_args = {}
     else:
-        connect_args = {"ssl": True}
+        connect_args = {"ssl": False}
 
     connectable = create_async_engine(
         DATABASE_URL,
