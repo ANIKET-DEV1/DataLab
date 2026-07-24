@@ -214,3 +214,8 @@ async function downloadLargeFile(datasetId) {
         button.disabled = false; 
     }
 }
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadDatasets();
+});

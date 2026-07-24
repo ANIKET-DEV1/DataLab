@@ -6,96 +6,141 @@
     <title>500 — Internal Server Error | DataLab</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
-            --bg-color: #0d1117;
-            --card-bg: rgba(22, 27, 34, 0.75);
-            --border-color: rgba(255, 255, 255, 0.1);
-            --danger-glow: rgba(239, 68, 68, 0.35);
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
+            --bg-base:        #EEF0EA;
+            --bg-card:        #FBFAF6;
+            --border:         #D8DAD1;
+
+            --accent:         #1F5D46;
+            --accent-2:       #2C5DA6;
+            --accent-glow:    rgba(31,93,70,0.20);
+
+            --danger:         #C1443B;
+            --danger-glow:    rgba(193,68,59,0.20);
+
+            --text-primary:   #181C1A;
+            --text-secondary: #535B56;
+            --text-muted:     #7A8177;
+
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --radius-xl: 20px;
+
+            --shadow-card: 0 4px 24px rgba(24,28,26,0.07);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body { height: 100%; }
 
         body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg-color);
-            background-image: 
-                radial-gradient(circle at 20% 20%, rgba(239, 68, 68, 0.15) 0%, transparent 45%),
-                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 45%);
-            color: var(--text-main);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-base);
+            color: var(--text-primary);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 1.5rem;
+            position: relative;
             overflow-x: hidden;
         }
 
+        /* Ledger graph-paper texture, same as the rest of the app */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                linear-gradient(rgba(24,28,26,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(24,28,26,0.05) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
         .error-card {
-            background: var(--card-bg);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border: 1px solid var(--border-color);
-            border-radius: 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
             padding: 3rem 2.5rem;
             max-width: 520px;
             width: 100%;
             text-align: center;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5),
-                        0 0 30px var(--danger-glow);
+            box-shadow: var(--shadow-card), 0 0 40px rgba(193,68,59,0.08);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
             animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .error-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--danger), var(--accent-2), var(--accent));
         }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px) scale(0.96); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
         }
 
         .badge {
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            background: rgba(239, 68, 68, 0.12);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #f87171;
+            background: var(--danger-glow);
+            border: 1px solid rgba(193,68,59,0.3);
+            color: var(--danger);
             padding: 6px 14px;
             border-radius: 9999px;
-            font-size: 0.875rem;
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.78rem;
             font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
             margin-bottom: 1.5rem;
+            opacity: 0;
+            animation: itemRise 0.5s ease 0.15s forwards;
         }
 
         .error-code {
-            font-size: 6.5rem;
-            font-weight: 800;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(3.6rem, 12vw, 6.5rem);
+            font-weight: 700;
             line-height: 1;
-            background: linear-gradient(135deg, #f87171 0%, #c084fc 100%);
+            background: linear-gradient(135deg, var(--danger) 0%, var(--accent-2) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
             margin-bottom: 1rem;
             letter-spacing: -2px;
+            opacity: 0;
+            animation: itemRise 0.5s ease 0.22s forwards;
         }
 
         .error-title {
-            font-size: 1.65rem;
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: clamp(1.25rem, 4vw, 1.65rem);
             font-weight: 700;
-            color: #ffffff;
+            color: var(--text-primary);
             margin-bottom: 0.75rem;
+            opacity: 0;
+            animation: itemRise 0.5s ease 0.28s forwards;
         }
 
         .error-desc {
-            color: var(--text-muted);
+            color: var(--text-secondary);
             font-size: 1rem;
-            line-height: 1.6;
+            line-height: 1.65;
             margin-bottom: 2rem;
+            opacity: 0;
+            animation: itemRise 0.5s ease 0.34s forwards;
         }
 
         .actions {
@@ -103,49 +148,80 @@
             gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
+            opacity: 0;
+            animation: itemRise 0.5s ease 0.4s forwards;
         }
 
         .btn {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             padding: 12px 24px;
-            border-radius: 12px;
+            border-radius: var(--radius-md);
+            font-family: inherit;
             font-weight: 600;
             font-size: 0.95rem;
             text-decoration: none;
-            transition: all 0.2s ease;
+            transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
             cursor: pointer;
             border: none;
+            flex: 1 1 auto;
+            min-width: 150px;
         }
 
+        .btn:active { transform: scale(0.97); }
+
         .btn-danger {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            background: var(--danger);
             color: #ffffff;
-            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+            box-shadow: 0 4px 14px rgba(193,68,59,0.3);
         }
 
         .btn-danger:hover {
+            background: #A83A32;
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+            box-shadow: 0 6px 20px rgba(193,68,59,0.4);
         }
 
         .btn-secondary {
-            background: rgba(255, 255, 255, 0.06);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
+            background: #FFFFFF;
+            color: var(--text-primary);
+            border: 1px solid var(--border);
         }
 
         .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.12);
+            background: rgba(24,28,26,0.04);
+            border-color: rgba(24,28,26,0.18);
             transform: translateY(-2px);
+        }
+
+        @keyframes itemRise {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 480px) {
+            .error-card { padding: 2.25rem 1.5rem; border-radius: var(--radius-lg); }
+            .actions { flex-direction: column; }
+            .btn { width: 100%; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .error-card, .badge, .error-code, .error-title, .error-desc, .actions {
+                animation: none !important;
+                opacity: 1 !important;
+                transform: none !important;
+            }
+            .btn:hover, .btn:active { transform: none !important; }
         }
     </style>
 </head>
 <body>
     <div class="error-card">
         <div class="badge">
-            <i data-lucide="alert-triangle" style="width:16px;height:16px;"></i> Server Exception
+            <i data-lucide="alert-triangle" style="width:15px;height:15px;"></i> Server Exception
         </div>
         <div class="error-code">500</div>
         <h1 class="error-title">Internal Server Error</h1>
