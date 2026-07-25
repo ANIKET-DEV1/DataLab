@@ -102,7 +102,9 @@ function wireUpButtons(datasetId) {
         const column_name = document.querySelector("#column-select").value;
         if (!column_name) return showError('column-clean-error', "Select a column first.");
         const column_type = document.querySelector("#column-select")
-        if (column_type.textContent.includes('(clean)')) return showSuccess('column-clean-success','Already Cleaned')
+        const selectedText = column_type.options[column_type.selectedIndex].text;
+        console.log(selectedText)
+        if (selectedText.includes('(clean)')) return showSuccess('column-clean-success','Already Cleaned')
 
 
         const cleanType = document.querySelector('input[name="clean-op"]:checked')?.value;
