@@ -396,7 +396,6 @@ Password reset follows the same signed-token pattern via `/auth/password-reset` 
 - [ ] 🤖 **ML features** — train and evaluate models (classification / regression) directly on uploaded datasets
 - [ ] 🔢 **Column encoding** — one-hot, label encoding, ordinal mapping for categorical columns
 - [ ]  # **Add logger** — To see the acivity with status
-- [ ] 🗄️ **Managed database** — provision and connect a production PostgreSQL instance
 - [ ] 🚀 **Full deployment** — CI/CD pipeline, production Docker image, hosting (Railway / Render / EC2)
 
 ---

@@ -18,13 +18,13 @@ _redis_client = Redis.from_url(
 
 #Mail handler
 async def mail_send(email) -> bool:
-    redis_email = f"email:{email}"
+    redis_email = f"datalab_email:{email}"
     return await _redis_client.set(redis_email, "true", ex=18000)
 
 async def is_mail_send(email) -> bool:
-    redis_key = f"email:{email}"
+    redis_key = f"datalab_email:{email}"
     return await _redis_client.exists(redis_key)
 
 async def mail_work_done(email) -> bool:
-    redis_key = f"email:{email}"
+    redis_key = f"datalab_email:{email}"
     return await _redis_client.delete(redis_key)
