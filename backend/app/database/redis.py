@@ -1,4 +1,3 @@
-import redis
 from redis.asyncio import Redis
 import logging
 import redis
@@ -11,9 +10,10 @@ system = get_config()
 _redis_client = Redis.from_url(
     system.REDIS_URL,
     decode_responses=True,
-    socket_timeout=0.2,          
-    socket_connect_timeout=0.2,  
-    retry_on_timeout=False
+    socket_timeout=0.5,             
+    socket_connect_timeout=0.5,
+    health_check_interval=30,       
+    retry_on_error=[ConnectionError, TimeoutError],
 )
 
 #Mail handler

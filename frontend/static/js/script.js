@@ -1,3 +1,5 @@
+
+
 async function loadDatasets() {
   try {
     const datasetsContainer = document.getElementById('datasets');
@@ -28,8 +30,9 @@ async function loadDatasets() {
 
     const data = await response.json();
     console.log('Datasets data received:', data);
+    updateStorageBar(data.datasets || []);
     
-    // Set username
+    
     const usernameSpan = document.getElementById('username');
     if (usernameSpan) {
       usernameSpan.textContent = data.username;

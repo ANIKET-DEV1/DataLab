@@ -99,19 +99,22 @@ function wireUpButtons(datasetId) {
         hideError('column-clean-error');
         hideSuccess('column-clean-success');
 
-        const column_name = document.querySelector("#column-select").value;
-        if (!column_name) return showError('column-clean-error', "Select a column first.");
-        const column_type = document.querySelector("#column-select")
-        const selectedText = column_type.options[column_type.selectedIndex].text;
-        console.log(selectedText)
-        if (selectedText.includes('(clean)')) return showSuccess('column-clean-success','Already Cleaned')
+        const selectEl = document.querySelector("#column-select");
+        const columnName = selectEl?.value;
 
+        if (!columnName) {
+        return showError('column-clean-error', "Select a column first.");
+        }
+        const selectedText = selectEl.options[selectEl.selectedIndex].text;
+        if (selectedText.includes('(clean)')) {
+        return showSuccess('column-clean-success', 'Already Cleaned');
+        }
 
         const cleanType = document.querySelector('input[name="clean-op"]:checked')?.value;
         if (!cleanType) return showError('column-clean-error', "Select fill NA or drop NA.");
 
         const payload = {
-            column_name: column_name,
+            column_name: columnName,
             clean_type: cleanType
         };
 
