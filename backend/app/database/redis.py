@@ -10,8 +10,8 @@ system = get_config()
 _redis_client = Redis.from_url(
     system.REDIS_URL,
     decode_responses=True,
-    socket_timeout=0.5,             
-    socket_connect_timeout=0.5,
+    socket_timeout=1,             
+    socket_connect_timeout=1,
     health_check_interval=30,       
     retry_on_error=[ConnectionError, TimeoutError],
 )

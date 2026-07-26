@@ -1,5 +1,3 @@
-
-
 async function loadDatasets() {
   try {
     const datasetsContainer = document.getElementById('datasets');
@@ -11,8 +9,6 @@ async function loadDatasets() {
       method: 'GET',
       credentials: 'same-origin'
     });
-
-    console.log('Response status:', response.status);
 
     if (!response.ok) {
       // 401 = session expired / token invalid → clear stale localStorage and go to landing
@@ -29,9 +25,6 @@ async function loadDatasets() {
     }
 
     const data = await response.json();
-    console.log('Datasets data received:', data);
-    updateStorageBar(data.datasets || []);
-    
     
     const usernameSpan = document.getElementById('username');
     if (usernameSpan) {
@@ -64,6 +57,7 @@ async function loadDatasets() {
     console.log('Found', data.datasets.length, 'datasets');
 
     // Create dataset cards
+    await updateStorageBar(data.datasets);
     
     datasetsContainer.innerHTML = data.datasets.map(dataset => `
       <div class="dataset-card animate-in" id="card-${escapeHtml(dataset.id)}">
@@ -218,6 +212,28 @@ async function downloadLargeFile(datasetId) {
     }
 }
 
+async function updateStorageBar(datasets) {
+  const storageBar = document.getElementById('storage-bar');
+  console.log('storageBar found:', storageBar);
+  if (!storageBar) return;
+
+  const TOTAL_BYTES = 15 * 1024 * 1024; 
+  const usedBytes = datasets.reduce((sum, d) => sum + (d.file_size_bytes || 0), 0);
+  const usedMB = usedBytes / (1024 * 1024);
+  const totalMB = TOTAL_BYTES / (1024 * 1024);
+  const pct = Math.min((usedBytes / TOTAL_BYTES) * 100, 100);
+
+  storageBar.style.width = `${pct}%`;
+  storageBar.setAttribute('aria-valuenow', pct.toFixed(1));
+
+  storageBar.classList.toggle('storage-bar-warning', pct >= 80 && pct < 100);
+  storageBar.classList.toggle('storage-bar-full', pct >= 100);
+
+  const storageLabel = document.getElementById('storage-label');
+  if (storageLabel) {
+    storageLabel.textContent = `${usedMB.toFixed(1)} MB / ${totalMB.toFixed(0)} MB`;
+  }
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   await loadDatasets();

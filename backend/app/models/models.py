@@ -52,8 +52,8 @@ class User(Base):
         )
     storage_limit_bytes: Mapped[int] = mapped_column(
         Integer,
-        default=52428800,
-        server_default="52428800", 
+        default=15728640,
+        server_default="15728640", 
         nullable=False
     )
     logged_out_at:Mapped[Optional[datetime]]= mapped_column(nullable=True, default=None)
