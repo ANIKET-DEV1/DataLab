@@ -1,11 +1,13 @@
 import os
 from uuid import UUID
 from fastapi import APIRouter, Depends, Request, UploadFile, File, status, Response
-from fastapi.responses import StreamingResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
+from ..core.supabase import get_supabase_client
 from ..database.session import AsyncSession, get_db
 from ..models.models import User,Dataset
 from ..repository.dataset import DatasetRepository
+from ..core.config import get_config
 from starlette.concurrency import run_in_threadpool
 from ..dependencies.deps import get_current_user ,get_verified_user_dataset,APP_DIR,get_repo
 from ..schemas.dataset import ColumnWiseClean, DatasetVisualized ,overallclean, renameColumn
@@ -16,7 +18,7 @@ from ..exceptions_handler.handle_expection import DatasetNotFound, ValidationErr
 router = APIRouter(prefix="/datasets", tags=["datasets"])
 templates = Jinja2Templates(directory=APP_DIR/"frontend/templates")
 
-
+configs=get_config()
 
 
 # ── Upload ────────────────────────────────────────────────────────────────────
@@ -209,20 +211,36 @@ def iterate_file_chunks(file_path: str, chunk_size: int = 4096):
 
 @router.get("/download")
 async def download_dataset(
-    request:Request,
+    request: Request,
     dataset: Dataset = Depends(get_verified_user_dataset)
-    ):
-    
+):
     if not dataset:
         raise DatasetNotFound("Dataset not found")
-        
-    if not os.path.exists(dataset.file_path):
-        raise DatasetNotFound("Physical file missing on server")
 
-    return StreamingResponse(
-        iterate_file_chunks(dataset.file_path),
-        media_type="application/octet-stream",
-        headers={
-            "Content-Disposition": f"attachment; filename={dataset.original_name}"
-        }
-    )
+    config = get_config()
+
+    if config.ENV.upper() == "DEVELOPMENT":
+        # Local — check disk and stream directly
+        if not os.path.exists(dataset.file_path):
+            raise DatasetNotFound("Physical file missing on server")
+
+        return StreamingResponse(
+            iterate_file_chunks(dataset.file_path),
+            media_type="application/octet-stream",
+            headers={
+                "Content-Disposition": f"attachment; filename={dataset.original_name}"
+            }
+        )
+
+    else:
+        # Supabase — generate a signed URL and redirect
+        try:
+            supabase_client = get_supabase_client()
+            signed = supabase_client.storage.from_(config.SUPABASE_BUCKET).create_signed_url(
+                dataset.file_path,
+                expires_in=60
+            )
+            return RedirectResponse(url=signed["signedURL"])
+
+        except Exception as e:
+            raise DatasetNotFound(f"Could not generate download link: {str(e)}")

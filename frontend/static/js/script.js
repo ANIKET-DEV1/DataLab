@@ -173,42 +173,42 @@ function selectbybutton(newId, newName) {
     console.log(`Active dataset set: ${newName} (id: ${newId})`);
 }
 async function downloadLargeFile(datasetId) {
-    const button = document.getElementById('downloadBtn');
-    button.disabled = true; 
+    const button = document.getElementById(`downloadBtn-${datasetId}`);
+    if (button) button.disabled = true;
 
     try {
-        const response = await fetch(`/datasets/download?dataset_id=${datasetId}`);
-        
+        const response = await fetch(`/datasets/download?dataset_id=${datasetId}`, {
+            credentials: 'same-origin'
+        });
+
         if (!response.ok) throw new Error('Download failed');
 
-      
         const reader = response.body.getReader();
         const chunks = [];
-        
+
         while (true) {
             const { done, value } = await reader.read();
-            if (done) break; 
-            
+            if (done) break;
             chunks.push(value);
         }
 
-        
         const blob = new Blob(chunks, { type: 'application/octet-stream' });
-        
+
         const downloadUrl = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = downloadUrl;
-        a.download = "dataset.csv"; 
+        a.download = "dataset.csv";
         document.body.appendChild(a);
         a.click();
-        
+
         document.body.removeChild(a);
         window.URL.revokeObjectURL(downloadUrl);
 
     } catch (error) {
         console.error('Download execution error:', error);
+        alert('Download failed. Please try again.');
     } finally {
-        button.disabled = false; 
+        if (button) button.disabled = false;
     }
 }
 
