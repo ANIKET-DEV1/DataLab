@@ -61,12 +61,9 @@ if (desktopLogout) logoutControls.push(desktopLogout);
 })();
 
 
-// ── Page-load auth guard ─────────────────────────────────────────────────────
-// Runs once on every page that includes auth.js (via base.html).
-// Hits GET /auth/me with the HTTP-only cookie; if the server says 401
-// the user is not (or no longer) authenticated → redirect to landing page.
-(function checkAuthOnLoad() {
-    document.addEventListener('DOMContentLoaded', async () => {
+
+
+document.addEventListener('DOMContentLoaded', async () => {
         try {
             const res = await fetch('/auth/me', {
                 method: 'GET',
@@ -84,4 +81,4 @@ if (desktopLogout) logoutControls.push(desktopLogout);
             console.error('[DataLab] Auth check failed (network error):', err);
         }
     });
-})();
+
