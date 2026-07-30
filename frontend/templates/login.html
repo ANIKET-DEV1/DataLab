@@ -186,7 +186,7 @@
                 messageElement.className = 'msg-success';
                 messageElement.textContent = '✓ ' + (result.message || 'Login successful! Redirecting…');
                 messageElement.style.display = 'flex';
-                setTimeout(() => window.location.href = '/datasets/view', 600);
+                setTimeout(() => window.location.href = '/dashboard', 600);
             } else {
                 messageElement.className = 'msg-error';
                 messageElement.textContent = '✗ ' + (result.detail || 'Login failed. Check your credentials.');
