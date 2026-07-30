@@ -220,7 +220,6 @@ async def download_dataset(
     config = get_config()
 
     if config.ENV.upper() == "DEVELOPMENT":
-        # Local — check disk and stream directly
         if not os.path.exists(dataset.file_path):
             raise DatasetNotFound("Physical file missing on server")
 
@@ -233,7 +232,6 @@ async def download_dataset(
         )
 
     else:
-        # Supabase — generate a signed URL and redirect
         try:
             supabase_client = get_supabase_client()
             signed = supabase_client.storage.from_(config.SUPABASE_BUCKET).create_signed_url(

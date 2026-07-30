@@ -234,7 +234,23 @@ async function updateStorageBar(datasets) {
     storageLabel.textContent = `${usedMB.toFixed(1)} MB / ${totalMB.toFixed(0)} MB`;
   }
 }
+async function checkAuth() {
+    try {
+        const res = await fetch('/auth/me', {
+            method: 'GET',
+            credentials: 'same-origin'
+        });
+
+        if (!res.ok) {
+            console.warn('[DataLab] Not authenticated — redirecting to /');
+            window.location.href = '/';
+        }
+    } catch (err) {
+        console.error('[DataLab] Auth check network error:', err);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
+  await checkAuth();
   await loadDatasets();
 });

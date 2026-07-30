@@ -143,11 +143,10 @@ def get_register_page(request: Request):
         )
 
 @app.get("/upload", response_class=HTMLResponse)
-def get_upload_page(request: Request, user:models.User=Depends(deps.get_current_user)):
+def get_upload_page(request: Request):
     return templates.TemplateResponse(
         name="upload.html",
-        request=request,
-        context={"username": user.username}
+        request=request
     )
 
 @app.get('/preview',response_class=HTMLResponse)
@@ -160,32 +159,36 @@ def get_preview_page(
         )
 
 @app.get("/ml", response_class=HTMLResponse)
-def get_ml_page(request: Request, user:models.User=Depends(deps.get_current_user)):
+def get_ml_page(request: Request):
     return templates.TemplateResponse(
         name="ml.html",
         request=request, 
-        context={"username": user.username})
+)
 
 @app.get("/visualize", response_class=HTMLResponse)
-def get_visualize_page(request: Request, 
-                       user:models.User=Depends(deps.get_current_user)):
+def get_visualize_page(request: Request):
     return templates.TemplateResponse(
         name="visualize.html", 
-        request=request, 
-        context={"username": user.username})
+        request=request)
 
 @app.get("/clean", response_class=HTMLResponse)
-def get_clean_page(request: Request, 
-                   user:models.User=Depends(deps.get_current_user)):
+def get_clean_page(request: Request):
     return templates.TemplateResponse(
         name="clean.html", 
-        request=request,
-        context={"username": user.username})
+        request=request
+        )
 
 @app.get("/change-password", response_class=HTMLResponse)
 def passwordreset(request: Request):
     return templates.TemplateResponse(
         name="password-reset.html", 
+        request=request,
+        )
+
+@app.get("/dashboard",response_class=HTMLResponse)
+def dashboard(request: Request):
+    return templates.TemplateResponse(
+        name="index.html", 
         request=request,
         )
 

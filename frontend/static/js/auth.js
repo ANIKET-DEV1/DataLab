@@ -78,7 +78,6 @@ async function checkAuth() {
             DL_KEYS.forEach(k => localStorage.removeItem(k));
             window.location.href = '/';
         }
-        
     } catch (err) {
       
         console.error('[DataLab] Auth check network error:', err);
