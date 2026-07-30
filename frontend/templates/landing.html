@@ -81,6 +81,13 @@
 
   .bar-anim { transform-origin: bottom; animation-fill-mode: both; }
 
+  /* FAQ accordion — JS-measured max-height, not the fragile grid-rows fr trick */
+  .faq-a {
+    overflow: hidden;
+    max-height: 0px;
+    transition: max-height .3s ease;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
@@ -89,6 +96,7 @@
       scroll-behavior: auto !important;
     }
     .rev { opacity: 1 !important; transform: none !important; }
+    .faq-a { transition: none !important; }
   }
 
   :focus-visible { outline: 2px solid #1F5D46; outline-offset: 2px; }
@@ -420,8 +428,8 @@
           <span>Is DataLab free to use?</span>
           <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
         </button>
-        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
-          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">Yes. Create an account, upload your datasets, and start exploring — there's no cost.</p>
+        <div class="faq-a">
+          <p class="pb-5 text-sm text-inkmute leading-relaxed">Yes. Create an account, upload your datasets, and start exploring — there's no cost.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -429,8 +437,8 @@
           <span>What file formats are supported?</span>
           <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
         </button>
-        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
-          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">CSV (.csv) and Excel (.xlsx, .xls) today. JSON and Parquet support are on the roadmap.</p>
+        <div class="faq-a">
+          <p class="pb-5 text-sm text-inkmute leading-relaxed">CSV (.csv) and Excel (.xlsx, .xls) today. JSON and Parquet support are on the roadmap.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -438,8 +446,8 @@
           <span>Do I need to know Python or SQL?</span>
           <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
         </button>
-        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
-          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">Not at all. DataLab is built for working with data without writing any code — everything is point-and-click.</p>
+        <div class="faq-a">
+          <p class="pb-5 text-sm text-inkmute leading-relaxed">Not at all. DataLab is built for working with data without writing any code — everything is point-and-click.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -447,8 +455,8 @@
           <span>Are my datasets secure?</span>
           <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
         </button>
-        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
-          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">Each dataset is tied to your authenticated account only, using secure JWT tokens — no other user can view or access it.</p>
+        <div class="faq-a">
+          <p class="pb-5 text-sm text-inkmute leading-relaxed">Each dataset is tied to your authenticated account only, using secure JWT tokens — no other user can view or access it.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -456,8 +464,8 @@
           <span>When will ML Studio launch?</span>
           <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
         </button>
-        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
-          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">It's in active development — no-code training for classification and regression, evaluation metrics, and model export.</p>
+        <div class="faq-a">
+          <p class="pb-5 text-sm text-inkmute leading-relaxed">It's in active development — no-code training for classification and regression, evaluation metrics, and model export.</p>
         </div>
       </div>
       <div class="faq-item">
@@ -465,8 +473,8 @@
           <span>Can I manage multiple datasets?</span>
           <span class="faq-arrow font-mono text-inkmute transition-transform">▾</span>
         </button>
-        <div class="faq-a grid grid-rows-[0fr] transition-[grid-template-rows] duration-300 overflow-hidden">
-          <p class="min-h-0 pb-5 text-sm text-inkmute leading-relaxed">Yes — upload and manage as many datasets as you need, and switch between them from your dashboard in one click.</p>
+        <div class="faq-a">
+          <p class="pb-5 text-sm text-inkmute leading-relaxed">Yes — upload and manage as many datasets as you need, and switch between them from your dashboard in one click.</p>
         </div>
       </div>
     </div>
@@ -549,22 +557,38 @@
   }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
   document.querySelectorAll('.rev').forEach(el => revObs.observe(el));
 
-  // FAQ accordion
+  // FAQ accordion — max-height is measured from real content (scrollHeight),
+  // so the answer text can never be clipped, no matter how long it is.
   document.querySelectorAll('.faq-item').forEach(item => {
     const btn = item.querySelector('.faq-q');
     const panel = item.querySelector('.faq-a');
     const arrow = item.querySelector('.faq-arrow');
+
     btn.addEventListener('click', () => {
       const isOpen = btn.getAttribute('aria-expanded') === 'true';
-      document.querySelectorAll('.faq-q').forEach(b => {
-        b.setAttribute('aria-expanded', 'false');
-        b.parentElement.querySelector('.faq-a').style.gridTemplateRows = '0fr';
-        b.parentElement.querySelector('.faq-arrow').style.transform = 'rotate(0deg)';
+
+      // close every item first
+      document.querySelectorAll('.faq-item').forEach(other => {
+        other.querySelector('.faq-q').setAttribute('aria-expanded', 'false');
+        other.querySelector('.faq-a').style.maxHeight = '0px';
+        other.querySelector('.faq-arrow').style.transform = 'rotate(0deg)';
       });
+
       if (!isOpen) {
         btn.setAttribute('aria-expanded', 'true');
-        panel.style.gridTemplateRows = '1fr';
+        panel.style.maxHeight = panel.scrollHeight + 'px';
         arrow.style.transform = 'rotate(180deg)';
+      }
+    });
+  });
+
+  // Keep open panel sized correctly if content reflows (e.g. font load, resize)
+  window.addEventListener('resize', () => {
+    document.querySelectorAll('.faq-item').forEach(item => {
+      const btn = item.querySelector('.faq-q');
+      const panel = item.querySelector('.faq-a');
+      if (btn.getAttribute('aria-expanded') === 'true') {
+        panel.style.maxHeight = panel.scrollHeight + 'px';
       }
     });
   });
